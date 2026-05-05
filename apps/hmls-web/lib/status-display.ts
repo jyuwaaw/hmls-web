@@ -88,12 +88,39 @@ export const ORDER_STEP_LABELS_PORTAL: Record<OrderStatus, string> = {
   cancelled: "Cancelled",
 };
 
+/** Tentative-booking display for chat-flow drafts that already have a slot
+ *  + auto-assigned mechanic but are still waiting on shop review. The
+ *  state-machine status is `draft`, but we surface it to the customer as
+ *  "Pending Confirmation" so the UX matches what just happened in chat
+ *  (without lying that the booking is locked). Admin sees the same
+ *  treatment so the review queue is visually distinct from plain drafts. */
+const PENDING_CONFIRMATION_CONFIG: StatusConfig = {
+  label: "Pending Confirmation",
+  color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+};
+
+/** True when a draft has accumulated chat-flow scheduling — it is
+ *  tentatively booked, not just an estimate. */
+export function isTentativeBooking(order: {
+  status: string;
+  scheduledAt?: string | Date | null;
+}): boolean {
+  return order.status === "draft" && order.scheduledAt != null;
+}
+
 /** Lookup helper that handles unknown DB status values gracefully.
- *  Use this from JSX instead of indexing the records directly. */
+ *  Use this from JSX instead of indexing the records directly.
+ *  Pass `tentativeBooking: true` when the order is a chat-flow draft with a
+ *  slot already attached — it returns "Pending Confirmation" instead of the
+ *  bare draft/Preparing label. */
 export function statusDisplay(
   status: string,
   surface: "admin" | "portal" = "admin",
+  opts?: { tentativeBooking?: boolean },
 ): StatusConfig {
+  if (opts?.tentativeBooking && status === "draft") {
+    return PENDING_CONFIRMATION_CONFIG;
+  }
   const map = surface === "portal" ? PORTAL_ORDER_STATUS : ORDER_STATUS;
   return isOrderStatus(status)
     ? map[status]

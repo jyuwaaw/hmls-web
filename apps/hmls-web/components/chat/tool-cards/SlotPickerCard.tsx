@@ -175,7 +175,7 @@ export function SlotPickerCard({
         disabled={!canConfirm}
         className="w-full rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-primary"
       >
-        {isAnswered ? "Appointment requested" : "Confirm Appointment"}
+        {isAnswered ? "Pending confirmation" : "Book Appointment"}
       </button>
     </div>
   );

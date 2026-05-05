@@ -7,7 +7,7 @@ import { DateTime } from "@/components/ui/DateTime";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePortalCustomer, usePortalOrders } from "@/hooks/usePortal";
 import { formatCents } from "@/lib/format";
-import { statusDisplay } from "@/lib/status-display";
+import { isTentativeBooking, statusDisplay } from "@/lib/status-display";
 
 function SummaryCard({
   label,
@@ -164,7 +164,9 @@ export default function PortalDashboard() {
         <Card className="p-0">
           <CardContent className="p-0 divide-y divide-border">
             {recentOrders.map((order) => {
-              const statusConfig = statusDisplay(order.status, "portal");
+              const statusConfig = statusDisplay(order.status, "portal", {
+                tentativeBooking: isTentativeBooking(order),
+              });
               return (
                 <Link
                   key={order.id}

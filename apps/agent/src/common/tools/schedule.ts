@@ -150,17 +150,32 @@ const scheduleOrderTool = {
       hour12: true,
     });
 
+    // Wording follows the order's actual lifecycle status. `scheduled` and
+    // `in_progress` are both locked: scheduled means the shop confirmed
+    // the appointment, in_progress means the mechanic is already on the
+    // job and this call is a pure reschedule (per attachSchedule's
+    // SCHEDULE_ATTACH_FROM allowlist). Drafts/estimated/revised orders
+    // are tentative — the shop still needs to review and confirm before
+    // it is a real booking, so the tool MUST NOT claim "confirmed" then.
+    const finalStatus = result.value.status;
+    const isLocked = finalStatus === "scheduled" ||
+      finalStatus === "in_progress";
+    const message = isLocked
+      ? (dispatched.providerId
+        ? `Appointment confirmed for ${friendlyTime}. A mechanic has been assigned and will be in touch.`
+        : `Appointment set for ${friendlyTime}. We're finalizing the mechanic assignment — our team will confirm shortly.`)
+      : `Tentatively scheduled for ${friendlyTime}, pending shop confirmation. The shop will review the estimate and lock in the appointment shortly — you'll get a notification once it's confirmed.`;
+
     return toolResult({
       success: true,
       orderId: result.value.id,
-      newStatus: result.value.status,
+      newStatus: finalStatus,
+      pendingShopReview: !isLocked,
       appointmentStart: result.value.scheduledAt?.toISOString(),
       appointmentEnd: result.value.appointmentEnd?.toISOString(),
       durationMinutes,
       providerId: dispatched.providerId,
-      message: dispatched.providerId
-        ? `Appointment confirmed for ${friendlyTime}. A mechanic has been assigned and will be in touch.`
-        : `Appointment set for ${friendlyTime}. We're finalizing the mechanic assignment — our team will confirm shortly.`,
+      message,
     });
   },
 };

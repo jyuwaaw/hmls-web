@@ -61,7 +61,7 @@ If customer has no orders: say so and proceed.
 
 Customer resolution (in priority order):
 1. **Existing customer** — pass \`customerId\` if you found them via \`search_customers\`
-2. **Walk-in with some info** — pass \`customerInfo: { name, email, phone }\` (any subset). The tool finds-by-email or creates a guest customer.
+2. **Walk-in with some info** — pass \`customerInfo: { name, email, phone, address }\` (any subset). The tool finds-by-email or creates a guest customer. If you also have a service address, include it.
 3. **No customer at all** — omit both fields. The order is created with no customer linked (you can attach one later via \`update_order\`).
 
 **Typical flows:**

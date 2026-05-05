@@ -31,12 +31,35 @@ export type MessageProps = HTMLAttributes<HTMLDivElement> & {
 export const Message = ({ className, from, ...props }: MessageProps) => (
   <div
     className={cn(
-      "group flex w-full max-w-[95%] flex-col gap-2",
-      from === "user" ? "is-user ml-auto justify-end" : "is-assistant",
+      "group flex w-full max-w-[95%] gap-3",
+      from === "user"
+        ? "is-user ml-auto flex-row-reverse"
+        : "is-assistant flex-row",
       className,
     )}
     {...props}
   />
+);
+
+export type MessageAvatarProps = HTMLAttributes<HTMLDivElement>;
+
+/** Square avatar slot pinned to the start of the row, sized to align with
+ *  the first line of the message content. Pass an icon or initials as
+ *  children — the slot only handles framing/spacing. */
+export const MessageAvatar = ({
+  className,
+  children,
+  ...props
+}: MessageAvatarProps) => (
+  <div
+    className={cn(
+      "shrink-0 flex h-8 w-8 items-center justify-center rounded-full bg-red-light text-red-primary mt-1",
+      className,
+    )}
+    {...props}
+  >
+    {children}
+  </div>
 );
 
 export type MessageContentProps = HTMLAttributes<HTMLDivElement>;
@@ -48,8 +71,14 @@ export const MessageContent = ({
 }: MessageContentProps) => (
   <div
     className={cn(
-      "is-user:dark flex w-fit min-w-0 max-w-full flex-col gap-2 overflow-hidden text-sm",
-      "group-[.is-user]:ml-auto group-[.is-user]:rounded-lg group-[.is-user]:bg-secondary group-[.is-user]:px-4 group-[.is-user]:py-3 group-[.is-user]:text-foreground",
+      "flex w-fit min-w-0 max-w-full flex-col gap-2 overflow-hidden text-sm",
+      // User: solid brand-red bubble, white text — high contrast against
+      // dark surface, on-brand, reads as "you" without ambiguity. No
+      // shadow — the shadow forced every bubble onto its own compositing
+      // layer and tanked scroll perf during streaming.
+      "group-[.is-user]:rounded-2xl group-[.is-user]:rounded-br-sm group-[.is-user]:bg-red-primary group-[.is-user]:px-4 group-[.is-user]:py-2.5 group-[.is-user]:text-white",
+      // Assistant: no bubble — text floats next to avatar, classic AI chat
+      // style. Foreground color so streamdown markdown renders correctly.
       "group-[.is-assistant]:text-foreground",
       className,
     )}

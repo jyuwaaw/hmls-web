@@ -13,8 +13,13 @@ export type ConversationProps = ComponentProps<typeof StickToBottom>;
 export const Conversation = ({ className, ...props }: ConversationProps) => (
   <StickToBottom
     className={cn("relative flex-1 overflow-y-hidden", className)}
+    // Smooth-scroll on initial mount feels nice; smooth-scroll on every
+    // streamed token (resize) repaints the gradient overlays per frame
+    // and is the main source of chat lag during streaming. Switch resize
+    // to instant — the gradient overlays don't need to follow tokens
+    // smoothly, they just need to stay locked to viewport edges.
     initial="smooth"
-    resize="smooth"
+    resize="instant"
     role="log"
     {...props}
   />

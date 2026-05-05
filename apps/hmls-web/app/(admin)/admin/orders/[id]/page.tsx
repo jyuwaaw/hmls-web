@@ -61,7 +61,11 @@ import {
 } from "@/hooks/useOrderMutations";
 import { AGENT_URL } from "@/lib/config";
 import { formatCents } from "@/lib/format";
-import { ORDER_STATUS, ORDER_STEP_LABELS_ADMIN } from "@/lib/status-display";
+import {
+  isTentativeBooking,
+  ORDER_STEP_LABELS_ADMIN,
+  statusDisplay,
+} from "@/lib/status-display";
 import { cn } from "@/lib/utils";
 
 /* ── Constants ────────────────────────────────────────────────────────── */
@@ -101,17 +105,20 @@ const SHOW_BOOKING_PANEL_STATUSES: ReadonlySet<OrderStatus> = new Set([
 function OrderStatusBadge({
   status,
   config,
+  entry,
 }: {
-  status: string;
-  config: Record<string, { label: string; color: string }>;
+  status?: string;
+  config?: Record<string, { label: string; color: string }>;
+  entry?: { label: string; color: string };
 }) {
-  const entry = config[status] ?? {
-    label: status,
-    color: "bg-neutral-100 text-neutral-500",
-  };
+  const resolved = entry ??
+    (status != null ? config?.[status] : undefined) ?? {
+      label: status ?? "—",
+      color: "bg-neutral-100 text-neutral-500",
+    };
   return (
-    <Badge variant="outline" className={cn("border-0", entry.color)}>
-      {entry.label}
+    <Badge variant="outline" className={cn("border-0", resolved.color)}>
+      {resolved.label}
     </Badge>
   );
 }
@@ -331,6 +338,8 @@ function BookingPanel({
     providerId?: number | null;
     location?: string | null;
     adminNotes: string | null;
+    accessInstructions?: string | null;
+    symptomDescription?: string | null;
   };
   providerName: string | null;
   onAssign: () => void;
@@ -405,6 +414,24 @@ function BookingPanel({
             <MapPin className="w-3 h-3" />
             {order.location}
           </p>
+        )}
+        {order.accessInstructions && (
+          <>
+            <Separator />
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">Access:</span>{" "}
+              {order.accessInstructions}
+            </p>
+          </>
+        )}
+        {order.symptomDescription && (
+          <>
+            <Separator />
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">Symptoms:</span>{" "}
+              {order.symptomDescription}
+            </p>
+          </>
         )}
         {order.adminNotes && (
           <>
@@ -683,6 +710,10 @@ export default function OrderDetailPage() {
   const knownStatus = isOrderStatus(order.status) ? order.status : undefined;
   const allowed = knownStatus ? ORDER_TRANSITIONS[knownStatus] : [];
   const isEditable = knownStatus ? EDITABLE_STATUSES.has(knownStatus) : false;
+  const tentative = isTentativeBooking(order);
+  const adminStatus = statusDisplay(order.status, "admin", {
+    tentativeBooking: tentative,
+  });
 
   const showEstimatePanel = knownStatus
     ? SHOW_ESTIMATE_PANEL_STATUSES.has(knownStatus)
@@ -792,7 +823,7 @@ export default function OrderDetailPage() {
           <h1 className="text-2xl font-display font-bold text-foreground">
             Order #{order.id}
           </h1>
-          <OrderStatusBadge status={order.status} config={ORDER_STATUS} />
+          <OrderStatusBadge entry={adminStatus} />
           {order.revisionNumber > 1 && (
             <Badge variant="secondary" className="text-[10px]">
               v{order.revisionNumber}
@@ -804,7 +835,14 @@ export default function OrderDetailPage() {
         </span>
       </div>
 
-      {/* AI draft review banner */}
+      {/* AI draft review banner.
+          Two flavors:
+          - tentative (draft + scheduledAt): customer accepted in chat. Review,
+            then "Approve & confirm" promotes draft → scheduled. The
+            BookingPanel below offers reschedule/reassign before the click.
+          - plain draft (no scheduling yet): customer hasn't been offered a
+            time. "Send to customer" promotes draft → estimated; customer
+            then approves and picks a slot via the portal. */}
       {order.status === "draft" && (
         <Card className="border-amber-500/40 bg-amber-50 dark:bg-amber-950/20 gap-0 py-0">
           <CardContent className="px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
@@ -812,23 +850,38 @@ export default function OrderDetailPage() {
               <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
               <div className="text-xs">
                 <p className="font-semibold text-amber-900 dark:text-amber-200">
-                  Pending shop review
+                  {tentative
+                    ? "Tentative booking — pending your confirmation"
+                    : "Pending shop review"}
                 </p>
                 <p className="text-amber-800 dark:text-amber-300/90 mt-0.5">
-                  AI drafted this estimate from the customer chat. Review line
-                  items and pricing, then send it to the customer.
+                  {tentative
+                    ? "Customer accepted the AI-drafted estimate and a time slot in chat. Review line items and pricing, then confirm to lock in the appointment."
+                    : "AI drafted this estimate from the customer chat. Review line items and pricing, then send it to the customer."}
                 </p>
               </div>
             </div>
-            <Button
-              size="sm"
-              onClick={() => handleTransition("estimated")}
-              disabled={transitioning}
-              className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white"
-            >
-              <Send className="w-3.5 h-3.5" />
-              Send to customer
-            </Button>
+            {tentative ? (
+              <Button
+                size="sm"
+                onClick={handleBookingConfirm}
+                disabled={bookingBusy}
+                className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                <CheckCircle className="w-3.5 h-3.5" />
+                Approve &amp; confirm
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                onClick={() => handleTransition("estimated")}
+                disabled={transitioning}
+                className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white"
+              >
+                <Send className="w-3.5 h-3.5" />
+                Send to customer
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}
@@ -836,7 +889,11 @@ export default function OrderDetailPage() {
       {/* Progress bar */}
       <Card className="py-4 gap-0">
         <CardContent>
-          <OrderProgressBar status={order.status} variant="admin" />
+          <OrderProgressBar
+            status={order.status}
+            variant="admin"
+            tentativeBooking={tentative}
+          />
         </CardContent>
       </Card>
 

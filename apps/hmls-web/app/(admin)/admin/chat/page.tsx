@@ -2,7 +2,7 @@
 
 import { isToolOrDynamicToolUIPart } from "ai";
 import { motion, useReducedMotion } from "framer-motion";
-import { Loader2, Send, Wrench } from "lucide-react";
+import { Wrench } from "lucide-react";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import {
@@ -10,11 +10,22 @@ import {
   ConversationContent,
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
-import { Message, MessageContent } from "@/components/ai-elements/message";
+import { Loader } from "@/components/ai-elements/loader";
+import {
+  Message,
+  MessageAvatar,
+  MessageContent,
+} from "@/components/ai-elements/message";
+import {
+  PromptInput,
+  PromptInputSubmit,
+  PromptInputTextarea,
+  PromptInputToolbar,
+} from "@/components/ai-elements/prompt-input";
+import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { Button } from "@/components/ui/button";
 import { askConfirm } from "@/components/ui/ConfirmDialog";
-import { Input } from "@/components/ui/input";
 import { useAgentChat } from "@/hooks/useAgentChat";
 import { STAFF_CHAT_ENDPOINT } from "@/lib/config";
 
@@ -56,26 +67,17 @@ function WelcomeScreen({ onPick }: { onPick: (text: string) => void }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="flex flex-wrap gap-2 mt-6 justify-center"
+        className="mt-6"
       >
-        {STAFF_SUGGESTIONS.map((suggestion, index) => (
-          <motion.button
-            key={suggestion}
-            type="button"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 + index * 0.1 }}
-            whileHover={{
-              scale: 1.05,
-              borderColor: "hsl(var(--primary) / 0.5)",
-            }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onPick(suggestion)}
-            className="px-4 py-2 rounded-full bg-muted border border-border text-sm text-muted-foreground hover:border-primary/50 hover:text-primary transition-colors"
-          >
-            {suggestion}
-          </motion.button>
-        ))}
+        <Suggestions>
+          {STAFF_SUGGESTIONS.map((suggestion) => (
+            <Suggestion
+              key={suggestion}
+              suggestion={suggestion}
+              onSuggestionClick={onPick}
+            />
+          ))}
+        </Suggestions>
       </motion.div>
     </div>
   );
@@ -85,7 +87,7 @@ export default function AdminChatPage() {
   const prefersReducedMotion = useReducedMotion();
   const { session } = useAuth();
   const [input, setInput] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const {
     uiMessages,
@@ -235,11 +237,11 @@ export default function AdminChatPage() {
               (renderable.length === 0 ||
                 renderable[renderable.length - 1]?.role === "user") && (
                 <Message from="assistant">
+                  <MessageAvatar aria-hidden>
+                    <Wrench className="h-4 w-4" />
+                  </MessageAvatar>
                   <MessageContent>
-                    <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1 text-xs text-muted-foreground">
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
-                      <span>Working on it…</span>
-                    </div>
+                    <Loader label="Working on it…" />
                   </MessageContent>
                 </Message>
               )}
@@ -265,7 +267,7 @@ export default function AdminChatPage() {
         </Conversation>
 
         {/* Input */}
-        <motion.form
+        <motion.div
           initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={
@@ -273,37 +275,34 @@ export default function AdminChatPage() {
               ? { duration: 0 }
               : { duration: 0.4, delay: 0.2 }
           }
-          onSubmit={handleSubmit}
           className="mt-4"
         >
-          <div className="flex gap-3">
+          <PromptInput onSubmit={handleSubmit}>
             <label htmlFor="staff-chat-input" className="sr-only">
               Message
             </label>
-            <Input
+            <PromptInputTextarea
               ref={inputRef}
               id="staff-chat-input"
-              type="text"
               name="message"
               autoComplete="off"
-              enterKeyHint="send"
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onSubmitOnEnter={() => {
+                if (!input.trim() || isLoading) return;
+                sendMessage(input.trim());
+                setInput("");
+              }}
               placeholder="Create an order, check labor times..."
-              disabled={isLoading}
-              className="flex-1 h-14 rounded-xl px-5 text-base"
             />
-            <Button
-              type="submit"
-              aria-label="Send"
-              disabled={isLoading || !input.trim()}
-              className="w-14 h-14 rounded-xl"
-              size="icon-lg"
-            >
-              <Send size={20} />
-            </Button>
-          </div>
-        </motion.form>
+            <PromptInputToolbar>
+              <span className="pl-2 text-[11px] text-muted-foreground/60">
+                Enter to send · Shift+Enter for newline
+              </span>
+              <PromptInputSubmit disabled={isLoading || !input.trim()} />
+            </PromptInputToolbar>
+          </PromptInput>
+        </motion.div>
       </div>
     </main>
   );

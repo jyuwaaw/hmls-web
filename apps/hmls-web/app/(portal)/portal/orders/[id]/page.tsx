@@ -15,7 +15,7 @@ import { useApi } from "@/hooks/useApi";
 import { usePortalOrder } from "@/hooks/usePortal";
 import { portalPaths } from "@/lib/api-paths";
 import { formatCents } from "@/lib/format";
-import { PORTAL_ORDER_STATUS, statusDisplay } from "@/lib/status-display";
+import { isTentativeBooking, statusDisplay } from "@/lib/status-display";
 
 /* ── Timeline helpers ─────────────────────────────────────────────────── */
 
@@ -258,6 +258,10 @@ export default function PortalOrderDetailPage() {
     ? [vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(" ")
     : null;
   const canApproveDecline = order.status === "estimated";
+  const tentative = isTentativeBooking(order);
+  const portalStatus = statusDisplay(order.status, "portal", {
+    tentativeBooking: tentative,
+  });
 
   async function handleAction(action: "approve" | "decline") {
     if (action === "decline") {
@@ -324,16 +328,31 @@ export default function PortalOrderDetailPage() {
             <h1 className="text-2xl font-display font-bold text-text">
               Order #{order.id}
             </h1>
-            <StatusBadge status={order.status} config={PORTAL_ORDER_STATUS} />
+            <StatusBadge entry={portalStatus} />
           </div>
           <span className="text-xs text-text-secondary">
             Created <DateTime value={order.createdAt} format="datetime" />
           </span>
         </div>
 
+        {tentative && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900 dark:border-amber-700/40 dark:bg-amber-900/20 dark:text-amber-200">
+            <p className="font-semibold">Pending shop confirmation</p>
+            <p className="mt-0.5 text-amber-800 dark:text-amber-200/90">
+              Our team is reviewing the AI-drafted estimate. Once they confirm
+              the line items and pricing, your appointment will be locked in and
+              you'll get a notification.
+            </p>
+          </div>
+        )}
+
         {/* Progress bar */}
         <div className="bg-surface border border-border rounded-xl p-4">
-          <OrderProgressBar status={order.status} variant="portal" />
+          <OrderProgressBar
+            status={order.status}
+            variant="portal"
+            tentativeBooking={tentative}
+          />
         </div>
 
         {/* Content */}
@@ -534,9 +553,7 @@ export default function PortalOrderDetailPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-text-secondary">Status</span>
-                  <span className="text-text">
-                    {statusDisplay(order.status, "portal").label}
-                  </span>
+                  <span className="text-text">{portalStatus.label}</span>
                 </div>
                 {order.expiresAt && (
                   <div className="flex justify-between">

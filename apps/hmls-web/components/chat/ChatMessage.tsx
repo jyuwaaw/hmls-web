@@ -5,9 +5,11 @@ import {
   isToolOrDynamicToolUIPart,
   type UIMessage,
 } from "ai";
+import { Wrench } from "lucide-react";
 import { memo } from "react";
 import {
   Message,
+  MessageAvatar,
   MessageContent,
   MessageResponse,
 } from "@/components/ai-elements/message";
@@ -59,6 +61,11 @@ export const ChatMessage = memo(function ChatMessage({
 }: ChatMessageProps) {
   return (
     <Message from={msg.role}>
+      {msg.role === "assistant" && (
+        <MessageAvatar aria-hidden>
+          <Wrench className="h-4 w-4" />
+        </MessageAvatar>
+      )}
       <MessageContent>
         {msg.parts.map((part, i) => {
           const partKey = `${msg.id}-${i}`;

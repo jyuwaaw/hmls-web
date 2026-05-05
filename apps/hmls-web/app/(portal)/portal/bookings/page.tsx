@@ -13,7 +13,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useApi } from "@/hooks/useApi";
 import { type PortalOrder, usePortalBookings } from "@/hooks/usePortal";
 import { portalPaths } from "@/lib/api-paths";
-import { PORTAL_ORDER_STATUS } from "@/lib/status-display";
+import { isTentativeBooking, statusDisplay } from "@/lib/status-display";
 
 function BookingCard({
   order,
@@ -37,7 +37,11 @@ function BookingCard({
         <div>
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-text">{firstItem}</span>
-            <StatusBadge status={order.status} config={PORTAL_ORDER_STATUS} />
+            <StatusBadge
+              entry={statusDisplay(order.status, "portal", {
+                tentativeBooking: isTentativeBooking(order),
+              })}
+            />
           </div>
           {vehicleStr && (
             <p className="text-xs text-text-secondary mt-0.5">{vehicleStr}</p>

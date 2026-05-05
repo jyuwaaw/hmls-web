@@ -1,4 +1,4 @@
-import Footer from "@/components/Footer";
+import ConditionalFooter from "@/components/ConditionalFooter";
 import Navbar from "@/components/Navbar";
 
 export default function MarketingLayout({
@@ -10,7 +10,7 @@ export default function MarketingLayout({
     <>
       <Navbar />
       <div className="flex-1 flex flex-col">{children}</div>
-      <Footer />
+      <ConditionalFooter />
     </>
   );
 }

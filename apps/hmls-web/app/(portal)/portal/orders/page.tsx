@@ -13,7 +13,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useApi } from "@/hooks/useApi";
 import { type PortalOrder, usePortalOrders } from "@/hooks/usePortal";
 import { portalPaths } from "@/lib/api-paths";
-import { PORTAL_ORDER_STATUS, statusDisplay } from "@/lib/status-display";
+import { isTentativeBooking, statusDisplay } from "@/lib/status-display";
 
 function OrderCard({
   order,
@@ -25,6 +25,10 @@ function OrderCard({
   loading: number | null;
 }) {
   const canApproveDecline = order.status === "estimated";
+  const tentative = isTentativeBooking(order);
+  const badgeEntry = statusDisplay(order.status, "portal", {
+    tentativeBooking: tentative,
+  });
 
   return (
     <div className="bg-surface border border-border rounded-xl p-5 hover:border-border-hover transition-colors">
@@ -37,7 +41,7 @@ function OrderCard({
             >
               Order #{order.id}
             </Link>
-            <StatusBadge status={order.status} config={PORTAL_ORDER_STATUS} />
+            <StatusBadge entry={badgeEntry} />
           </div>
           <p className="text-xs text-text-secondary mt-0.5">
             <DateTime value={order.createdAt} format="datetime" />

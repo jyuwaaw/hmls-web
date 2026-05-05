@@ -2,7 +2,7 @@
 
 import { isToolOrDynamicToolUIPart } from "ai";
 import { motion, useReducedMotion } from "framer-motion";
-import { Loader2, Send, Wrench } from "lucide-react";
+import { Wrench } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   type FormEvent,
@@ -18,7 +18,19 @@ import {
   ConversationContent,
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
-import { Message, MessageContent } from "@/components/ai-elements/message";
+import { Loader } from "@/components/ai-elements/loader";
+import {
+  Message,
+  MessageAvatar,
+  MessageContent,
+} from "@/components/ai-elements/message";
+import {
+  PromptInput,
+  PromptInputSubmit,
+  PromptInputTextarea,
+  PromptInputToolbar,
+} from "@/components/ai-elements/prompt-input";
+import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion";
 import { ChatMessage } from "@/components/chat/ChatMessage";
 import { askConfirm } from "@/components/ui/ConfirmDialog";
 import { useAgentChat } from "@/hooks/useAgentChat";
@@ -63,26 +75,17 @@ function WelcomeScreen({ onPick }: { onPick: (text: string) => void }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="flex flex-wrap gap-2 mt-6 justify-center"
+        className="mt-6"
       >
-        {SUGGESTIONS.map((suggestion, index) => (
-          <motion.button
-            key={suggestion}
-            type="button"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 + index * 0.1 }}
-            whileHover={{
-              scale: 1.05,
-              borderColor: "rgb(220 38 38 / 0.5)",
-            }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onPick(suggestion)}
-            className="px-4 py-2 rounded-full bg-surface-alt border border-border text-sm text-text-secondary hover:border-red-primary/50 hover:text-red-primary transition-colors"
-          >
-            {suggestion}
-          </motion.button>
-        ))}
+        <Suggestions>
+          {SUGGESTIONS.map((suggestion) => (
+            <Suggestion
+              key={suggestion}
+              suggestion={suggestion}
+              onSuggestionClick={onPick}
+            />
+          ))}
+        </Suggestions>
       </motion.div>
     </div>
   );
@@ -111,7 +114,7 @@ function ChatPageInner() {
   }, [skipAuth, authLoading, session, isAdmin, router]);
 
   const [input, setInput] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const hasSentInitial = useRef(false);
 
   const {
@@ -132,6 +135,24 @@ function ChatPageInner() {
     if (!isMobile) {
       inputRef.current?.focus();
     }
+  }, []);
+
+  // Lock html + body overflow while chat is mounted so the in-page
+  // Conversation is the only scroll surface — marketing layout's flex
+  // wrappers + navbar borders would otherwise push total content past
+  // 100dvh by a few pixels and produce a redundant outer scrollbar at
+  // the browser viewport edge. Restored on unmount.
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtml = html.style.overflow;
+    const prevBody = body.style.overflow;
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    return () => {
+      html.style.overflow = prevHtml;
+      body.style.overflow = prevBody;
+    };
   }, []);
 
   // Auto-send initial message from query params (hero widget).
@@ -216,31 +237,90 @@ function ChatPageInner() {
     );
   }
 
+  // ChatGPT-style full-bleed: main covers the entire viewport (fixed
+  // inset-0) so the inner Conversation scrollbar runs from the very top
+  // to the very bottom of the window. The marketing navbar (sticky top-0,
+  // z-50) sits on top of main, and messages scroll *under* it. The chat's
+  // own header and the PromptInput are also positioned absolutely over
+  // the Conversation, with bg fades so messages disappear cleanly behind
+  // them — Conversation owns the entire scroll surface.
+  //
+  // Padding inside ConversationContent reserves space for the overlay
+  // bars: pt clears the navbar (4rem) + chat header (~5rem) + breathing,
+  // pb clears the input box (~6rem) + breathing.
   return (
-    <main className="flex flex-col flex-1 bg-background text-text">
-      <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full pt-8 pb-4 px-4 min-h-0">
-        {/* Header */}
-        <motion.div
-          initial={prefersReducedMotion ? false : { opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={
-            prefersReducedMotion ? { duration: 0 } : { duration: 0.4 }
-          }
-          className="flex items-center justify-between mb-4 px-2"
-        >
+    <main className="fixed inset-0 z-0 bg-background text-text overflow-hidden">
+      <Conversation className="absolute inset-0">
+        <ConversationContent className="px-4 sm:px-6 pt-[calc(4rem+5rem+4rem)] pb-[calc(6rem+3rem)] max-w-5xl mx-auto w-full">
+          {renderable.length === 0 && <WelcomeScreen onPick={sendMessage} />}
+          {renderable.map((msg, idx) => {
+            const isLastAssistant =
+              idx === renderable.length - 1 && msg.role === "assistant";
+            const nextUserAnswer =
+              msg.role === "assistant"
+                ? nextUserAnswerByAssistantId.get(msg.id)
+                : undefined;
+            return (
+              <ChatMessage
+                key={msg.id}
+                msg={msg}
+                isStreaming={isLastAssistant && isLoading}
+                nextUserAnswer={nextUserAnswer}
+                onAnswer={sendMessage}
+                mode="customer"
+                hideReasoning
+                hideGenericToolFallback
+              />
+            );
+          })}
+
+          {/* Submitted-state indicator: bridges the gap between user
+                send and first assistant token / tool call so the chat
+                doesn't feel frozen. */}
+          {isLoading &&
+            (renderable.length === 0 ||
+              renderable[renderable.length - 1]?.role === "user") && (
+              <Message from="assistant">
+                <MessageAvatar aria-hidden>
+                  <Wrench className="h-4 w-4" />
+                </MessageAvatar>
+                <MessageContent>
+                  <Loader label="Working on it…" />
+                </MessageContent>
+              </Message>
+            )}
+
+          {error && (
+            <div className="rounded-2xl bg-red-50 border border-red-200 px-5 py-3">
+              <p className="text-xs font-medium text-red-600 mb-1">Error</p>
+              <p className="text-sm text-red-700">{error}</p>
+              <button
+                type="button"
+                onClick={clearError}
+                className="text-xs text-red-500 hover:text-red-700 mt-1 underline"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+        </ConversationContent>
+        <ConversationScrollButton />
+      </Conversation>
+
+      {/* Floating chat header — sits below the marketing navbar, above
+          the scrolling Conversation. Solid bg so messages don't bleed
+          through, gradient fade below softens the seam. */}
+      <motion.div
+        initial={prefersReducedMotion ? false : { opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.4 }}
+        className="absolute left-0 right-0 top-[4rem] z-10 px-4 sm:px-6 pb-10 bg-gradient-to-b from-background via-background to-transparent [contain:layout_paint] will-change-transform"
+      >
+        <div className="flex items-center justify-between max-w-5xl mx-auto w-full pt-3">
           <div className="flex items-center gap-3">
-            <motion.div
-              initial={prefersReducedMotion ? false : { scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={
-                prefersReducedMotion
-                  ? { duration: 0 }
-                  : { delay: 0.2, type: "spring", stiffness: 200 }
-              }
-              className="w-12 h-12 rounded-full bg-red-light flex items-center justify-center"
-            >
+            <div className="w-12 h-12 rounded-full bg-red-light flex items-center justify-center">
               <Wrench className="w-6 h-6 text-red-primary" />
-            </motion.div>
+            </div>
             <div>
               <h1 className="text-xl font-display font-bold text-text">
                 HMLS Assistant
@@ -271,108 +351,47 @@ function ChatPageInner() {
           >
             Clear chat
           </motion.button>
-        </motion.div>
+        </div>
+      </motion.div>
 
-        {/* Messages — AI Elements <Conversation> handles stick-to-bottom and
-            the "scroll to latest" floating button. */}
-        <Conversation className="flex-1 rounded-2xl border border-border bg-surface min-h-0">
-          <ConversationContent className="p-6">
-            {renderable.length === 0 && <WelcomeScreen onPick={sendMessage} />}
-            {renderable.map((msg, idx) => {
-              const isLastAssistant =
-                idx === renderable.length - 1 && msg.role === "assistant";
-              const nextUserAnswer =
-                msg.role === "assistant"
-                  ? nextUserAnswerByAssistantId.get(msg.id)
-                  : undefined;
-              return (
-                <ChatMessage
-                  key={msg.id}
-                  msg={msg}
-                  isStreaming={isLastAssistant && isLoading}
-                  nextUserAnswer={nextUserAnswer}
-                  onAnswer={sendMessage}
-                  mode="customer"
-                  hideReasoning
-                  hideGenericToolFallback
-                />
-              );
-            })}
-
-            {/* Submitted-state indicator: bridges the gap between user
-                send and first assistant token / tool call so the chat
-                doesn't feel frozen. */}
-            {isLoading &&
-              (renderable.length === 0 ||
-                renderable[renderable.length - 1]?.role === "user") && (
-                <Message from="assistant">
-                  <MessageContent>
-                    <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-alt px-3 py-1 text-xs text-text-secondary">
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-red-primary" />
-                      <span>Working on it…</span>
-                    </div>
-                  </MessageContent>
-                </Message>
-              )}
-
-            {error && (
-              <div className="rounded-2xl bg-red-50 border border-red-200 px-5 py-3">
-                <p className="text-xs font-medium text-red-600 mb-1">Error</p>
-                <p className="text-sm text-red-700">{error}</p>
-                <button
-                  type="button"
-                  onClick={clearError}
-                  className="text-xs text-red-500 hover:text-red-700 mt-1 underline"
-                >
-                  Dismiss
-                </button>
-              </div>
-            )}
-          </ConversationContent>
-          <ConversationScrollButton />
-        </Conversation>
-
-        {/* Input */}
-        <motion.form
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={
-            prefersReducedMotion
-              ? { duration: 0 }
-              : { duration: 0.4, delay: 0.2 }
-          }
-          onSubmit={handleSubmit}
-          className="mt-4"
-        >
-          <div className="flex gap-3">
+      {/* Floating input box — pinned to the bottom of the viewport with
+          a top gradient that fades messages out behind it. */}
+      <motion.div
+        initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={
+          prefersReducedMotion ? { duration: 0 } : { duration: 0.4, delay: 0.2 }
+        }
+        className="absolute left-0 right-0 bottom-0 z-10 px-4 sm:px-6 pt-6 pb-4 bg-gradient-to-t from-background via-background to-transparent [contain:layout_paint] will-change-transform"
+      >
+        <div className="max-w-5xl mx-auto w-full">
+          <PromptInput onSubmit={handleSubmit}>
             <label htmlFor="chat-input" className="sr-only">
               Chat message
             </label>
-            <input
+            <PromptInputTextarea
               ref={inputRef}
               id="chat-input"
-              type="text"
               name="message"
               autoComplete="off"
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onSubmitOnEnter={() => {
+                if (!input.trim() || isLoading) return;
+                sendMessage(input.trim());
+                setInput("");
+              }}
               placeholder="Type your message..."
-              disabled={isLoading}
-              className="flex-1 bg-surface border border-border rounded-xl px-5 py-4 text-text placeholder-text-secondary/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-primary focus-visible:border-red-primary disabled:opacity-50 transition-colors"
             />
-            <motion.button
-              type="submit"
-              aria-label="Send message"
-              disabled={isLoading || !input.trim()}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="w-14 h-14 rounded-xl bg-red-primary text-white flex items-center justify-center hover:bg-red-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Send size={20} />
-            </motion.button>
-          </div>
-        </motion.form>
-      </div>
+            <PromptInputToolbar>
+              <span className="pl-2 text-[11px] text-text-secondary/60">
+                Enter to send · Shift+Enter for newline
+              </span>
+              <PromptInputSubmit disabled={isLoading || !input.trim()} />
+            </PromptInputToolbar>
+          </PromptInput>
+        </div>
+      </motion.div>
     </main>
   );
 }

@@ -25,7 +25,10 @@ import {
 import { CHAT_ENDPOINT } from "@/lib/config";
 
 interface UseAgentChatOptions {
-  inputRef?: RefObject<HTMLInputElement | null>;
+  /** Optional ref to a focusable input/textarea. Hook only calls `.focus()`,
+   *  so any element with that method works. Customer chat uses a textarea
+   *  (PromptInput), admin chat still uses a plain input. */
+  inputRef?: RefObject<HTMLInputElement | HTMLTextAreaElement | null>;
   accessToken?: string | null;
   endpoint?: string;
   /** localStorage key for chat history. Use distinct keys per chat surface

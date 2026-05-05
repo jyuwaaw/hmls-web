@@ -12,7 +12,6 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import {
   ORDER_STEP_LABELS_ADMIN,
   ORDER_STEP_LABELS_PORTAL,
-  PORTAL_ORDER_STATUS,
   statusDisplay,
 } from "@/lib/status-display";
 import { cn } from "@/lib/utils";
@@ -29,7 +28,8 @@ type VariantStyles = {
   pendingLabel: string;
   messageText: string;
   branchMessages: Record<string, string>;
-  renderBadge: (status: string) => ReactNode;
+  tentativeMessage: string;
+  renderBadge: (status: string, tentative?: boolean) => ReactNode;
 };
 
 const ADMIN_STYLES: VariantStyles = {
@@ -46,8 +46,11 @@ const ADMIN_STYLES: VariantStyles = {
     revised: "Revised estimate ready to re-send",
     cancelled: "Order was cancelled",
   },
-  renderBadge: (status) => {
-    const entry = statusDisplay(status);
+  tentativeMessage: "Customer accepted in chat — awaiting your confirmation",
+  renderBadge: (status, tentative) => {
+    const entry = statusDisplay(status, "admin", {
+      tentativeBooking: tentative,
+    });
     return (
       <Badge variant="outline" className={cn("border-0", entry.color)}>
         {entry.label}
@@ -70,8 +73,12 @@ const PORTAL_STYLES: VariantStyles = {
     revised: "Updated estimate ready for your review",
     cancelled: "Order was cancelled",
   },
-  renderBadge: (status) => (
-    <StatusBadge status={status} config={PORTAL_ORDER_STATUS} />
+  tentativeMessage:
+    "Tentatively scheduled — the shop is reviewing the estimate and will lock in your appointment shortly",
+  renderBadge: (status, tentative) => (
+    <StatusBadge
+      entry={statusDisplay(status, "portal", { tentativeBooking: tentative })}
+    />
   ),
 };
 
@@ -83,15 +90,23 @@ const STYLES: Record<Variant, VariantStyles> = {
 export function OrderProgressBar({
   status,
   variant,
+  tentativeBooking = false,
 }: {
   status: string;
   variant: Variant;
+  /** Set when a draft has accumulated chat-flow scheduling but the shop
+   *  hasn't approved yet. The bar shows the linear steps as pending and
+   *  surfaces a "Pending Confirmation" badge so the UX matches reality. */
+  tentativeBooking?: boolean;
 }) {
   const styles = STYLES[variant];
   const knownStatus = isOrderStatus(status) ? status : ("draft" as const);
   const isTerminal = ORDER_TERMINAL_STATUSES.has(knownStatus);
   const isBranch = ORDER_BRANCH_STATUSES.has(knownStatus);
-  const message = styles.branchMessages[status];
+  const showTentative = tentativeBooking && knownStatus === "draft";
+  const message = showTentative
+    ? styles.tentativeMessage
+    : styles.branchMessages[status];
 
   return (
     <div className="space-y-3">
@@ -150,9 +165,9 @@ export function OrderProgressBar({
         })}
       </div>
 
-      {(isTerminal || isBranch) && (
+      {(isTerminal || isBranch || showTentative) && (
         <div className="flex items-center gap-2">
-          {styles.renderBadge(status)}
+          {styles.renderBadge(status, showTentative)}
           {message && (
             <span className={cn("text-xs", styles.messageText)}>{message}</span>
           )}

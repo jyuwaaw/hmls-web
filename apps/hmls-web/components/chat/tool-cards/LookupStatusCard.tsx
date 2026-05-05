@@ -28,8 +28,14 @@ export const CUSTOMER_LOOKUP_LABELS: Record<
     done: "Checked your service history",
   },
   schedule_order: {
-    running: "Locking in your appointment",
-    done: "Appointment confirmed",
+    // Neutral wording — `schedule_order` from a chat-flow draft only
+    // tentatively books the slot (the order stays in `draft` until shop
+    // review). "Appointment confirmed" was misleading; the actual
+    // confirmation copy lives in the agent's text response, which
+    // distinguishes tentative vs. locked-in based on the tool's
+    // `pendingShopReview` flag.
+    running: "Sending your booking",
+    done: "Booking sent to shop",
   },
   list_vehicle_services: {
     running: "Listing services",
