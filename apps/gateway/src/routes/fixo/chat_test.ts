@@ -3,9 +3,10 @@ import { Hono } from "hono";
 import { chat } from "./chat.ts";
 import type { AuthContext } from "../../middleware/fixo/auth.ts";
 
-// Validation surface tests for the fixo /task endpoint. Plus-tier auth
-// short-circuits checkFreeTierLimit, so these run without DB or env vars.
-// Hydration + agent paths are covered by manual smoke + Playwright E2E.
+// Validation surface tests for the fixo /task endpoint. These exercise
+// the request-shape validation that runs BEFORE any DB or quota work, so
+// they don't need DB or env vars. Hydration + agent + counter paths are
+// covered by manual smoke + Playwright E2E.
 
 function buildTestApp(auth: AuthContext): Hono<{ Variables: { auth: AuthContext } }> {
   const app = new Hono<{ Variables: { auth: AuthContext } }>();
@@ -46,7 +47,7 @@ Deno.test("chat: rejects body without messages array", async () => {
   });
   assertEquals(res.status, 400);
   const body = await res.json();
-  assertEquals(body.error, "Invalid request: messages array is required");
+  assertEquals(body.error, "messages array is required");
 });
 
 Deno.test("chat: rejects body where messages is not an array", async () => {

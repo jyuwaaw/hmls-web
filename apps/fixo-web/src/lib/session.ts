@@ -21,7 +21,10 @@ const inFlight = new WeakMap<
   Promise<number | null>
 >();
 
-function persistSessionId(id: number, userId: string | null | undefined) {
+export function persistSessionId(
+  id: number,
+  userId: string | null | undefined,
+) {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(storageKey(userId), String(id));
@@ -60,9 +63,33 @@ export function clearStoredSessionId(userId: string | null | undefined) {
 }
 
 /**
+ * Eagerly create a Fixo session on the gateway and return its id. Throws on
+ * non-2xx so callers can decide whether to surface or swallow the error.
+ * Used by `useAgentChat` on the first send of a new conversation so the URL
+ * can upgrade to `/chat/[id]` and the gateway always has a sessionId.
+ */
+export async function createSessionEager(accessToken: string): Promise<number> {
+  const res = await fetch(`${AGENT_URL}/sessions`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+  if (!res.ok) throw new Error(`Failed to create session: ${res.status}`);
+  const data = (await res.json()) as { sessionId: number };
+  return data.sessionId;
+}
+
+/**
  * Resolve the current Fixo session id, lazily creating one on the gateway if
  * none exists. Concurrent callers share the same in-flight promise so we
  * never POST /sessions twice for the same ref.
+ *
+ * @deprecated Prefer `createSessionEager` for new call sites — the chat hook
+ * now eagerly creates the session on first send, so this lazy variant only
+ * exists for legacy upload/report paths that still need the ref-based
+ * write-through + persistence behavior.
  */
 export async function ensureSession(
   accessToken: string,
@@ -75,21 +102,17 @@ export async function ensureSession(
   if (existing) return existing;
 
   const promise = (async () => {
-    const res = await fetch(`${AGENT_URL}/sessions`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-    });
-    if (!res.ok) return null;
-    const data = (await res.json()) as { sessionId: number };
-    sessionIdRef.current = data.sessionId;
-    // Persist so a refresh that restores the chat transcript also re-pairs
-    // it with the same backend session — otherwise media hydration on
-    // /complete looks at a fresh empty session.
-    persistSessionId(data.sessionId, userId);
-    return data.sessionId;
+    try {
+      const id = await createSessionEager(accessToken);
+      sessionIdRef.current = id;
+      // Persist so a refresh that restores the chat transcript also re-pairs
+      // it with the same backend session — otherwise media hydration on
+      // /complete looks at a fresh empty session.
+      persistSessionId(id, userId);
+      return id;
+    } catch {
+      return null;
+    }
   })();
 
   inFlight.set(sessionIdRef, promise);

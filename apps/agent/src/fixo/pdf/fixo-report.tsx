@@ -195,24 +195,37 @@ interface FixoResult {
   overallSeverity: "critical" | "high" | "medium" | "low";
   issues: FixoIssue[];
   obdCodes?: ObdCodeResult[];
-  mediaCount?: number;
 }
 
-interface VehicleInfo {
+// Frozen vehicle row at report-generation time (may be null when no vehicle was attached).
+interface VehicleSnapshot {
   year?: number | null;
   make?: string | null;
   model?: string | null;
   vin?: string | null;
 }
 
+// One frozen media row at report-generation time.
+// Image embedding is intentionally omitted — we'd need to re-sign storageKey at
+// render time, and v1 of the snapshot-rendered PDF only surfaces transcriptions
+// + counts. See reports.ts.
+export interface MediaSnapshotEntry {
+  id: number;
+  type: string;
+  storageKey: string;
+  transcription: string | null;
+  createdAt: string | Date;
+}
+
 interface FixoReportProps {
-  sessionId: number;
-  createdAt: Date;
-  vehicle?: VehicleInfo | null;
+  reportId: string;
+  generatedAt: Date | string;
+  vehicle?: VehicleSnapshot | null;
+  media: MediaSnapshotEntry[];
   result: FixoResult;
 }
 
-function formatDate(date: Date): string {
+function formatDate(date: Date | string): string {
   return new Date(date).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -220,7 +233,7 @@ function formatDate(date: Date): string {
   });
 }
 
-function formatVehicle(vehicle?: VehicleInfo | null): string {
+function formatVehicle(vehicle?: VehicleSnapshot | null): string {
   if (!vehicle) return "Not specified";
   const parts = [
     vehicle.year?.toString(),
@@ -244,11 +257,15 @@ function getSeverityStyle(severity: string) {
 }
 
 export function DiagnosticReportPdf({
-  sessionId,
-  createdAt,
+  reportId,
+  generatedAt,
   vehicle,
+  media,
   result,
 }: FixoReportProps) {
+  const mediaCount = media.length;
+  const transcriptions = media.filter((m) => m.transcription && m.transcription.trim().length > 0);
+  const shortReportId = reportId.slice(0, 8);
   return (
     <Document>
       <Page size="LETTER" style={styles.page}>
@@ -260,8 +277,8 @@ export function DiagnosticReportPdf({
           </View>
           <View style={styles.titleSection}>
             <Text style={styles.title}>REPORT</Text>
-            <Text style={styles.sessionId}>Session #{sessionId}</Text>
-            <Text style={styles.sessionId}>{formatDate(createdAt)}</Text>
+            <Text style={styles.sessionId}>Report #{shortReportId}</Text>
+            <Text style={styles.sessionId}>{formatDate(generatedAt)}</Text>
           </View>
         </View>
 
@@ -337,12 +354,21 @@ export function DiagnosticReportPdf({
         )}
 
         {/* Media Summary */}
-        {result.mediaCount && result.mediaCount > 0 && (
+        {mediaCount > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Media Analyzed</Text>
             <Text>
-              {result.mediaCount} file(s) were submitted and analyzed during this session.
+              {mediaCount} file(s) were submitted and analyzed during this session.
             </Text>
+            {transcriptions.length > 0 && (
+              <View style={{ marginTop: 8 }}>
+                {transcriptions.map((m) => (
+                  <Text key={m.id} style={styles.issueDescription}>
+                    {m.type}: {m.transcription}
+                  </Text>
+                ))}
+              </View>
+            )}
           </View>
         )}
 

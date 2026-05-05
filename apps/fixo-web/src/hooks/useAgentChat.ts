@@ -18,7 +18,12 @@ import {
   useState,
 } from "react";
 import { AGENT_URL } from "@/lib/config";
-import { clearStoredSessionId, loadStoredSessionId } from "@/lib/session";
+import {
+  clearStoredSessionId,
+  createSessionEager,
+  loadStoredSessionId,
+  persistSessionId,
+} from "@/lib/session";
 
 export interface FixoEstimateData {
   success: true;
@@ -329,7 +334,7 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
   const error = chatError?.message ?? null;
 
   const sendMessage = useCallback(
-    (content: string, options?: { imageUrl?: string }) => {
+    async (content: string, options?: { imageUrl?: string }) => {
       if (options?.imageUrl) {
         // Track by the raw chatMessages index the new user message will
         // occupy. AI SDK v6 assigns its own ids and ignores any we pre-
@@ -343,15 +348,32 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
           url: options.imageUrl,
         };
       }
-      // Intentionally NOT creating a session here. The free-tier quota counts
-      // session rows, so creating one on every chat send would have the third
-      // chat fail with "limit_reached" before /task even runs. Sessions are
-      // created lazily by useMediaUpload (on first upload) or by the chat
-      // page's report flow (on first Report click) — both are concrete
-      // moments where the session id is actually needed.
+
+      // Eagerly create the backend session on the very first send of a new
+      // conversation. After creation, upgrade the URL to `/chat/[id]` via
+      // the native History API — using `router.push` would unmount the chat
+      // tree and abort the in-flight stream we're about to kick off below.
+      // Subsequent sends short-circuit because `sessionIdRef.current` is set.
+      if (sessionIdRef && !sessionIdRef.current && accessToken) {
+        try {
+          const newId = await createSessionEager(accessToken);
+          sessionIdRef.current = newId;
+          // Persist immediately so a hard refresh between this eager-create
+          // and onFinish doesn't orphan the session.
+          persistSessionId(newId, userId);
+          if (typeof window !== "undefined") {
+            window.history.replaceState(null, "", `/chat/${newId}`);
+          }
+        } catch (err) {
+          console.error("[agent] session create failed", err);
+          // Continue without a session id; the gateway will reject the /task
+          // call when sessionId becomes required, and the user can retry.
+        }
+      }
+
       chatSendMessage({ text: content });
     },
-    [chatSendMessage, chatMessages],
+    [chatSendMessage, chatMessages, accessToken, sessionIdRef, userId],
   );
 
   const clearMessages = useCallback(() => {

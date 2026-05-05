@@ -3,9 +3,8 @@ import { db, schema } from "@hmls/agent/db";
 import { eq } from "drizzle-orm";
 import { type InputType, uploadMedia } from "@hmls/agent";
 import { processCredits } from "../../middleware/fixo/credits.ts";
-import { checkFreeTierLimit } from "../../middleware/fixo/tier.ts";
+import { requireMediaTier } from "../../middleware/fixo/tier.ts";
 import type { AuthContext } from "../../middleware/fixo/auth.ts";
-import { reopenIfComplete } from "./lib/session-lifecycle.ts";
 
 type Variables = { auth: AuthContext };
 
@@ -83,7 +82,7 @@ input.post("/:id/input", async (c) => {
 
   // Check free tier limits for SaaS users (non-legacy)
   if (!auth.customerId) {
-    const tierBlock = await checkFreeTierLimit(auth, type);
+    const tierBlock = requireMediaTier(auth);
     if (tierBlock) return tierBlock;
   }
 
@@ -172,14 +171,6 @@ input.post("/:id/input", async (c) => {
       spectrogramMediaId = specRow.id;
     }
   }
-
-  // Reopen AFTER the new input is durably stored. If uploadMedia or the
-  // insert above failed, we'd have nulled out the user's report (status
-  // back to processing, result=null) for an upload that never persisted.
-  // Now the reopen only happens once we know there's new evidence to
-  // justify regenerating the diagnosis. Auth-gated so an attacker can't
-  // wipe someone else's report by passing their session id.
-  await reopenIfComplete(sessionId, auth.userId, auth.customerId);
 
   return c.json({
     sessionId,

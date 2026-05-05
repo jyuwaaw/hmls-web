@@ -8,6 +8,13 @@
       "when": 1774340821703,
       "tag": "0000_lumpy_krista_starr",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1777881300000,
+      "tag": "0016_session_b_model",
+      "breakpoints": true
     }
   ]
 }

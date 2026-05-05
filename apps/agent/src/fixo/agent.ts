@@ -17,6 +17,9 @@ const logger = getLogger(["hmls", "agent", "fixo"]);
 export interface RunFixoAgentOptions {
   messages: ModelMessage[];
   userId?: string;
+  /** When provided, overrides the constant SYSTEM_PROMPT. Used by the gateway
+   * after buildAgentContext attaches a "Known facts so far" summary. */
+  systemPrompt?: string;
 }
 
 export function runFixoAgent(options: RunFixoAgentOptions) {
@@ -29,11 +32,6 @@ export function runFixoAgent(options: RunFixoAgentOptions) {
   const google = createGoogleGenerativeAI({ apiKey });
 
   const allTools: LegacyTool[] = [
-    // Photos and audio spectrograms reach the model as FileUIParts hydrated
-    // by the gateway in /task. The model analyzes the spectrogram inline; no
-    // dedicated audio-analysis tool is needed (the prior analyzeAudioNoise
-    // tool required base64 input that the agent never had — only signed
-    // URLs — so it was dead code and was removed).
     extractVideoFramesTool,
     lookupObdCodeTool,
     ...askUserQuestionTools,
@@ -43,12 +41,15 @@ export function runFixoAgent(options: RunFixoAgentOptions) {
   ];
 
   const tools = convertTools(allTools, { userId: options.userId });
-  const toolCount = Object.keys(tools).length;
-  logger.info("Initializing Fixo agent", { model: modelId, toolCount });
+  logger.info("Initializing Fixo agent", {
+    model: modelId,
+    toolCount: Object.keys(tools).length,
+    hasInjectedSummary: typeof options.systemPrompt === "string",
+  });
 
   return streamText({
     model: google(modelId),
-    system: SYSTEM_PROMPT,
+    system: options.systemPrompt ?? SYSTEM_PROMPT,
     messages: options.messages,
     tools,
     stopWhen: [stepCountIs(10), hasToolCall("ask_user_question")],

@@ -1,13 +1,14 @@
+// apps/gateway/src/routes/fixo/chat.ts
 import { Hono } from "hono";
-import { convertToModelMessages, type UIMessage } from "ai";
-import { runFixoAgent } from "@hmls/agent";
-import { checkFreeTierLimit } from "../../middleware/fixo/tier.ts";
+import { convertToModelMessages, generateText, type UIMessage } from "ai";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { buildAgentContext, runFixoAgent } from "@hmls/agent";
+import { requireTextQuota } from "../../middleware/fixo/tier.ts";
 import { getLogger } from "@logtape/logtape";
 import { db, schema } from "@hmls/agent/db";
-import { and, eq, or } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import type { AuthContext } from "../../middleware/fixo/auth.ts";
 import { hydrateSessionMedia } from "./lib/hydrate-media.ts";
-import { reopenIfComplete } from "./lib/session-lifecycle.ts";
 
 const logger = getLogger(["hmls", "gateway", "fixo", "chat"]);
 
@@ -15,149 +16,198 @@ type Variables = { auth: AuthContext };
 
 const chat = new Hono<{ Variables: Variables }>();
 
-// AI SDK data stream endpoint for fixo chat
 chat.post("/", async (c) => {
   const auth = c.get("auth");
 
-  // Validate that the user has an active subscription/tier before running the agent
-  const tierBlock = await checkFreeTierLimit(auth, "text");
-  if (tierBlock) {
-    logger.warn("Tier limit reached", { userId: auth.userId });
-    return tierBlock;
-  }
-
-  let body;
+  let body: { messages?: UIMessage[]; sessionId?: number | string | null };
   try {
     body = await c.req.json();
   } catch {
-    return c.json(
-      { error: "Invalid JSON body" },
-      400,
-    );
+    return c.json({ error: "Invalid JSON body" }, 400);
   }
 
-  const { messages, sessionId } = body as {
-    messages?: UIMessage[];
-    sessionId?: number | string | null;
-  };
-  if (!messages || !Array.isArray(messages)) {
-    return c.json(
-      { error: "Invalid request: messages array is required" },
-      400,
-    );
+  const messages = body.messages;
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    return c.json({ error: "messages array is required" }, 400);
+  }
+
+  const parsedSessionId = typeof body.sessionId === "string"
+    ? parseInt(body.sessionId)
+    : typeof body.sessionId === "number"
+    ? body.sessionId
+    : null;
+
+  if (parsedSessionId === null || !Number.isInteger(parsedSessionId)) {
+    return c.json({ error: "sessionId is required" }, 400);
+  }
+
+  const latestUserMessage = [...messages].reverse().find((m) => m.role === "user");
+  if (!latestUserMessage) {
+    return c.json({ error: "no user message in payload" }, 400);
+  }
+
+  // 1. Idempotent counter insert. ON CONFLICT DO NOTHING means client retries
+  //    do not double-count the same UIMessage.id.
+  const [inserted] = await db
+    .insert(schema.fixoMessageEvents)
+    .values({
+      userMessageId: latestUserMessage.id,
+      userId: auth.userId,
+      sessionId: parsedSessionId,
+      month: monthDate(),
+    })
+    .onConflictDoNothing({ target: schema.fixoMessageEvents.userMessageId })
+    .returning({ userMessageId: schema.fixoMessageEvents.userMessageId });
+  const isNewMessage = !!inserted;
+
+  // 2. Quota check ONLY for new messages — replays/retries skip the gate.
+  if (isNewMessage) {
+    const tierBlock = await requireTextQuota(auth);
+    if (tierBlock) {
+      // Roll back the insert so the user isn't charged a quota slot they
+      // can't use.
+      await db
+        .delete(schema.fixoMessageEvents)
+        .where(eq(schema.fixoMessageEvents.userMessageId, latestUserMessage.id));
+      return tierBlock;
+    }
   }
 
   const startTime = Date.now();
-  const userId = auth.userId;
   const messageCount = messages.length;
-  const parsedSessionId = typeof sessionId === "string"
-    ? parseInt(sessionId)
-    : typeof sessionId === "number"
-    ? sessionId
-    : null;
   logger.info("Request received", {
-    userId,
+    userId: auth.userId,
     messageCount,
     sessionId: parsedSessionId,
+    isNewMessage,
   });
 
   try {
-    // Snapshot the inbound messages BEFORE hydrateSessionMedia mutates them
-    // with signed-URL FileUIParts. Those URLs expire in 15 min, so persisting
-    // the hydrated copy would leave stale links in the saved transcript that
-    // 403 on cross-device resume. Persist the user-visible transcript only;
-    // the gateway re-hydrates evidence on every turn from fixoMedia anyway.
     const originalMessages: UIMessage[] = structuredClone(messages);
 
-    let attachedMedia = 0;
-    if (parsedSessionId !== null && Number.isInteger(parsedSessionId)) {
-      // Follow-up activity after a finalized session re-opens it so the
-      // next Report click regenerates the diagnosis from the fuller chat.
-      // Ownership is folded into the UPDATE so an attacker can't wipe
-      // someone else's completed report by guessing their session id.
-      await reopenIfComplete(
-        parsedSessionId,
-        auth.userId,
-        auth.customerId,
-      );
-      attachedMedia = await hydrateSessionMedia(
-        messages,
-        parsedSessionId,
-        auth.userId,
-        auth.customerId,
-      );
-      if (attachedMedia > 0) {
-        logger.info("Hydrated session media", {
-          sessionId: parsedSessionId,
-          attachedMedia,
-        });
-      }
+    const attachedMedia = await hydrateSessionMedia(
+      messages,
+      parsedSessionId,
+      auth.userId,
+      auth.customerId,
+    );
+    if (attachedMedia > 0) {
+      logger.info("Hydrated session media", { sessionId: parsedSessionId, attachedMedia });
     }
 
-    const modelMessages = await convertToModelMessages(messages);
+    const latestMessages = await convertToModelMessages(messages);
+    const { systemPrompt, modelMessages } = await buildAgentContext({
+      sessionId: parsedSessionId,
+      latestMessages,
+      uiMessages: messages,
+    });
 
-    const result = runFixoAgent({ messages: modelMessages, userId });
+    const result = runFixoAgent({
+      messages: modelMessages,
+      systemPrompt,
+      userId: auth.userId,
+    });
 
     const response = result.toUIMessageStreamResponse({
       originalMessages,
-      // Sync onFinish — `handleUIMessageStreamFinish` AWAITS this in the
-      // stream's `flush()`, so any await here delays stream close on the
-      // wire. The client sees `status === "streaming"` until we return,
-      // even though the model already finished. Kick the persistence off
-      // and let it run after the response has been flushed; localStorage
-      // still has the transcript, so a transient DB error never costs the
-      // user data.
       onFinish: ({ messages: finalMessages }) => {
-        if (parsedSessionId === null) return;
-        const ownerPredicate = auth.customerId !== undefined
-          ? or(
-            eq(schema.fixoSessions.userId, auth.userId),
-            eq(schema.fixoSessions.customerId, auth.customerId),
-          )
-          : eq(schema.fixoSessions.userId, auth.userId);
-        // Fire-and-forget. Surface failures via logs so we notice if the
-        // pattern is systematic, not via a hung stream.
+        // Persist transcript + bump last_message_at + maybe trigger title gen.
+        // All fire-and-forget — failure logs but does not delay stream close.
         db
           .update(schema.fixoSessions)
-          .set({ messages: finalMessages })
+          .set({
+            messages: finalMessages,
+            lastMessageAt: new Date(),
+          })
           .where(
             and(
               eq(schema.fixoSessions.id, parsedSessionId),
-              ownerPredicate,
+              ownerPredicate(auth),
             ),
           )
           .catch((err: unknown) => {
-            logger.warn("Failed to persist chat transcript", {
+            logger.warn("Failed to persist transcript", {
               sessionId: parsedSessionId,
               error: err instanceof Error ? err.message : String(err),
             });
           });
+
+        maybeGenerateTitle(parsedSessionId, finalMessages, auth);
       },
     });
-    const duration = Date.now() - startTime;
+
     logger.info("Request finished", {
-      userId,
+      userId: auth.userId,
       messageCount,
-      duration,
+      duration: Date.now() - startTime,
       attachedMedia,
     });
     return response;
   } catch (error) {
-    const duration = Date.now() - startTime;
     logger.error("Agent failed", {
-      userId,
+      userId: auth.userId,
       messageCount,
-      duration,
+      duration: Date.now() - startTime,
       error: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
     });
-    return c.json(
-      {
-        error: error instanceof Error ? error.message : String(error),
-      },
-      500,
-    );
+    return c.json({
+      error: error instanceof Error ? error.message : String(error),
+    }, 500);
   }
 });
+
+function monthDate(): string {
+  const d = new Date();
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-01`;
+}
+
+function ownerPredicate(auth: AuthContext) {
+  return auth.customerId !== undefined
+    ? sql`(${schema.fixoSessions.userId} = ${auth.userId} OR ${schema.fixoSessions.customerId} = ${auth.customerId})`
+    : eq(schema.fixoSessions.userId, auth.userId);
+}
+
+/**
+ * Fire-and-forget title generator. Triggered after the FIRST assistant turn.
+ * Race-safe via WHERE clause: title IS NULL AND title_is_user_set = false.
+ */
+function maybeGenerateTitle(
+  sessionId: number,
+  finalMessages: UIMessage[],
+  auth: AuthContext,
+): void {
+  const apiKey = Deno.env.get("GOOGLE_API_KEY");
+  if (!apiKey) return;
+
+  const userMsg = finalMessages.find((m) => m.role === "user");
+  const assistantMsg = finalMessages.find((m) => m.role === "assistant");
+  if (!userMsg || !assistantMsg) return;
+
+  const preview = (userMsg.parts.find((p) => p.type === "text") as { text?: string } | undefined)
+    ?.text;
+  if (!preview) return;
+
+  const google = createGoogleGenerativeAI({ apiKey });
+  generateText({
+    model: google("gemini-2.5-flash"),
+    prompt:
+      `Summarize this car-diagnosis conversation as a 4-6 word title. No quotes, no period.\n\nConversation:\n${
+        preview.slice(0, 500)
+      }`,
+  })
+    .then(({ text }) =>
+      db.update(schema.fixoSessions)
+        .set({ title: text.trim() })
+        .where(
+          and(
+            eq(schema.fixoSessions.id, sessionId),
+            isNull(schema.fixoSessions.title),
+            eq(schema.fixoSessions.titleIsUserSet, false),
+            ownerPredicate(auth),
+          ),
+        )
+    )
+    .catch((err) => logger.warn("title generation failed", { sessionId, err }));
+}
 
 export { chat };

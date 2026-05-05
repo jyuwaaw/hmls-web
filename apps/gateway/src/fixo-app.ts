@@ -87,6 +87,7 @@ export function createFixoApp() {
   };
 
   app.use("/sessions/*", requireAuth);
+  app.use("/reports/*", requireAuth);
   app.use("/billing/checkout", requireAuth);
   app.use("/billing/portal", requireAuth);
   app.use("/vehicles", requireAuth);
@@ -111,7 +112,7 @@ export function createFixoApp() {
   // Mount routes
   app.route("/sessions", sessions);
   app.route("/sessions", input);
-  app.route("/sessions", reports);
+  app.route("/reports", reports);
   app.route("/sessions", complete);
   app.route("/task", chat);
   app.route("/vehicles", vehicleRoutes);

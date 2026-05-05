@@ -1,13 +1,14 @@
 "use client";
 
-import { Car, Clock, LogOut, MessageSquare, Settings } from "lucide-react";
+import { Car, LogOut, MessageSquare, Settings } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
+import { ChatList } from "@/components/chat/ChatList";
+import { NewChatButton } from "@/components/chat/NewChatButton";
 
 const NAV_ITEMS = [
   { href: "/chat", label: "Chat", icon: MessageSquare },
-  { href: "/history", label: "History", icon: Clock },
   { href: "/vehicles", label: "Vehicles", icon: Car },
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
@@ -15,8 +16,8 @@ const NAV_ITEMS = [
 /**
  * Desktop sidebar (≥ lg). Mobile keeps BottomNav — see AppLayout.
  *
- * Layout: fixed left column, 240px wide, full height. Logo top, nav middle,
- * account row bottom. Mirrors v0/Vercel chatbot composition.
+ * Layout: fixed left column, 240px wide, full height. Logo + new-chat button
+ * top, primary nav, scrollable ChatList grouped by vehicle, account row bottom.
  */
 export function Sidebar() {
   const pathname = usePathname();
@@ -29,16 +30,17 @@ export function Sidebar() {
 
   return (
     <aside className="fixed left-0 top-0 z-30 hidden h-dvh w-60 flex-col border-r border-border bg-background/60 backdrop-blur-xl lg:flex">
-      <div className="flex h-14 items-center px-5">
+      <div className="flex h-14 items-center justify-between px-5">
         <Link
           href="/chat"
           className="text-[15px] font-semibold tracking-tight text-accent"
         >
           Fixo<span className="text-accent-hover">.</span>
         </Link>
+        <NewChatButton />
       </div>
 
-      <nav className="flex-1 px-3 pt-1">
+      <nav className="px-3 pt-1">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href;
           return (
@@ -66,6 +68,10 @@ export function Sidebar() {
           );
         })}
       </nav>
+
+      <div className="mt-2 flex-1 overflow-y-auto border-t border-border">
+        <ChatList />
+      </div>
 
       {/* Account row: subtle, hairline-bordered, sign-out icon-only on hover */}
       <div className="border-t border-border p-3">

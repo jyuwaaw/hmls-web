@@ -3,19 +3,18 @@
 import { AGENT_URL } from "@/lib/config";
 
 /**
- * Download an already-finalized session's PDF report. Caller is responsible
- * for ensuring the session is complete (status='complete', result non-null);
- * the gateway returns 400 "Session has no result yet" otherwise.
+ * Download a finalized report's PDF. Caller is responsible for ensuring the
+ * report exists (e.g. by POSTing /sessions/:id/complete first, which returns
+ * { reportId }).
  *
- * Used by the chat page (after /complete) and the history page (on
- * already-finalized sessions). Server-side, this is a stateless read of
- * fixoSessions.result rendered to PDF — no LLM call, no quota impact.
+ * Used by the chat page (after /complete). Server-side, this is a stateless
+ * read of the report row rendered to PDF — no LLM call, no quota impact.
  */
 export async function downloadReportPdf(
-  sessionId: number,
+  reportId: string,
   accessToken: string,
 ): Promise<void> {
-  const res = await fetch(`${AGENT_URL}/sessions/${sessionId}/report`, {
+  const res = await fetch(`${AGENT_URL}/reports/${reportId}/pdf`, {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
   if (!res.ok) {
@@ -26,7 +25,7 @@ export async function downloadReportPdf(
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `Fixo-Report-${sessionId}.pdf`;
+  a.download = `Fixo-Report-${reportId}.pdf`;
   a.click();
   URL.revokeObjectURL(url);
 }

@@ -1,6 +1,8 @@
+import { sql } from "drizzle-orm";
 import {
   boolean,
   customType,
+  date,
   index,
   integer,
   jsonb,
@@ -264,13 +266,6 @@ export const vehicles = pgTable(
   (table) => [index("idx_vehicles_user").on(table.userId)],
 );
 
-export const sessionStatusEnum = pgEnum("fixo_session_status", [
-  "pending",
-  "processing",
-  "complete",
-  "failed",
-]);
-
 export const mediaTypeEnum = pgEnum("fixo_media_type", [
   "photo",
   "audio",
@@ -299,17 +294,66 @@ export const fixoSessions = pgTable(
       .references(() => customers.id),
     userId: uuid("user_id").references(() => userProfiles.id),
     vehicleId: uuid("vehicle_id").references(() => vehicles.id),
-    status: sessionStatusEnum("status").notNull().default("pending"),
     creditsCharged: integer("credits_charged").notNull().default(0),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-    completedAt: timestamp("completed_at"),
-    result: jsonb("result"),
-    // Persisted UIMessage[] transcript for cross-device continuation.
-    // Written by /task onFinish when sessionId is supplied; read by
-    // GET /sessions/:id so the web client can resume on a fresh device.
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     messages: jsonb("messages"),
+    title: text("title"),
+    titleIsUserSet: boolean("title_is_user_set").notNull().default(false),
+    summary: text("summary"),
+    lastSummarizedMessageId: text("last_summarized_message_id"),
+    lastMessageAt: timestamp("last_message_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
   },
-  (table) => [index("idx_fixo_sessions_customer").on(table.customerId)],
+  (table) => [
+    index("idx_fixo_sessions_customer").on(table.customerId),
+    index("idx_fixo_sessions_user_last_msg")
+      .on(table.userId, table.lastMessageAt.desc())
+      .where(sql`archived_at IS NULL`),
+  ],
+);
+
+export const fixoReports = pgTable(
+  "fixo_reports",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sessionId: integer("session_id")
+      .notNull()
+      .references(() => fixoSessions.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => userProfiles.id, { onDelete: "cascade" }),
+    result: jsonb("result").notNull(),
+    vehicleSnapshot: jsonb("vehicle_snapshot"),
+    mediaSnapshot: jsonb("media_snapshot").notNull().default([]),
+    messageCount: integer("message_count").notNull(),
+    generatedAt: timestamp("generated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index("idx_fixo_reports_session").on(table.sessionId, table.generatedAt.desc()),
+    index("idx_fixo_reports_user").on(table.userId, table.generatedAt.desc()),
+  ],
+);
+
+export const fixoMessageEvents = pgTable(
+  "fixo_message_events",
+  {
+    userMessageId: text("user_message_id").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => userProfiles.id, { onDelete: "cascade" }),
+    sessionId: integer("session_id")
+      .notNull()
+      .references(() => fixoSessions.id, { onDelete: "cascade" }),
+    month: date("month").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [index("idx_fixo_msg_events_user_month").on(table.userId, table.month)],
 );
 
 export const fixoMedia = pgTable(
@@ -318,7 +362,7 @@ export const fixoMedia = pgTable(
     id: serial("id").primaryKey(),
     sessionId: integer("session_id")
       .notNull()
-      .references(() => fixoSessions.id),
+      .references(() => fixoSessions.id, { onDelete: "cascade" }),
     type: mediaTypeEnum("type").notNull(),
     storageKey: text("r2_key").notNull(),
     creditCost: integer("credit_cost").notNull(),
@@ -344,7 +388,7 @@ export const obdCodes = pgTable(
     id: serial("id").primaryKey(),
     sessionId: integer("session_id")
       .notNull()
-      .references(() => fixoSessions.id),
+      .references(() => fixoSessions.id, { onDelete: "cascade" }),
     code: text("code").notNull(),
     source: obdSourceEnum("source").notNull(),
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -394,3 +438,7 @@ export type ObdCode = typeof obdCodes.$inferSelect;
 export type NewObdCode = typeof obdCodes.$inferInsert;
 export type FixoEstimate = typeof fixoEstimates.$inferSelect;
 export type NewFixoEstimate = typeof fixoEstimates.$inferInsert;
+export type FixoReport = typeof fixoReports.$inferSelect;
+export type NewFixoReport = typeof fixoReports.$inferInsert;
+export type FixoMessageEvent = typeof fixoMessageEvents.$inferSelect;
+export type NewFixoMessageEvent = typeof fixoMessageEvents.$inferInsert;
