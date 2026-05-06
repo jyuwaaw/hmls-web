@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  ChevronDown,
-  ChevronRight,
-  ChevronUp,
-  ClipboardList,
-  Plus,
-  Save,
-} from "lucide-react";
+import { ChevronRight, ClipboardList, Plus, Save } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -127,13 +120,11 @@ function CustomerPicker({
   const [createError, setCreateError] = useState<string | null>(null);
   const debouncedSearch = useDebouncedValue(search.trim(), 300);
   const hasSearch = debouncedSearch.length > 0;
-  const [browsing, setBrowsing] = useState(false);
-  const showList = hasSearch || browsing;
   const {
     customers,
     isLoading,
     mutate: mutateCustomers,
-  } = useAdminCustomers(debouncedSearch || undefined, showList);
+  } = useAdminCustomers(debouncedSearch || undefined, hasSearch);
 
   useEffect(() => {
     if (!value) setSelected(null);
@@ -141,7 +132,6 @@ function CustomerPicker({
 
   const selectCustomer = (customer: Customer) => {
     setSelected(customer);
-    setBrowsing(false);
     onChange(String(customer.id));
   };
 
@@ -258,30 +248,13 @@ function CustomerPicker({
   return (
     <div className="space-y-1.5">
       <Label htmlFor="manual-order-customer-search">Customer</Label>
-      <div className="flex gap-2">
-        <Input
-          id="manual-order-customer-search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name, phone, or email"
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size="icon"
-          onClick={() => setBrowsing((b) => !b)}
-          title={browsing ? "Hide list" : "Browse customers"}
-          aria-label={browsing ? "Hide customer list" : "Browse customers"}
-          aria-expanded={browsing}
-        >
-          {browsing ? (
-            <ChevronUp className="w-4 h-4" />
-          ) : (
-            <ChevronDown className="w-4 h-4" />
-          )}
-        </Button>
-      </div>
-      {showList && (
+      <Input
+        id="manual-order-customer-search"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search by name, phone, or email"
+      />
+      {hasSearch && (
         <div className="max-h-44 overflow-y-auto rounded-md border border-border">
           {isLoading ? (
             <div className="px-3 py-2 text-xs text-muted-foreground">
@@ -289,7 +262,7 @@ function CustomerPicker({
             </div>
           ) : customers.length === 0 ? (
             <div className="px-3 py-2 text-xs text-muted-foreground">
-              {hasSearch ? "No customers match." : "No customers yet."}
+              No customers match.
             </div>
           ) : (
             customers.map((customer) => (
