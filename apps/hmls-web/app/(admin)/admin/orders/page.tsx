@@ -3,7 +3,7 @@
 import { ChevronRight, ClipboardList, Plus, Save } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useDeferredValue, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,6 +27,7 @@ import {
   useAdminOrders,
 } from "@/hooks/useAdmin";
 import { useApi } from "@/hooks/useApi";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
   buildCreateOrderPayload,
   emptyManualOrderForm,
@@ -117,11 +118,12 @@ function CustomerPicker({
   const [draft, setDraft] = useState(emptyCustomerDraft);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
+  const debouncedSearch = useDebouncedValue(search.trim(), 300);
   const {
     customers,
     isLoading,
     mutate: mutateCustomers,
-  } = useAdminCustomers(search.trim() || undefined);
+  } = useAdminCustomers(debouncedSearch || undefined);
 
   useEffect(() => {
     if (!value) setSelected(null);
@@ -460,39 +462,38 @@ export default function OrdersPage() {
   const filter = parseAdminOrdersFilter(searchParams.get("status"));
   const urlSearch = parseAdminOrdersSearch(searchParams.get("search"));
   const [searchInput, setSearchInput] = useState(urlSearch);
-  // useDeferredValue lets the input stay snappy while fetch + URL sync run on
-  // the trailing edge of bursty typing.
-  const deferredSearch = useDeferredValue(searchInput);
+  // 300ms debounce so fetch + URL sync only fire after the user pauses typing.
+  const debouncedSearch = useDebouncedValue(searchInput, 300);
   const [showMore, setShowMore] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const {
     orders,
     isLoading,
     mutate: mutateOrders,
-  } = useAdminOrders(filter || undefined, deferredSearch || undefined);
+  } = useAdminOrders(filter || undefined, debouncedSearch || undefined);
   const { data: dashboard } = useAdminDashboard();
   const pendingReviewCount = dashboard?.stats.pendingReview ?? 0;
 
   // Sync deferred search into the URL so refresh, back/forward, and shared
   // links keep the active query.
   useEffect(() => {
-    const desired = getAdminOrdersListHref(filter, deferredSearch);
+    const desired = getAdminOrdersListHref(filter, debouncedSearch);
     const current = getAdminOrdersListHref(filter, urlSearch);
     if (desired !== current) {
       router.replace(desired, { scroll: false });
     }
-  }, [deferredSearch, filter, urlSearch, router]);
+  }, [debouncedSearch, filter, urlSearch, router]);
 
   const isMoreActive = MORE_FILTERS.some((f) => f.value === filter);
   const setFilter = (nextFilter: typeof filter) => {
-    router.replace(getAdminOrdersListHref(nextFilter, deferredSearch), {
+    router.replace(getAdminOrdersListHref(nextFilter, debouncedSearch), {
       scroll: false,
     });
   };
   const handleOrderCreated = async (id: number) => {
     setShowCreate(false);
     await mutateOrders();
-    router.push(getAdminOrderDetailHref(id, filter, deferredSearch));
+    router.push(getAdminOrderDetailHref(id, filter, debouncedSearch));
   };
 
   return (
@@ -600,8 +601,8 @@ export default function OrdersPage() {
           <CardContent className="flex flex-col items-center justify-center py-12">
             <ClipboardList className="w-10 h-10 text-muted-foreground mb-3" />
             <p className="text-sm text-muted-foreground">
-              {deferredSearch
-                ? `No orders match "${deferredSearch}".`
+              {debouncedSearch
+                ? `No orders match "${debouncedSearch}".`
                 : filter
                   ? `No ${filter} orders.`
                   : "No orders yet."}
@@ -622,7 +623,11 @@ export default function OrdersPage() {
             return (
               <Link
                 key={order.id}
-                href={getAdminOrderDetailHref(order.id, filter, deferredSearch)}
+                href={getAdminOrderDetailHref(
+                  order.id,
+                  filter,
+                  debouncedSearch,
+                )}
                 prefetch={false}
                 className="flex items-center justify-between gap-3 bg-card border border-border rounded-xl p-4 hover:border-primary transition-colors group"
               >
