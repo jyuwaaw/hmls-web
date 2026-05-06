@@ -60,7 +60,7 @@ export function ChatInput({
       />
       <form
         onSubmit={handleSubmit}
-        className="relative mx-auto flex max-w-2xl items-end gap-1.5 rounded-xl border border-border bg-background/80 p-1.5 backdrop-blur-xl transition-colors focus-within:border-foreground/25"
+        className="relative mx-auto flex max-w-2xl items-end gap-1.5 rounded-xl border border-border bg-background p-1.5 transition-colors focus-within:border-foreground/25"
       >
         <input
           ref={inputRef}

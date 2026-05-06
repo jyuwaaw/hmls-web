@@ -37,7 +37,7 @@ export function UpgradeModal({ message, onClose }: UpgradeModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="w-full max-w-sm rounded-xl border border-border bg-card p-5">
         <div className="mb-4 flex items-start justify-between">
           <div className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-muted">

@@ -101,7 +101,7 @@ export default function VehiclesPage() {
 
   return (
     <div className="flex h-dvh flex-col">
-      <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-md">
+      <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border bg-background px-4">
         <h1 className="text-[15px] font-semibold tracking-tight">Vehicles</h1>
         <button
           type="button"

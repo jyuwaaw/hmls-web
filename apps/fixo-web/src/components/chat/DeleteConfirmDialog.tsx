@@ -65,7 +65,7 @@ export function DeleteConfirmDialog({
         type="button"
         aria-label="Close dialog"
         onClick={() => onOpenChange(false)}
-        className="absolute inset-0 cursor-default bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 cursor-default bg-black/60"
       />
       <div className="relative w-full max-w-sm rounded-xl border border-border bg-card p-5">
         <h2

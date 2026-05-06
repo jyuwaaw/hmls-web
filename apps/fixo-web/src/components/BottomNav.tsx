@@ -25,7 +25,7 @@ export function BottomNav() {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-30 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] lg:hidden">
         <div className="mx-auto flex max-w-lg items-center justify-around">
           <Link href="/chat" className={navItemClass(pathname === "/chat")}>
             <MessageSquare

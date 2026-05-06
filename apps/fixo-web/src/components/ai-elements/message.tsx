@@ -1,9 +1,5 @@
 "use client";
 
-import { cjk } from "@streamdown/cjk";
-import { code } from "@streamdown/code";
-import { math } from "@streamdown/math";
-import { mermaid } from "@streamdown/mermaid";
 import type { UIMessage } from "ai";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import type { ComponentProps, HTMLAttributes, ReactElement } from "react";
@@ -24,6 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useStreamdownPlugins } from "@/lib/streamdown-plugins";
 import { cn } from "@/lib/utils";
 
 export type MessageProps = HTMLAttributes<HTMLDivElement> & {
@@ -321,8 +318,6 @@ export const MessageBranchPage = ({
 
 export type MessageResponseProps = ComponentProps<typeof Streamdown>;
 
-const streamdownPlugins = { cjk, code, math, mermaid };
-
 // Streamdown already wraps itself in React.memo and memoizes individual
 // markdown blocks (https://streamdown.ai/docs/memoization). Wrapping it again
 // with a custom areEqual just duplicates work and risks staleness — the prior
@@ -333,17 +328,25 @@ const streamdownPlugins = { cjk, code, math, mermaid };
 // the heavy lifting.
 export const MessageResponse = ({
   className,
+  children,
   ...props
-}: MessageResponseProps) => (
-  <Streamdown
-    className={cn(
-      "size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
-      className,
-    )}
-    plugins={streamdownPlugins}
-    {...props}
-  />
-);
+}: MessageResponseProps) => {
+  const plugins = useStreamdownPlugins(
+    typeof children === "string" ? children : "",
+  );
+  return (
+    <Streamdown
+      className={cn(
+        "size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+        className,
+      )}
+      plugins={plugins}
+      {...props}
+    >
+      {children}
+    </Streamdown>
+  );
+};
 
 MessageResponse.displayName = "MessageResponse";
 

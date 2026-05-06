@@ -223,7 +223,7 @@ export function ChatPageInner({
 
   return (
     <div className="flex flex-col h-dvh">
-      <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-md">
+      <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border bg-background px-4">
         {/* Mobile: "Fixo." logo (no sidebar to host it).
             Desktop: page title "Chat" matches the other pages — sidebar
             already shows the logo so repeating it here read as duplication. */}

@@ -55,7 +55,7 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
         <button
           type="button"
           onClick={onClose}
-          className="rounded-md border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium backdrop-blur transition-colors hover:bg-white/20"
+          className="rounded-md border border-white/20 bg-white/20 px-4 py-2 text-sm font-medium transition-colors hover:bg-white/30"
         >
           Close
         </button>
@@ -72,7 +72,7 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
           stopCamera();
           onClose();
         }}
-        className="absolute right-4 top-4 z-10 rounded-md border border-white/20 bg-black/50 p-1.5 text-white backdrop-blur transition-colors hover:bg-black/70"
+        className="absolute right-4 top-4 z-10 rounded-md border border-white/20 bg-black/60 p-1.5 text-white transition-colors hover:bg-black/80"
         aria-label="Close camera"
       >
         <X className="h-5 w-5" />
@@ -107,7 +107,7 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
             <button
               type="button"
               onClick={handleRetake}
-              className="rounded-md border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur transition-colors hover:bg-white/20"
+              className="rounded-md border border-white/20 bg-white/20 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-white/30"
             >
               Retake
             </button>
@@ -126,7 +126,7 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
               type="button"
               onClick={handleCapture}
               disabled={!isActive}
-              className="flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-white bg-white/10 backdrop-blur transition-transform hover:scale-105 disabled:opacity-50"
+              className="flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-white bg-white/20 transition-transform hover:scale-105 disabled:opacity-50"
               aria-label="Take photo"
             >
               <Camera className="h-6 w-6 text-white" />
@@ -134,7 +134,7 @@ export function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
             <button
               type="button"
               onClick={switchCamera}
-              className="rounded-md border border-white/20 bg-white/10 p-2.5 text-white backdrop-blur transition-colors hover:bg-white/20"
+              className="rounded-md border border-white/20 bg-white/20 p-2.5 text-white transition-colors hover:bg-white/30"
               aria-label="Switch camera"
             >
               <RefreshCw className="h-4 w-4" />

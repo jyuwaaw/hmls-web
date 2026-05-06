@@ -1,10 +1,6 @@
 "use client";
 
 import { useControllableState } from "@radix-ui/react-use-controllable-state";
-import { cjk } from "@streamdown/cjk";
-import { code } from "@streamdown/code";
-import { math } from "@streamdown/math";
-import { mermaid } from "@streamdown/mermaid";
 import { BrainIcon, ChevronDownIcon } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 import {
@@ -23,6 +19,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { useStreamdownPlugins } from "@/lib/streamdown-plugins";
 import { cn } from "@/lib/utils";
 
 import { Shimmer } from "./shimmer";
@@ -204,8 +201,6 @@ export type ReasoningContentProps = ComponentProps<
   children: string;
 };
 
-const streamdownPlugins = { cjk, code, math, mermaid };
-
 export const ReasoningContent = memo(
   ({ className, children, ...props }: ReasoningContentProps) => {
     // Pull the active streaming flag from the Reasoning context so the inner
@@ -213,6 +208,7 @@ export const ReasoningContent = memo(
     // while tokens are still arriving — matches Streamdown's documented
     // streaming integration. Without this, copy fired on partial code.
     const { isStreaming } = useReasoning();
+    const plugins = useStreamdownPlugins(children);
     return (
       <CollapsibleContent
         className={cn(
@@ -222,7 +218,7 @@ export const ReasoningContent = memo(
         )}
         {...props}
       >
-        <Streamdown isAnimating={isStreaming} plugins={streamdownPlugins}>
+        <Streamdown isAnimating={isStreaming} plugins={plugins}>
           {children}
         </Streamdown>
       </CollapsibleContent>

@@ -29,7 +29,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 z-30 hidden h-dvh w-60 flex-col border-r border-border bg-background/60 backdrop-blur-xl lg:flex">
+    <aside className="fixed left-0 top-0 z-30 hidden h-dvh w-60 flex-col border-r border-border bg-background lg:flex">
       <div className="flex h-14 items-center justify-between px-5">
         <Link
           href="/chat"
