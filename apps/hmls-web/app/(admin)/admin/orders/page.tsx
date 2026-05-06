@@ -392,6 +392,16 @@ function CreateOrderDialog({
   const [form, setForm] = useState<ManualOrderForm>(emptyManualOrderForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Platform-specific hint. null on first render avoids hydration mismatch
+  // and keeps the kbd badge from showing the wrong modifier.
+  const [shortcutHint, setShortcutHint] = useState<string | null>(null);
+  useEffect(() => {
+    const ua =
+      typeof navigator !== "undefined"
+        ? navigator.platform || navigator.userAgent
+        : "";
+    setShortcutHint(/Mac|iPad|iPhone|iPod/.test(ua) ? "⌘↵" : "Ctrl+↵");
+  }, []);
 
   const handleCreate = async () => {
     const validationError = validateManualOrderForm(form);
@@ -450,12 +460,18 @@ function CreateOrderDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleCreate} disabled={saving} title="⌘↵ to create">
+          <Button
+            onClick={handleCreate}
+            disabled={saving}
+            title={shortcutHint ? `${shortcutHint} to create` : "Create order"}
+          >
             <Save className="w-3.5 h-3.5" />
             {saving ? "Creating..." : "Create Order"}
-            <kbd className="ml-1 hidden sm:inline-flex items-center gap-0.5 text-[10px] font-mono opacity-70">
-              ⌘↵
-            </kbd>
+            {shortcutHint && (
+              <kbd className="ml-1 hidden sm:inline-flex items-center gap-0.5 text-[10px] font-mono opacity-70">
+                {shortcutHint}
+              </kbd>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
