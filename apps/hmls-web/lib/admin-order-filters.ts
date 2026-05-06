@@ -22,18 +22,38 @@ export function parseAdminOrdersFilter(
     : "";
 }
 
-export function getAdminOrdersListHref(filter: AdminOrdersFilter): string {
-  return filter
-    ? `/admin/orders?status=${encodeURIComponent(filter)}`
-    : "/admin/orders";
+export function parseAdminOrdersSearch(
+  value: string | null | undefined,
+): string {
+  return value?.trim() ?? "";
+}
+
+function buildOrdersQuery(
+  filter: AdminOrdersFilter,
+  search?: string,
+  filterParam: "status" | "fromStatus" = "status",
+): string {
+  const qs = new URLSearchParams();
+  if (filter) qs.set(filterParam, filter);
+  const trimmedSearch = search?.trim();
+  if (trimmedSearch) qs.set("search", trimmedSearch);
+  return qs.toString();
+}
+
+export function getAdminOrdersListHref(
+  filter: AdminOrdersFilter,
+  search?: string,
+): string {
+  const qs = buildOrdersQuery(filter, search, "status");
+  return qs ? `/admin/orders?${qs}` : "/admin/orders";
 }
 
 export function getAdminOrderDetailHref(
   orderId: number | string,
   filter: AdminOrdersFilter,
+  search?: string,
 ): string {
+  const qs = buildOrdersQuery(filter, search, "fromStatus");
   const baseHref = `/admin/orders/${orderId}`;
-  return filter
-    ? `${baseHref}?fromStatus=${encodeURIComponent(filter)}`
-    : baseHref;
+  return qs ? `${baseHref}?${qs}` : baseHref;
 }

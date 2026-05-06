@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { renderToStream } from "@react-pdf/renderer";
 import { db, schema } from "@hmls/agent/db";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { type AdminEnv, requireAdmin } from "../middleware/admin.ts";
 import { EstimatePdf } from "@hmls/agent";
 import type { OrderItem } from "@hmls/agent/db";
@@ -61,7 +61,12 @@ orders.use("*", requireAdmin);
 
 // GET /orders — list all orders (with pagination)
 orders.get("/", zValidator("query", listOrdersQuery), async (c) => {
-  const { status, page: rawPage, limit: rawLimit } = c.req.valid("query");
+  const {
+    status,
+    search,
+    page: rawPage,
+    limit: rawLimit,
+  } = c.req.valid("query");
   const page = Math.max(1, rawPage ?? 1);
   const limit = Math.min(200, Math.max(1, rawLimit ?? 50));
   const offset = (page - 1) * limit;
@@ -72,8 +77,30 @@ orders.get("/", zValidator("query", listOrdersQuery), async (c) => {
     .orderBy(desc(schema.orders.createdAt))
     .$dynamic();
 
+  const conditions = [];
   if (status) {
-    query = query.where(eq(schema.orders.status, status));
+    conditions.push(eq(schema.orders.status, status));
+  }
+  const searchTerm = search?.trim();
+  if (searchTerm) {
+    const like = `%${searchTerm}%`;
+    const numericId = Number(searchTerm);
+    const isNumericId = Number.isInteger(numericId) && numericId > 0;
+    conditions.push(
+      sql`(${schema.orders.contactName} ILIKE ${like}
+        OR ${schema.orders.contactEmail} ILIKE ${like}
+        OR ${schema.orders.contactPhone} ILIKE ${like}
+        OR ${schema.orders.notes} ILIKE ${like}
+        OR ${schema.orders.symptomDescription} ILIKE ${like}
+        OR ${schema.orders.vehicleInfo}->>'make' ILIKE ${like}
+        OR ${schema.orders.vehicleInfo}->>'model' ILIKE ${like}
+        OR ${schema.orders.vehicleInfo}->>'year' ILIKE ${like}${
+        isNumericId ? sql` OR ${schema.orders.id} = ${numericId}` : sql``
+      })`,
+    );
+  }
+  if (conditions.length > 0) {
+    query = query.where(and(...conditions));
   }
 
   const rows = await query.limit(limit).offset(offset);

@@ -17,10 +17,13 @@ export const adminPaths = {
   customer: (id: number | string) => `/api/admin/customers/${id}`,
 
   // --- orders.ts (mounted at /api/admin/orders) ---
-  orders: (status?: string) =>
-    status
-      ? `/api/admin/orders?status=${encodeURIComponent(status)}`
-      : "/api/admin/orders",
+  orders: (options?: { status?: string; search?: string }) => {
+    const qs = new URLSearchParams();
+    if (options?.status) qs.set("status", options.status);
+    if (options?.search) qs.set("search", options.search);
+    const s = qs.toString();
+    return s ? `/api/admin/orders?${s}` : "/api/admin/orders";
+  },
   order: (id: number | string) => `/api/admin/orders/${id}`,
   orderStatus: (id: number | string) => `/api/admin/orders/${id}/status`,
   orderSchedule: (id: number | string) => `/api/admin/orders/${id}/schedule`,

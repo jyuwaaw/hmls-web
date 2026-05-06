@@ -24,6 +24,7 @@ export const orderStatusEnum = z.enum([
 
 export const listOrdersQuery = z.object({
   status: orderStatusEnum.optional(),
+  search: z.string().optional(),
   page: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().min(1).max(200).optional(),
 });

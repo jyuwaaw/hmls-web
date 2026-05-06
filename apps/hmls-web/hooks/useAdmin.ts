@@ -78,10 +78,10 @@ export function useAdminOrder(id: number | string | null) {
   return { data, isLoading, isError: !!error, mutate };
 }
 
-export function useAdminOrders(status?: string) {
+export function useAdminOrders(status?: string, search?: string) {
   const api = useApi();
   const { data, error, isLoading, mutate } = useSWR(
-    adminPaths.orders(status),
+    adminPaths.orders({ status, search }),
     (p: string) => api.get<AdminOrder[]>(p),
   );
   return { orders: useStableArray(data), isLoading, isError: !!error, mutate };

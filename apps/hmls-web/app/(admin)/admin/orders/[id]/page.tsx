@@ -62,6 +62,7 @@ import {
 import {
   getAdminOrdersListHref,
   parseAdminOrdersFilter,
+  parseAdminOrdersSearch,
 } from "@/lib/admin-order-filters";
 import { AGENT_URL } from "@/lib/config";
 import { formatCents } from "@/lib/format";
@@ -633,6 +634,7 @@ export default function OrderDetailPage() {
   const searchParams = useSearchParams();
   const ordersHref = getAdminOrdersListHref(
     parseAdminOrdersFilter(searchParams.get("fromStatus")),
+    parseAdminOrdersSearch(searchParams.get("search")),
   );
   const orderId = params.id as string;
   const { data, isLoading, isError, mutate } = useAdminOrder(orderId);

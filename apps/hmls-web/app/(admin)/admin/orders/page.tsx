@@ -3,7 +3,7 @@
 import { ChevronRight, ClipboardList, Plus, Save } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,6 +38,7 @@ import {
   getAdminOrderDetailHref,
   getAdminOrdersListHref,
   parseAdminOrdersFilter,
+  parseAdminOrdersSearch,
 } from "@/lib/admin-order-filters";
 import { adminPaths } from "@/lib/api-paths";
 import { formatCents } from "@/lib/format";
@@ -92,8 +93,16 @@ function customerLabel(customer: Customer) {
   );
 }
 
+const emptyCustomerDraft = {
+  name: "",
+  phone: "",
+  email: "",
+  address: "",
+};
+
 // /api/admin/customers caps at 100 rows. Drive search through the endpoint's
-// query parameter so customers past the cap stay reachable.
+// query parameter so customers past the cap stay reachable, and let the
+// admin create a new customer inline for walk-ins.
 function CustomerPicker({
   value,
   onChange,
@@ -101,15 +110,56 @@ function CustomerPicker({
   value: string;
   onChange: (id: string) => void;
 }) {
+  const api = useApi();
+  const [mode, setMode] = useState<"search" | "create">("search");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Customer | null>(null);
-  const { customers, isLoading } = useAdminCustomers(
-    search.trim() || undefined,
-  );
+  const [draft, setDraft] = useState(emptyCustomerDraft);
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const {
+    customers,
+    isLoading,
+    mutate: mutateCustomers,
+  } = useAdminCustomers(search.trim() || undefined);
 
   useEffect(() => {
     if (!value) setSelected(null);
   }, [value]);
+
+  const selectCustomer = (customer: Customer) => {
+    setSelected(customer);
+    onChange(String(customer.id));
+  };
+
+  const handleCreate = async () => {
+    const name = draft.name.trim();
+    const phone = draft.phone.trim();
+    const email = draft.email.trim();
+    const address = draft.address.trim();
+    if (!name && !phone && !email) {
+      setCreateError("Add a name, phone, or email.");
+      return;
+    }
+    setCreating(true);
+    setCreateError(null);
+    try {
+      const customer = await api.post<Customer>(adminPaths.customers(), {
+        ...(name && { name }),
+        ...(phone && { phone }),
+        ...(email && { email }),
+        ...(address && { address }),
+      });
+      await mutateCustomers();
+      setMode("search");
+      setDraft(emptyCustomerDraft);
+      selectCustomer(customer);
+    } catch (e) {
+      setCreateError(e instanceof Error ? e.message : "Create customer failed");
+    } finally {
+      setCreating(false);
+    }
+  };
 
   if (selected) {
     return (
@@ -134,6 +184,64 @@ function CustomerPicker({
     );
   }
 
+  if (mode === "create") {
+    const setField = (key: keyof typeof draft, val: string) =>
+      setDraft((d) => ({ ...d, [key]: val }));
+    return (
+      <div className="space-y-1.5">
+        <Label>New customer</Label>
+        <div className="space-y-2 rounded-md border border-border p-3">
+          <Input
+            value={draft.name}
+            onChange={(e) => setField("name", e.target.value)}
+            placeholder="Name"
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <Input
+              value={draft.phone}
+              onChange={(e) => setField("phone", e.target.value)}
+              placeholder="Phone"
+            />
+            <Input
+              value={draft.email}
+              onChange={(e) => setField("email", e.target.value)}
+              placeholder="Email"
+            />
+          </div>
+          <Input
+            value={draft.address}
+            onChange={(e) => setField("address", e.target.value)}
+            placeholder="Address (optional)"
+          />
+          {createError && (
+            <p className="text-xs text-destructive">{createError}</p>
+          )}
+          <div className="flex justify-end gap-2 pt-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              onClick={() => {
+                setMode("search");
+                setCreateError(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              size="xs"
+              onClick={handleCreate}
+              disabled={creating}
+            >
+              {creating ? "Creating..." : "Save customer"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-1.5">
       <Label htmlFor="manual-order-customer-search">Customer</Label>
@@ -150,19 +258,14 @@ function CustomerPicker({
           </div>
         ) : customers.length === 0 ? (
           <div className="px-3 py-2 text-xs text-muted-foreground">
-            {search.trim()
-              ? "No customers match. Try a different search."
-              : "Add a customer first, then create an order from this page."}
+            {search.trim() ? "No customers match." : "No customers yet."}
           </div>
         ) : (
           customers.map((customer) => (
             <button
               type="button"
               key={customer.id}
-              onClick={() => {
-                setSelected(customer);
-                onChange(String(customer.id));
-              }}
+              onClick={() => selectCustomer(customer)}
               className="block w-full text-left px-3 py-2 text-sm hover:bg-muted"
             >
               {customerLabel(customer)}
@@ -170,6 +273,16 @@ function CustomerPicker({
           ))
         )}
       </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="xs"
+        onClick={() => setMode("create")}
+        className="self-start"
+      >
+        <Plus className="w-3 h-3" />
+        New customer
+      </Button>
     </div>
   );
 }
@@ -192,12 +305,14 @@ function ManualOrderFormFields({
       />
 
       <div className="space-y-1.5">
-        <Label htmlFor="manual-order-description">Order notes</Label>
+        <Label htmlFor="manual-order-description">
+          What does the customer need?
+        </Label>
         <Textarea
           id="manual-order-description"
           value={form.description}
           onChange={(e) => set("description", e.target.value)}
-          placeholder="Describe what the customer needs..."
+          placeholder="A short summary is fine — the shop reviews before sending."
         />
       </div>
 
@@ -225,7 +340,7 @@ function ManualOrderFormFields({
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="manual-order-item-description">Service item</Label>
+        <Label htmlFor="manual-order-item-description">Service line</Label>
         <Input
           id="manual-order-item-description"
           value={form.itemDescription}
@@ -303,7 +418,7 @@ function CreateOrderDialog({
         <DialogHeader>
           <DialogTitle className="font-display">New Order</DialogTitle>
           <DialogDescription>
-            Manually create a draft order for an existing customer.
+            Create a draft for review. Vehicle and service line are optional.
           </DialogDescription>
         </DialogHeader>
 
@@ -343,24 +458,41 @@ export default function OrdersPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const filter = parseAdminOrdersFilter(searchParams.get("status"));
+  const urlSearch = parseAdminOrdersSearch(searchParams.get("search"));
+  const [searchInput, setSearchInput] = useState(urlSearch);
+  // useDeferredValue lets the input stay snappy while fetch + URL sync run on
+  // the trailing edge of bursty typing.
+  const deferredSearch = useDeferredValue(searchInput);
   const [showMore, setShowMore] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const {
     orders,
     isLoading,
     mutate: mutateOrders,
-  } = useAdminOrders(filter || undefined);
+  } = useAdminOrders(filter || undefined, deferredSearch || undefined);
   const { data: dashboard } = useAdminDashboard();
   const pendingReviewCount = dashboard?.stats.pendingReview ?? 0;
 
+  // Sync deferred search into the URL so refresh, back/forward, and shared
+  // links keep the active query.
+  useEffect(() => {
+    const desired = getAdminOrdersListHref(filter, deferredSearch);
+    const current = getAdminOrdersListHref(filter, urlSearch);
+    if (desired !== current) {
+      router.replace(desired, { scroll: false });
+    }
+  }, [deferredSearch, filter, urlSearch, router]);
+
   const isMoreActive = MORE_FILTERS.some((f) => f.value === filter);
   const setFilter = (nextFilter: typeof filter) => {
-    router.replace(getAdminOrdersListHref(nextFilter), { scroll: false });
+    router.replace(getAdminOrdersListHref(nextFilter, deferredSearch), {
+      scroll: false,
+    });
   };
   const handleOrderCreated = async (id: number) => {
     setShowCreate(false);
     await mutateOrders();
-    router.push(getAdminOrderDetailHref(id, filter));
+    router.push(getAdminOrderDetailHref(id, filter, deferredSearch));
   };
 
   return (
@@ -380,6 +512,16 @@ export default function OrdersPage() {
         onOpenChange={setShowCreate}
         onCreated={handleOrderCreated}
       />
+
+      <div className="mb-4">
+        <Input
+          type="search"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          placeholder="Search by name, phone, email, vehicle, notes, or order ID"
+          aria-label="Search orders"
+        />
+      </div>
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-2 mb-6">
@@ -458,7 +600,11 @@ export default function OrdersPage() {
           <CardContent className="flex flex-col items-center justify-center py-12">
             <ClipboardList className="w-10 h-10 text-muted-foreground mb-3" />
             <p className="text-sm text-muted-foreground">
-              {filter ? `No ${filter} orders.` : "No orders yet."}
+              {deferredSearch
+                ? `No orders match "${deferredSearch}".`
+                : filter
+                  ? `No ${filter} orders.`
+                  : "No orders yet."}
             </p>
           </CardContent>
         </Card>
@@ -476,7 +622,7 @@ export default function OrdersPage() {
             return (
               <Link
                 key={order.id}
-                href={getAdminOrderDetailHref(order.id, filter)}
+                href={getAdminOrderDetailHref(order.id, filter, deferredSearch)}
                 prefetch={false}
                 className="flex items-center justify-between gap-3 bg-card border border-border rounded-xl p-4 hover:border-primary transition-colors group"
               >
