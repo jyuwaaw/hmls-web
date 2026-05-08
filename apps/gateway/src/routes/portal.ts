@@ -1,13 +1,19 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { db, schema } from "@hmls/agent/db";
-import { and, desc, eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { Errors } from "@hmls/shared/errors";
 import { type AuthEnv, requireAuth } from "../middleware/auth.ts";
 import { transition } from "@hmls/agent/order-state";
 import { sendOrderStateResult } from "../lib/order-state-http.ts";
 import { orderReasonInput, updateProfileInput } from "@hmls/shared/api/contracts/portal";
-import type { CustomerRow, OrderEventRow, OrderRow } from "@hmls/shared/db/types";
+import type {
+  CustomerRow,
+  OrderEventRow,
+  OrderIntakeRow,
+  OrderRow,
+  OrderRowWithIntake,
+} from "@hmls/shared/db/types";
 
 type ApiError = { error: { code: string; message: string } };
 
@@ -57,21 +63,25 @@ portal.put("/me", zValidator("json", updateProfileInput), async (c) => {
 });
 
 // GET /me/bookings — orders with scheduling (unified after Layer 3)
+// Joins intake so the bookings page can show the customer's own notes
+// inline without a per-row roundtrip.
 portal.get("/me/bookings", async (c) => {
   const customerId = c.get("customerId");
   const rows = await db
-    .select()
+    .select({ order: schema.orders, intake: schema.orderIntake })
     .from(schema.orders)
-    .where(
-      and(
-        eq(schema.orders.customerId, customerId),
-        // Only orders that have been scheduled (scheduled_at set)
-      ),
+    .leftJoin(
+      schema.orderIntake,
+      eq(schema.orderIntake.orderId, schema.orders.id),
     )
+    .where(eq(schema.orders.customerId, customerId))
     .orderBy(desc(schema.orders.scheduledAt));
 
   // Filter in JS so we still include orders without scheduled_at if none match
-  return c.json<OrderRow[]>(rows.filter((r) => r.scheduledAt != null));
+  const withIntake: OrderRowWithIntake[] = rows
+    .filter((r) => r.order.scheduledAt != null)
+    .map((r) => ({ ...r.order, intake: r.intake }));
+  return c.json<OrderRowWithIntake[]>(withIntake);
 });
 
 // GET /me/orders — customer's orders (unified — replaces estimates + quotes)
@@ -104,13 +114,25 @@ portal.get("/me/orders/:id", async (c) => {
     return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
   }
 
-  const events = await db
-    .select()
-    .from(schema.orderEvents)
-    .where(eq(schema.orderEvents.orderId, id))
-    .orderBy(desc(schema.orderEvents.createdAt));
+  const [events, intake] = await Promise.all([
+    db
+      .select()
+      .from(schema.orderEvents)
+      .where(eq(schema.orderEvents.orderId, id))
+      .orderBy(desc(schema.orderEvents.createdAt)),
+    db
+      .select()
+      .from(schema.orderIntake)
+      .where(eq(schema.orderIntake.orderId, id))
+      .limit(1)
+      .then((r) => r[0] ?? null),
+  ]);
 
-  return c.json<{ order: OrderRow; events: OrderEventRow[] }>({ order, events });
+  return c.json<{ order: OrderRow; intake: OrderIntakeRow | null; events: OrderEventRow[] }>({
+    order,
+    intake,
+    events,
+  });
 });
 
 // GET /me/estimates — backward compat redirect to orders

@@ -17,16 +17,6 @@ export function EditProfileForm({ mechanic, onSave, onCancel }: Props) {
   const [email, setEmail] = useState(mechanic.email ?? "");
   const [phone, setPhone] = useState(mechanic.phone ?? "");
   const [timezone, setTimezone] = useState(mechanic.timezone);
-  const [radius, setRadius] = useState(
-    String(mechanic.serviceRadiusMiles ?? ""),
-  );
-  const [lat, setLat] = useState(mechanic.homeBaseLat ?? "");
-  const [lng, setLng] = useState(mechanic.homeBaseLng ?? "");
-  const [specialties, setSpecialties] = useState(
-    Array.isArray(mechanic.specialties)
-      ? (mechanic.specialties as string[]).join(", ")
-      : "",
-  );
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,15 +33,6 @@ export function EditProfileForm({ mechanic, onSave, onCancel }: Props) {
         email: email.trim() || null,
         phone: phone.trim() || null,
         timezone: timezone.trim(),
-        serviceRadiusMiles: radius ? Number(radius) : null,
-        homeBaseLat: lat || null,
-        homeBaseLng: lng || null,
-        specialties: specialties
-          ? specialties
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean)
-          : null,
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to save");
@@ -88,49 +69,12 @@ export function EditProfileForm({ mechanic, onSave, onCancel }: Props) {
           />
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <Label htmlFor="ep-tz">Timezone</Label>
-          <Input
-            id="ep-tz"
-            value={timezone}
-            onChange={(e) => setTimezone(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="ep-radius">Service radius (miles)</Label>
-          <Input
-            id="ep-radius"
-            type="number"
-            value={radius}
-            onChange={(e) => setRadius(e.target.value)}
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-1">
-          <Label htmlFor="ep-lat">Home base lat</Label>
-          <Input
-            id="ep-lat"
-            value={lat}
-            onChange={(e) => setLat(e.target.value)}
-          />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="ep-lng">Home base lng</Label>
-          <Input
-            id="ep-lng"
-            value={lng}
-            onChange={(e) => setLng(e.target.value)}
-          />
-        </div>
-      </div>
       <div className="space-y-1">
-        <Label htmlFor="ep-spec">Specialties (comma-separated)</Label>
+        <Label htmlFor="ep-tz">Timezone</Label>
         <Input
-          id="ep-spec"
-          value={specialties}
-          onChange={(e) => setSpecialties(e.target.value)}
+          id="ep-tz"
+          value={timezone}
+          onChange={(e) => setTimezone(e.target.value)}
         />
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}

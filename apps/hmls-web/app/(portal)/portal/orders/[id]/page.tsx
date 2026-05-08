@@ -29,8 +29,6 @@ function eventDescription(event: OrderEvent): string {
       return "Status updated";
     case "items_edited":
       return "Service items were updated";
-    case "contact_edited":
-      return "Contact information updated";
     default:
       return event.eventType.replace(/_/g, " ");
   }

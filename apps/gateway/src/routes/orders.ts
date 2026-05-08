@@ -86,12 +86,20 @@ orders.get("/", zValidator("query", listOrdersQuery), async (c) => {
     const like = `%${searchTerm}%`;
     const numericId = Number(searchTerm);
     const isNumericId = Number.isInteger(numericId) && numericId > 0;
+    // symptomDescription moved to order_intake — search via a correlated
+    // EXISTS so we don't have to JOIN the list query for the common
+    // (no-search) case.
+    const intakeMatch = sql`EXISTS (
+      SELECT 1 FROM ${schema.orderIntake}
+      WHERE ${schema.orderIntake.orderId} = ${schema.orders.id}
+        AND ${schema.orderIntake.symptomDescription} ILIKE ${like}
+    )`;
     conditions.push(
       sql`(${schema.orders.contactName} ILIKE ${like}
         OR ${schema.orders.contactEmail} ILIKE ${like}
         OR ${schema.orders.contactPhone} ILIKE ${like}
         OR ${schema.orders.notes} ILIKE ${like}
-        OR ${schema.orders.symptomDescription} ILIKE ${like}
+        OR ${intakeMatch}
         OR ${schema.orders.vehicleInfo}->>'make' ILIKE ${like}
         OR ${schema.orders.vehicleInfo}->>'model' ILIKE ${like}
         OR ${schema.orders.vehicleInfo}->>'year' ILIKE ${like}${
@@ -211,16 +219,18 @@ orders.get("/:id", async (c) => {
     order.shareToken = token;
   }
 
-  const [customer, events] = await Promise.all([
+  const [customer, events, intake] = await Promise.all([
     order.customerId
       ? db.select().from(schema.customers).where(eq(schema.customers.id, order.customerId)).limit(1)
         .then((r) => r[0])
       : null,
     db.select().from(schema.orderEvents).where(eq(schema.orderEvents.orderId, id))
       .orderBy(desc(schema.orderEvents.createdAt)),
+    db.select().from(schema.orderIntake).where(eq(schema.orderIntake.orderId, id))
+      .limit(1).then((r) => r[0] ?? null),
   ]);
 
-  return c.json<OrderDetailRow>({ order, customer: customer ?? null, events });
+  return c.json<OrderDetailRow>({ order, intake, customer: customer ?? null, events });
 });
 
 // PATCH /orders/:id — edit items (through harness, lifecycle-aware) and/or

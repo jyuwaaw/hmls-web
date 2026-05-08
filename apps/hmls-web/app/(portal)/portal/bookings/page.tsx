@@ -11,7 +11,7 @@ import { askReason } from "@/components/ui/ReasonDialog";
 import { Spinner } from "@/components/ui/Spinner";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useApi } from "@/hooks/useApi";
-import { type PortalOrder, usePortalBookings } from "@/hooks/usePortal";
+import { type PortalBookingRow, usePortalBookings } from "@/hooks/usePortal";
 import { portalPaths } from "@/lib/api-paths";
 import { isTentativeBooking, statusDisplay } from "@/lib/status-display";
 
@@ -20,7 +20,7 @@ function BookingCard({
   onCancel,
   loading,
 }: {
-  order: PortalOrder;
+  order: PortalBookingRow;
   onCancel: (orderId: number) => void;
   loading: number | null;
 }) {
@@ -80,9 +80,9 @@ function BookingCard({
         )}
       </div>
 
-      {order.customerNotes && (
+      {order.intake?.customerNotes && (
         <p className="text-xs text-text-secondary mb-3 bg-surface-alt rounded-lg px-3 py-2">
-          {order.customerNotes}
+          {order.intake.customerNotes}
         </p>
       )}
 

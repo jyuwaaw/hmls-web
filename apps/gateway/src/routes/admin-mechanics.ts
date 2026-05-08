@@ -137,7 +137,7 @@ adminMechanics.get("/", async (c) => {
         providerId: schema.orders.providerId,
         amountCents: sql<
           number
-        >`COALESCE(${schema.orders.capturedAmountCents}, ${schema.orders.subtotalCents})`,
+        >`COALESCE(${schema.orders.paidAmountCents}, ${schema.orders.subtotalCents})`,
       })
       .from(schema.orders)
       .where(
@@ -259,10 +259,6 @@ adminMechanics.post("/", zValidator("json", createMechanicInput), async (c) => {
       email: body.email ?? null,
       phone: body.phone ?? null,
       timezone: body.timezone ?? "America/Los_Angeles",
-      serviceRadiusMiles: body.serviceRadiusMiles ?? 30,
-      homeBaseLat: body.homeBaseLat == null ? null : String(body.homeBaseLat),
-      homeBaseLng: body.homeBaseLng == null ? null : String(body.homeBaseLng),
-      specialties: body.specialties ?? null,
       isActive: body.isActive ?? true,
       authUserId: body.authUserId ?? null,
     })
@@ -313,16 +309,6 @@ adminMechanics.patch("/:id", zValidator("json", updateMechanicInput), async (c) 
   if (body.email !== undefined) updates.email = body.email;
   if (body.phone !== undefined) updates.phone = body.phone;
   if (body.timezone !== undefined) updates.timezone = body.timezone;
-  if (body.serviceRadiusMiles !== undefined) {
-    updates.serviceRadiusMiles = body.serviceRadiusMiles;
-  }
-  if (body.homeBaseLat !== undefined) {
-    updates.homeBaseLat = body.homeBaseLat == null ? null : String(body.homeBaseLat);
-  }
-  if (body.homeBaseLng !== undefined) {
-    updates.homeBaseLng = body.homeBaseLng == null ? null : String(body.homeBaseLng);
-  }
-  if (body.specialties !== undefined) updates.specialties = body.specialties;
   if (body.isActive !== undefined) updates.isActive = body.isActive;
   if (body.authUserId !== undefined) updates.authUserId = body.authUserId;
 

@@ -89,9 +89,9 @@ function OrderCard({ order }: { order: MechanicOrder }) {
               {order.location}
             </p>
           )}
-          {order.customerNotes && (
+          {order.intake?.customerNotes && (
             <p className="text-xs text-muted-foreground mt-1 italic truncate">
-              &ldquo;{order.customerNotes}&rdquo;
+              &ldquo;{order.intake.customerNotes}&rdquo;
             </p>
           )}
         </div>

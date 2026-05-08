@@ -9,10 +9,6 @@ export const createMechanicInput = z.object({
   email: z.string().optional(),
   phone: z.string().optional(),
   timezone: z.string().optional(),
-  serviceRadiusMiles: z.number().optional(),
-  homeBaseLat: z.union([z.number(), z.string()]).nullish(),
-  homeBaseLng: z.union([z.number(), z.string()]).nullish(),
-  specialties: z.array(z.string()).optional(),
   isActive: z.boolean().optional(),
   authUserId: z.string().optional(),
 });
@@ -26,10 +22,6 @@ export const updateMechanicInput = z.object({
   email: z.string().nullish(),
   phone: z.string().nullish(),
   timezone: z.string().optional(),
-  serviceRadiusMiles: z.number().optional(),
-  homeBaseLat: z.union([z.number(), z.string()]).nullish(),
-  homeBaseLng: z.union([z.number(), z.string()]).nullish(),
-  specialties: z.array(z.string()).optional(),
   isActive: z.boolean().optional(),
   authUserId: z.string().nullish(),
 });

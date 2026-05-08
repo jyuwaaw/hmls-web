@@ -1,5 +1,5 @@
 import type {
-  Order,
+  OrderWithIntake,
   ProviderAvailability,
   ProviderScheduleOverride,
 } from "@hmls/shared/db/types";
@@ -10,7 +10,9 @@ import { useStableArray } from "@/lib/swr-stable";
 
 export type WeeklyAvailabilityRow = ProviderAvailability;
 export type ScheduleOverride = ProviderScheduleOverride;
-export type MechanicOrder = Order;
+/** Mechanic order list rows carry intake inline (LEFT JOIN on the gateway
+ *  side) so the dashboard can show customer notes without an N+1 fetch. */
+export type MechanicOrder = OrderWithIntake;
 
 export function useMechanicAvailability() {
   const api = useApi();

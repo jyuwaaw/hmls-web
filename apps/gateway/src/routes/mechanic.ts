@@ -10,7 +10,7 @@ import {
   setMechanicAvailabilityInput,
 } from "@hmls/shared/api/contracts/mechanic";
 import type {
-  OrderRow,
+  OrderRowWithIntake,
   ProviderAvailabilityRow,
   ProviderRow,
   ProviderScheduleOverrideRow,
@@ -193,11 +193,16 @@ mechanic.get("/orders", zValidator("query", listMyOrdersQuery), async (c) => {
   }
 
   const rows = await db
-    .select()
+    .select({ order: schema.orders, intake: schema.orderIntake })
     .from(schema.orders)
+    .leftJoin(
+      schema.orderIntake,
+      eq(schema.orderIntake.orderId, schema.orders.id),
+    )
     .where(and(...conditions))
     .orderBy(asc(schema.orders.scheduledAt));
-  return c.json<OrderRow[]>(rows);
+  const withIntake: OrderRowWithIntake[] = rows.map((r) => ({ ...r.order, intake: r.intake }));
+  return c.json<OrderRowWithIntake[]>(withIntake);
 });
 
 export { mechanic };

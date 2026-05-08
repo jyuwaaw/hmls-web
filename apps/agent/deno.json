@@ -6,6 +6,7 @@
     "./db": "./src/db/client.ts",
     "./order-state": "./src/services/order-state.ts",
     "./order-state-core": "./src/services/order-state-core.ts",
+    "./order-intake": "./src/services/order-intake.ts",
     "./auto-assign": "./src/services/auto-assign.ts"
   },
   "imports": {

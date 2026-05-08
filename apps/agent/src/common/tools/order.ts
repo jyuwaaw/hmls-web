@@ -24,6 +24,7 @@ import { toolResult } from "@hmls/shared/tool-result";
 import type { DiscountType, LineItem, ServiceInput } from "../../hmls/skills/estimate/types.ts";
 import type { OrderItem } from "@hmls/shared/db/schema";
 import { patchItems } from "../../services/order-state.ts";
+import { upsertOrderIntake } from "../../services/order-intake.ts";
 import {
   customerAgentActor,
   staffAgentActor,
@@ -567,6 +568,20 @@ export const createOrderTool = {
       }
     }
 
+    // Schema invariant: orders.customer_id is NOT NULL. resolveCustomer
+    // returns null when the staff agent neither resolved a customerId nor
+    // provided enough customerInfo to find-or-create one — surface this as
+    // a tool error instead of letting it surface as a NOT NULL violation
+    // at the DB layer.
+    if (!customer) {
+      return toolResult({
+        success: false,
+        error: "Cannot create the order — no customer was identified. Pass either " +
+          "customerId (for an existing customer) or customerInfo with at " +
+          "least one of name / email / phone so I can find or create one.",
+      });
+    }
+
     const shareToken = nanoid(32);
     const validDays = params.validDays ?? 14;
     const expiresAt = new Date(Date.now() + validDays * 24 * 60 * 60 * 1000);
@@ -574,43 +589,53 @@ export const createOrderTool = {
     const accessInstructions = clean(params.accessInstructions) ?? null;
     const symptomDescription = clean(params.symptomDescription) ?? null;
 
-    const [order] = await db
-      .insert(schema.orders)
-      .values({
-        customerId: customer?.id ?? null,
-        status: "draft",
-        statusHistory: [
-          { status: "draft", timestamp: new Date().toISOString(), actor: "agent" },
-        ],
-        items,
-        notes: params.notes ?? null,
-        subtotalCents: subtotal,
-        priceRangeLowCents: rangeLow,
-        priceRangeHighCents: rangeHigh,
-        vehicleInfo,
-        accessInstructions,
-        symptomDescription,
-        shareToken,
-        validDays,
-        expiresAt,
-        contactName: customer?.name ?? null,
-        contactEmail: customer?.email ?? null,
-        contactPhone: orderPhone,
-        contactAddress: orderAddress,
-      })
-      .returning();
+    const order = await db.transaction(async (tx) => {
+      const [row] = await tx
+        .insert(schema.orders)
+        .values({
+          customerId: customer.id,
+          status: "draft",
+          statusHistory: [
+            { status: "draft", timestamp: new Date().toISOString(), actor: "agent" },
+          ],
+          items,
+          notes: params.notes ?? null,
+          subtotalCents: subtotal,
+          priceRangeLowCents: rangeLow,
+          priceRangeHighCents: rangeHigh,
+          vehicleInfo,
+          accessInstructions,
+          shareToken,
+          validDays,
+          expiresAt,
+          contactName: customer.name ?? null,
+          contactEmail: customer.email ?? null,
+          contactPhone: orderPhone,
+          contactAddress: orderAddress,
+        })
+        .returning();
 
-    await db.insert(schema.orderEvents).values({
-      orderId: order.id,
-      eventType: "status_change",
-      fromStatus: null,
-      toStatus: "draft",
-      actor: "agent",
-      metadata: {
-        source: "create_order_insert",
-        vehicleInfo,
-        itemCount: items.length,
-      },
+      // Intake is a child row — only insert if the customer actually
+      // submitted a symptom narrative. Walk-in / direct admin paths leave
+      // it empty.
+      if (symptomDescription) {
+        await upsertOrderIntake(row.id, { symptomDescription }, tx);
+      }
+
+      await tx.insert(schema.orderEvents).values({
+        orderId: row.id,
+        eventType: "status_change",
+        fromStatus: null,
+        toStatus: "draft",
+        actor: "agent",
+        metadata: {
+          source: "create_order_insert",
+          vehicleInfo,
+          itemCount: items.length,
+        },
+      });
+
+      return row;
     });
 
     return toolResult({

@@ -30,6 +30,7 @@ import { getLogger } from "@logtape/logtape";
 import { db, schema } from "../db/client.ts";
 import type { OrderItem } from "@hmls/shared/db/schema";
 import { notifyOrderStatusChange } from "../lib/notifications.ts";
+import { hasIntakeFields, upsertOrderIntake } from "./order-intake.ts";
 import {
   type Actor,
   type ActorKind,
@@ -327,9 +328,6 @@ export async function patchItems(
   if (patch.accessInstructions !== undefined) {
     updateFields.accessInstructions = patch.accessInstructions;
   }
-  if (patch.symptomDescription !== undefined) {
-    updateFields.symptomDescription = patch.symptomDescription;
-  }
   if (patch.contactPhone !== undefined) {
     updateFields.contactPhone = patch.contactPhone;
   }
@@ -344,6 +342,10 @@ export async function patchItems(
     ];
   }
 
+  // symptomDescription is now on order_intake — route through the helper
+  // inside the same transaction.
+  const intakePatch = { symptomDescription: patch.symptomDescription };
+
   const updated = await db.transaction(async (tx) => {
     const [row] = await tx
       .update(schema.orders)
@@ -356,6 +358,10 @@ export async function patchItems(
       .returning();
 
     if (!row) return null;
+
+    if (hasIntakeFields(intakePatch)) {
+      await upsertOrderIntake(orderId, intakePatch, tx);
+    }
 
     await tx.insert(schema.orderEvents).values({
       orderId,
@@ -488,11 +494,14 @@ export async function attachSchedule(
   if (patch.accessInstructions !== undefined) {
     updateFields.accessInstructions = patch.accessInstructions;
   }
-  if (patch.symptomDescription !== undefined) {
-    updateFields.symptomDescription = patch.symptomDescription;
-  }
-  if (patch.photoUrls !== undefined) updateFields.photoUrls = patch.photoUrls;
-  if (patch.customerNotes !== undefined) updateFields.customerNotes = patch.customerNotes;
+
+  // Intake fields (symptomDescription / photoUrls / customerNotes) now live
+  // on order_intake — collect them for a transactional upsert below.
+  const intakePatch = {
+    symptomDescription: patch.symptomDescription,
+    photoUrls: patch.photoUrls,
+    customerNotes: patch.customerNotes,
+  };
 
   if (willAdvance) {
     updateFields.status = "scheduled";
@@ -510,6 +519,10 @@ export async function attachSchedule(
       .returning();
 
     if (!row) return null;
+
+    if (hasIntakeFields(intakePatch)) {
+      await upsertOrderIntake(orderId, intakePatch, tx);
+    }
 
     await tx.insert(schema.orderEvents).values({
       orderId,
@@ -648,9 +661,26 @@ export async function assignProvider(
 // recordPayment — stamp payment fields (no status change)
 // ---------------------------------------------------------------------------
 
+export const PAYMENT_METHODS = [
+  "cash",
+  "card",
+  "check",
+  "venmo",
+  "zelle",
+  "stripe",
+  "other",
+] as const;
+export type PaymentMethod = typeof PAYMENT_METHODS[number];
+
+const PAYMENT_METHOD_SET: ReadonlySet<string> = new Set(PAYMENT_METHODS);
+
+export function isPaymentMethod(s: string): s is PaymentMethod {
+  return PAYMENT_METHOD_SET.has(s);
+}
+
 export interface PaymentRecord {
   amountCents: number;
-  method: string;
+  method: PaymentMethod;
   reference?: string | null;
   paidAt?: Date;
 }
@@ -675,8 +705,14 @@ export async function recordPayment(
       error: { code: "invalid_input", message: "amountCents must be a positive number" },
     };
   }
-  if (!payment.method) {
-    return { ok: false, error: { code: "invalid_input", message: "method is required" } };
+  if (!payment.method || !isPaymentMethod(payment.method)) {
+    return {
+      ok: false,
+      error: {
+        code: "invalid_input",
+        message: `method must be one of: ${PAYMENT_METHODS.join(", ")}`,
+      },
+    };
   }
 
   const [order] = await db
@@ -710,7 +746,7 @@ export async function recordPayment(
         paidAt: payment.paidAt ?? new Date(),
         paymentMethod: payment.method,
         paymentReference: payment.reference ?? null,
-        capturedAmountCents: payment.amountCents,
+        paidAmountCents: payment.amountCents,
         updatedAt: new Date(),
       })
       .where(eq(schema.orders.id, orderId))

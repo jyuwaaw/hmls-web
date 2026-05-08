@@ -105,7 +105,7 @@ export const addOrderNoteInput = z.object({
 
 export const recordPaymentInput = z.object({
   amountCents: z.number().int().positive(),
-  method: z.string(),
+  method: z.enum(["cash", "card", "check", "venmo", "zelle", "stripe", "other"]),
   reference: z.string().optional(),
   paidAt: z.string().optional(),
 });

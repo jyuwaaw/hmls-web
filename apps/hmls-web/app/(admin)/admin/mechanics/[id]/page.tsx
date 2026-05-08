@@ -37,10 +37,6 @@ function ProfileCard({ id }: { id: number }) {
 
   if (!mechanic) return <Skeleton className="h-40 w-full" />;
 
-  const specialtiesList = Array.isArray(mechanic.specialties)
-    ? (mechanic.specialties as string[])
-    : [];
-
   return (
     <Card className="p-4 gap-0">
       <CardContent className="p-0 space-y-3">
@@ -93,20 +89,6 @@ function ProfileCard({ id }: { id: number }) {
             <dd className="text-foreground">{mechanic.phone ?? "—"}</dd>
             <dt className="text-muted-foreground">Timezone</dt>
             <dd className="text-foreground">{mechanic.timezone}</dd>
-            <dt className="text-muted-foreground">Service radius</dt>
-            <dd className="text-foreground">
-              {mechanic.serviceRadiusMiles ?? "—"} miles
-            </dd>
-            <dt className="text-muted-foreground">Home base</dt>
-            <dd className="text-foreground">
-              {mechanic.homeBaseLat && mechanic.homeBaseLng
-                ? `${mechanic.homeBaseLat}, ${mechanic.homeBaseLng}`
-                : "—"}
-            </dd>
-            <dt className="text-muted-foreground">Specialties</dt>
-            <dd className="text-foreground">
-              {specialtiesList.length > 0 ? specialtiesList.join(", ") : "—"}
-            </dd>
           </dl>
         )}
       </CardContent>

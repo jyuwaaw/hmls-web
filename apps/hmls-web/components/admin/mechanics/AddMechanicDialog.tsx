@@ -26,10 +26,6 @@ export function AddMechanicDialog({ open, onOpenChange, onCreated }: Props) {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [timezone, setTimezone] = useState("America/Los_Angeles");
-  const [radius, setRadius] = useState("30");
-  const [lat, setLat] = useState("");
-  const [lng, setLng] = useState("");
-  const [specialties, setSpecialties] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,10 +34,6 @@ export function AddMechanicDialog({ open, onOpenChange, onCreated }: Props) {
     setEmail("");
     setPhone("");
     setTimezone("America/Los_Angeles");
-    setRadius("30");
-    setLat("");
-    setLng("");
-    setSpecialties("");
     setError(null);
   }
 
@@ -58,15 +50,6 @@ export function AddMechanicDialog({ open, onOpenChange, onCreated }: Props) {
         email: email.trim() || undefined,
         phone: phone.trim() || undefined,
         timezone: timezone.trim() || undefined,
-        serviceRadiusMiles: radius ? Number(radius) : undefined,
-        homeBaseLat: lat ? Number(lat) : undefined,
-        homeBaseLng: lng ? Number(lng) : undefined,
-        specialties: specialties
-          ? specialties
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean)
-          : undefined,
       });
       reset();
       onOpenChange(false);
@@ -116,54 +99,12 @@ export function AddMechanicDialog({ open, onOpenChange, onCreated }: Props) {
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="m-tz">Timezone</Label>
-              <Input
-                id="m-tz"
-                value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="m-radius">Service radius (miles)</Label>
-              <Input
-                id="m-radius"
-                type="number"
-                value={radius}
-                onChange={(e) => setRadius(e.target.value)}
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="m-lat">Home base latitude</Label>
-              <Input
-                id="m-lat"
-                type="number"
-                step="0.0000001"
-                value={lat}
-                onChange={(e) => setLat(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="m-lng">Home base longitude</Label>
-              <Input
-                id="m-lng"
-                type="number"
-                step="0.0000001"
-                value={lng}
-                onChange={(e) => setLng(e.target.value)}
-              />
-            </div>
-          </div>
           <div className="space-y-1">
-            <Label htmlFor="m-spec">Specialties (comma-separated)</Label>
+            <Label htmlFor="m-tz">Timezone</Label>
             <Input
-              id="m-spec"
-              value={specialties}
-              onChange={(e) => setSpecialties(e.target.value)}
-              placeholder="e.g. Brakes, Diagnostics"
+              id="m-tz"
+              value={timezone}
+              onChange={(e) => setTimezone(e.target.value)}
             />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}

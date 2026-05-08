@@ -12,7 +12,7 @@ const logger = getLogger(["hmls", "gateway", "webhook"]);
 // Stripe's dashboard test fires don't 404, but it no longer mutates any data.
 //
 // When a shop opts into Stripe auto-capture, restore the handlers to
-// transition the order's `paidAt` / `paymentMethod` / `capturedAmountCents`.
+// transition the order's `paidAt` / `paymentMethod` / `paidAmountCents`.
 export function createWebhookRoute(stripeSecretKey: string) {
   const stripe = new Stripe(stripeSecretKey, {
     apiVersion: "2026-02-25.clover",

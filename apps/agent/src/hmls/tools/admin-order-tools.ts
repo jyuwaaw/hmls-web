@@ -50,6 +50,15 @@ const listOrdersTool = {
       .$dynamic();
 
     if (params.status) {
+      // Narrow the agent-supplied string against the canonical enum before
+      // querying so we never attempt `WHERE status = 'banana'`.
+      if (!isOrderStatus(params.status)) {
+        return toolResult({
+          success: false,
+          error: `Invalid status filter: ${params.status}. Valid values: draft, estimated, ` +
+            `revised, approved, declined, scheduled, in_progress, completed, cancelled.`,
+        });
+      }
       query = query.where(eq(schema.orders.status, params.status));
     }
 

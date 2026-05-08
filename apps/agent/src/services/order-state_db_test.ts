@@ -418,7 +418,7 @@ Deno.test({
         const updated = await reloadOrder(order.id);
         assertEquals(updated.paymentMethod, "cash");
         assertEquals(updated.paymentReference, "receipt-123");
-        assertEquals(updated.capturedAmountCents, 25000);
+        assertEquals(updated.paidAmountCents, 25000);
         assertEquals(updated.paidAt != null, true);
 
         const events = await getEvents(order.id);
@@ -442,7 +442,7 @@ Deno.test({
         const after = await reloadOrder(order.id);
         assertEquals(after.paidAt, null);
         assertEquals(after.paymentMethod, null);
-        assertEquals(after.capturedAmountCents, null);
+        assertEquals(after.paidAmountCents, null);
 
         const events = await getEvents(order.id);
         assertEquals(

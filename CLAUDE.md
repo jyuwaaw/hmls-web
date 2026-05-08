@@ -221,6 +221,16 @@ Subsequent revisions in the same chat re-call `create_order` with the captured `
 - `0010` - Layer 3 PR C: drop `bookings`, `estimates`, `quotes` tables; drop orders legacy FK
   columns (estimate_id, quote_id, booking_id, stripe_quote_id, stripe_invoice_id,
   stripe_payment_intent_id, preauth_amount_cents)
+- `0018` - Schema invariants: enums for status/event_type/payment_method/role; share_token UNIQUE;
+  provider_availability EXCLUDE no-overlap; provider_schedule_overrides UNIQUE; trigger
+  IS-DISTINCT-FROM short-circuit; drop dead
+  `providers.specialties/service_radius_miles/home_base_*`; rename `captured_amount_cents` →
+  `paid_amount_cents`
+- `0019` - Layer 4 PR A: extract `order_intake` (1:1 child of orders, PK=order_id, ON DELETE
+  CASCADE). Holds `symptom_description`, `photo_urls`, `customer_notes` — exists iff customer
+  submitted intake via chat. Walk-in / direct admin orders have NO row.
+- `0020` - Lock `orders.customer_id` to NOT NULL; backfill 8 orphan dev rows to a "Walk-in
+  (unlinked)" placeholder customer (email `walkin-unlinked@hmls.local`)
 
 ## Pre-Push CI
 

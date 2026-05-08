@@ -1,6 +1,7 @@
 import type {
   customers,
   orderEvents,
+  orderIntake,
   orders,
   pricingConfig,
   providerAvailability,
@@ -15,6 +16,7 @@ import type {
 // ---------------------------------------------------------------------------
 
 export type OrderRow = typeof orders.$inferSelect;
+export type OrderIntakeRow = typeof orderIntake.$inferSelect;
 export type CustomerRow = typeof customers.$inferSelect;
 export type ProviderRow = typeof providers.$inferSelect;
 export type ProviderAvailabilityRow = typeof providerAvailability.$inferSelect;
@@ -46,6 +48,7 @@ type Wire<T> = {
 };
 
 export type Order = Wire<OrderRow>;
+export type OrderIntake = Wire<OrderIntakeRow>;
 export type Customer = Wire<CustomerRow>;
 export type Provider = Wire<ProviderRow>;
 export type ProviderAvailability = Wire<ProviderAvailabilityRow>;
@@ -61,15 +64,25 @@ export type { OrderItem, VehicleInfo } from "./schema.ts";
 
 // Composite shape returned by GET /api/admin/orders/:id (admin sees the
 // customer record alongside; portal endpoint returns a slimmer shape).
+// `intake` is null for orders that never went through the customer chat
+// flow (walk-ins, routine maintenance, direct admin creation).
 // *Row variant: pre-serialization (Date timestamps) — used by gateway handlers.
 export type OrderDetailRow = {
   order: OrderRow;
+  intake: OrderIntakeRow | null;
   customer: CustomerRow | null;
   events: OrderEventRow[];
 };
 // Wire variant: post-serialization (string timestamps) — used by web clients.
 export type OrderDetail = {
   order: Order;
+  intake: OrderIntake | null;
   customer: Customer | null;
   events: OrderEvent[];
 };
+
+// List rows that need intake inline (e.g. mechanic dashboard, portal
+// bookings) — flat join shape so consumers can do `o.intake?.customerNotes`
+// without a second fetch.
+export type OrderRowWithIntake = OrderRow & { intake: OrderIntakeRow | null };
+export type OrderWithIntake = Order & { intake: OrderIntake | null };

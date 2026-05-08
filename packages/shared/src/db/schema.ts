@@ -36,6 +36,8 @@ export const shops = pgTable("shops", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
+export const userRoleEnum = pgEnum("user_role", ["customer", "admin", "mechanic"]);
+
 export const customers = pgTable("customers", {
   id: serial("id").primaryKey(),
   shopId: uuid("shop_id").references(() => shops.id),
@@ -46,7 +48,7 @@ export const customers = pgTable("customers", {
   vehicleInfo: jsonb("vehicle_info").$type<VehicleInfo | null>(),
   stripeCustomerId: varchar("stripe_customer_id", { length: 100 }),
   authUserId: varchar("auth_user_id", { length: 255 }).unique(),
-  role: varchar("role", { length: 20 }).notNull().default("customer"),
+  role: userRoleEnum("role").notNull().default("customer"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
@@ -56,11 +58,7 @@ export const providers = pgTable("providers", {
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }),
   phone: varchar("phone", { length: 20 }),
-  specialties: jsonb("specialties").$type<string[] | null>(),
   isActive: boolean("is_active").notNull().default(true),
-  serviceRadiusMiles: integer("service_radius_miles").default(30),
-  homeBaseLat: numeric("home_base_lat", { precision: 10, scale: 7 }),
-  homeBaseLng: numeric("home_base_lng", { precision: 10, scale: 7 }),
   timezone: varchar("timezone", { length: 50 }).notNull().default("America/Los_Angeles"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
     .notNull(),
@@ -106,6 +104,10 @@ export interface OrderItem {
   laborHours?: number;
   partNumber?: string;
   taxable: boolean;
+  // Soft reference back to OLP labor reference data (for analytics + future
+  // bulk-reprice). No FK constraint — OLP rows are immutable history once
+  // priced into an order, but the id lets us aggregate "most-ordered jobs".
+  olpLaborTimeId?: number;
 }
 
 // --- jsonb shapes (declared once so Drizzle $inferSelect knows them) ---
@@ -128,11 +130,33 @@ export interface OrderStatusHistoryEntry {
 
 // --- Orders (central entity — single source of truth for lifecycle) ---
 
+export const orderStatusEnum = pgEnum("order_status", [
+  "draft",
+  "estimated",
+  "revised",
+  "approved",
+  "declined",
+  "scheduled",
+  "in_progress",
+  "completed",
+  "cancelled",
+]);
+
+export const paymentMethodEnum = pgEnum("payment_method", [
+  "cash",
+  "card",
+  "check",
+  "venmo",
+  "zelle",
+  "stripe",
+  "other",
+]);
+
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
   shopId: uuid("shop_id").references(() => shops.id),
-  customerId: integer("customer_id").references(() => customers.id),
-  status: varchar("status", { length: 30 }).notNull().default("draft"),
+  customerId: integer("customer_id").references(() => customers.id).notNull(),
+  status: orderStatusEnum("status").notNull().default("draft"),
   statusHistory: jsonb("status_history").$type<OrderStatusHistoryEntry[]>().notNull().default(
     [],
   ),
@@ -144,12 +168,14 @@ export const orders = pgTable("orders", {
   vehicleInfo: jsonb("vehicle_info").$type<VehicleInfo | null>(),
   validDays: integer("valid_days").default(30),
   expiresAt: timestamp("expires_at", { withTimezone: true }),
-  shareToken: varchar("share_token", { length: 64 }),
+  shareToken: varchar("share_token", { length: 64 }).unique(),
   revisionNumber: integer("revision_number").notNull().default(1),
-  capturedAmountCents: integer("captured_amount_cents"),
-  // Payment tracking (manual). Set when admin records payment on a completed job.
+  // Actual amount paid by the customer (renamed from capturedAmountCents
+  // — Stripe "captured" semantics no longer apply now that payment is
+  // recorded manually). Falls back to subtotalCents in revenue rollups.
+  paidAmountCents: integer("paid_amount_cents"),
   paidAt: timestamp("paid_at", { withTimezone: true }),
-  paymentMethod: varchar("payment_method", { length: 30 }),
+  paymentMethod: paymentMethodEnum("payment_method"),
   paymentReference: varchar("payment_reference", { length: 255 }),
   adminNotes: text("admin_notes"),
   cancellationReason: text("cancellation_reason"),
@@ -167,28 +193,55 @@ export const orders = pgTable("orders", {
   locationLat: numeric("location_lat", { precision: 10, scale: 7 }),
   locationLng: numeric("location_lng", { precision: 10, scale: 7 }),
   accessInstructions: text("access_instructions"),
-  symptomDescription: text("symptom_description"),
-  photoUrls: jsonb("photo_urls").$type<string[] | null>(),
-  customerNotes: text("customer_notes"),
   blockedRange: tstzrange("blocked_range"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
     .notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow()
     .notNull(),
 }, (table) => ({
-  shareTokenIdx: index("orders_share_token_idx").on(table.shareToken),
   statusIdx: index("orders_status_idx").on(table.status),
   customerIdx: index("orders_customer_id_idx").on(table.customerId),
   scheduledAtIdx: index("orders_scheduled_at_idx").on(table.scheduledAt),
   providerIdx: index("orders_provider_id_idx").on(table.providerId),
 }));
 
+// --- Order Intake (customer-submitted intake; 1:1 child of orders) ---
+//
+// A row exists iff the customer actually submitted intake (e.g. via the
+// AI chat flow). Walk-in admin orders and routine-maintenance reorders
+// have NO row. Use a LEFT JOIN when reading; null intake means
+// "shop-created order, no customer-side narrative".
+
+export const orderIntake = pgTable("order_intake", {
+  orderId: integer("order_id")
+    .primaryKey()
+    .references(() => orders.id, { onDelete: "cascade" }),
+  symptomDescription: text("symptom_description"),
+  photoUrls: jsonb("photo_urls").$type<string[] | null>(),
+  customerNotes: text("customer_notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 // --- Order Events (audit log) ---
+
+export const orderEventTypeEnum = pgEnum("order_event_type", [
+  "status_change",
+  "items_edited",
+  "schedule_attached",
+  "provider_assigned",
+  "payment_recorded",
+  "note_added",
+  // Historical: no current code path writes this. Kept in the enum so the
+  // 13 legacy dev rows survive the cast in migration 0018. The admin/portal
+  // event-feed default branch formats unrecognized types automatically.
+  "contact_edited",
+]);
 
 export const orderEvents = pgTable("order_events", {
   id: uuid("id").primaryKey().defaultRandom(),
   orderId: integer("order_id").references(() => orders.id, { onDelete: "cascade" }).notNull(),
-  eventType: varchar("event_type", { length: 50 }).notNull(),
+  eventType: orderEventTypeEnum("event_type").notNull(),
   fromStatus: varchar("from_status", { length: 50 }),
   toStatus: varchar("to_status", { length: 50 }),
   actor: varchar("actor", { length: 100 }),

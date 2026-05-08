@@ -329,6 +329,7 @@ function QuotePanel({
 
 function BookingPanel({
   order,
+  intake,
   providerName,
   onAssign,
   onSetTime,
@@ -344,8 +345,8 @@ function BookingPanel({
     location?: string | null;
     adminNotes: string | null;
     accessInstructions?: string | null;
-    symptomDescription?: string | null;
   };
+  intake: { symptomDescription?: string | null } | null;
   providerName: string | null;
   onAssign: () => void;
   onSetTime: () => void;
@@ -429,12 +430,12 @@ function BookingPanel({
             </p>
           </>
         )}
-        {order.symptomDescription && (
+        {intake?.symptomDescription && (
           <>
             <Separator />
             <p className="text-xs text-muted-foreground">
               <span className="font-medium text-foreground">Symptoms:</span>{" "}
-              {order.symptomDescription}
+              {intake.symptomDescription}
             </p>
           </>
         )}
@@ -539,8 +540,6 @@ function eventDescription(event: OrderEvent): string {
       return "Status changed";
     case "items_edited":
       return "Line items updated";
-    case "contact_edited":
-      return "Contact info updated";
     case "note_added": {
       const note = (event.metadata as { note?: string })?.note;
       return note ? `Note: ${note}` : "Note added";
@@ -562,13 +561,6 @@ function EventIcon({ eventType }: { eventType: string }) {
     return (
       <div className="w-6 h-6 rounded-full bg-blue-500/10 border border-blue-500/30 flex items-center justify-center shrink-0">
         <ClipboardEdit className="w-3 h-3 text-blue-400" />
-      </div>
-    );
-  }
-  if (eventType === "contact_edited") {
-    return (
-      <div className="w-6 h-6 rounded-full bg-purple-500/10 border border-purple-500/30 flex items-center justify-center shrink-0">
-        <User className="w-3 h-3 text-purple-400" />
       </div>
     );
   }
@@ -1096,6 +1088,7 @@ export default function OrderDetailPage() {
           {showBookingPanel && (
             <BookingPanel
               order={order}
+              intake={data.intake}
               providerName={bookingProviderName}
               onAssign={() => setReassignOpen(true)}
               onSetTime={() => setSetTimeOpen(true)}

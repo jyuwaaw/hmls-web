@@ -59,12 +59,13 @@ admin.get("/dashboard", async (c) => {
       .limit(5),
   ]);
 
-  // Revenue: captured amount on completed orders in last 30 days
+  // Revenue: actual paid amount on completed orders in last 30 days,
+  // falling back to subtotal for orders that haven't been marked paid yet.
   const [revenueResult] = await db
     .select({
       total: sql<
         number
-      >`COALESCE(SUM(COALESCE(${schema.orders.capturedAmountCents}, ${schema.orders.subtotalCents})), 0)`,
+      >`COALESCE(SUM(COALESCE(${schema.orders.paidAmountCents}, ${schema.orders.subtotalCents})), 0)`,
     })
     .from(schema.orders)
     .where(

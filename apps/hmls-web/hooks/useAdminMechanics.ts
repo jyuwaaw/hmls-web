@@ -14,11 +14,7 @@ export interface Mechanic {
   name: string;
   email: string | null;
   phone: string | null;
-  specialties: unknown;
   isActive: boolean;
-  serviceRadiusMiles: number | null;
-  homeBaseLat: string | null;
-  homeBaseLng: string | null;
   timezone: string;
   createdAt: string;
 }
@@ -74,10 +70,6 @@ export function useAdminMechanics() {
     email?: string;
     phone?: string;
     timezone?: string;
-    serviceRadiusMiles?: number;
-    homeBaseLat?: number | null;
-    homeBaseLng?: number | null;
-    specialties?: unknown;
     isActive?: boolean;
     authUserId?: string;
   }) {
