@@ -5,6 +5,23 @@ import { getLogger } from "@logtape/logtape";
 import { estimateTokens, estimateTokensInString } from "./token-estimate.ts";
 import { runSummarizer } from "./summarizer.ts";
 import { SYSTEM_PROMPT } from "./system-prompt.ts";
+import type { DiagnosticState } from "@hmls/shared/db/schema";
+
+/** Format the structured diagnostic state for injection into the system prompt.
+ *  Returns null when the state has no meaningful content (empty object or all
+ *  fields blank), so the prompt skips the section entirely. */
+function formatDiagnosticState(state: DiagnosticState | null | undefined): string | null {
+  if (!state) return null;
+  const hasContent = Object.values(state).some((v) => {
+    if (v === undefined || v === null) return false;
+    if (typeof v === "string") return v.length > 0;
+    if (Array.isArray(v)) return v.length > 0;
+    if (typeof v === "object") return Object.keys(v).length > 0;
+    return true;
+  });
+  if (!hasContent) return null;
+  return JSON.stringify(state, null, 2);
+}
 
 const logger = getLogger(["hmls", "agent", "fixo", "context"]);
 
@@ -55,6 +72,7 @@ export async function buildAgentContext(
       .select({
         summary: schema.fixoSessions.summary,
         lastSummarizedMessageId: schema.fixoSessions.lastSummarizedMessageId,
+        diagnosticState: schema.fixoSessions.diagnosticState,
       })
       .from(schema.fixoSessions)
       .where(eq(schema.fixoSessions.id, opts.sessionId))
@@ -118,9 +136,20 @@ export async function buildAgentContext(
       }
     }
 
-    const systemPrompt = summary
-      ? `${SYSTEM_PROMPT}\n\n## Known facts so far\n${summary}`
-      : SYSTEM_PROMPT;
+    const formattedState = formatDiagnosticState(session.diagnosticState);
+
+    const sections: string[] = [SYSTEM_PROMPT];
+    if (summary) {
+      sections.push(`## Known facts so far\n${summary}`);
+    }
+    if (formattedState) {
+      sections.push(
+        `## Current diagnostic state\n` +
+          `(structured memory, mutate via update_diagnostic_state)\n` +
+          `\`\`\`json\n${formattedState}\n\`\`\``,
+      );
+    }
+    const systemPrompt = sections.join("\n\n");
 
     return {
       systemPrompt,

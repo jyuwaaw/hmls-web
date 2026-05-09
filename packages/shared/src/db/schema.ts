@@ -93,6 +93,14 @@ export const pricingConfig = pgTable("pricing_config", {
 
 // --- OrderItem type (unified item model) ---
 
+/**
+ * Repair urgency tier — surfaces severity in the estimate so customers can
+ * triage. Required = safety-critical / vehicle inoperable; recommended =
+ * fix soon, not urgent; maintenance = routine service interval; optional =
+ * cosmetic / nice-to-have.
+ */
+export type ItemTier = "required" | "recommended" | "maintenance" | "optional";
+
 export interface OrderItem {
   id: string;
   category: "labor" | "parts" | "fee" | "discount";
@@ -108,6 +116,7 @@ export interface OrderItem {
   // bulk-reprice). No FK constraint — OLP rows are immutable history once
   // priced into an order, but the id lets us aggregate "most-ordered jobs".
   olpLaborTimeId?: number;
+  tier?: ItemTier;
 }
 
 // --- jsonb shapes (declared once so Drizzle $inferSelect knows them) ---
@@ -339,6 +348,63 @@ export const obdSourceEnum = pgEnum("fixo_obd_source", [
   "ocr",
 ]);
 
+// --- DiagnosticState (Fixo agent's structured 8-step diagnostic memory) ---
+//
+// Persisted on fixo_sessions.diagnostic_state (jsonb). Mutated by the
+// `update_diagnostic_state` agent tool, read each turn by buildAgentContext
+// and surfaced in the system prompt so the agent has durable diagnostic
+// memory that survives context-window summarization.
+//
+// The shape mirrors the 8 shop diagnostic stages:
+//   1 intake → 2 visual → 3 dtcs → 4 (reproduce — captured as testsDone) →
+//   5 candidateSystems → 6 testsPlanned/testsDone → 7 rootCause →
+//   8 estimateTiers
+//
+// Every field is optional; an empty `{}` means "fresh diagnostic, start at intake".
+
+export interface DiagnosticIntake {
+  primarySymptom?: string;
+  /** When the symptom appears: continuous, situational (cold/hot/load/...), etc. */
+  onset?: "always" | "intermittent" | "cold" | "hot" | "load" | "speed-dep";
+  /** Free-form frequency description, e.g. "every cold start, gone after 30s". */
+  frequency?: string;
+  warningLights?: string[];
+  recentRepairs?: string;
+  drivable?: "safe" | "limp" | "no-start";
+}
+
+export interface DiagnosticCandidateSystem {
+  /** "fuel", "ignition", "vacuum", "cooling", "brakes", etc. */
+  system: string;
+  /** 0=ruled-out, 1=low, 2=medium, 3=high. */
+  confidence: 0 | 1 | 2 | 3;
+  reasons: string[];
+}
+
+export interface DiagnosticTestResult {
+  test: string;
+  result: string;
+  /** ISO timestamp from the agent turn that recorded this result. */
+  recordedAt?: string;
+}
+
+export interface DiagnosticEstimateTier {
+  service: string;
+  tier: ItemTier;
+}
+
+export interface DiagnosticState {
+  intake?: DiagnosticIntake;
+  visual?: { observations: string[] };
+  dtcs?: Array<{ code: string; freezeFrame?: Record<string, unknown> }>;
+  candidateSystems?: DiagnosticCandidateSystem[];
+  testsPlanned?: string[];
+  testsDone?: DiagnosticTestResult[];
+  rootCause?: string;
+  estimateTiers?: DiagnosticEstimateTier[];
+  notes?: string;
+}
+
 export const fixoSessions = pgTable(
   "fixo_sessions",
   {
@@ -358,6 +424,10 @@ export const fixoSessions = pgTable(
       .notNull()
       .defaultNow(),
     archivedAt: timestamp("archived_at", { withTimezone: true }),
+    diagnosticState: jsonb("diagnostic_state")
+      .$type<DiagnosticState>()
+      .notNull()
+      .default({}),
   },
   (table) => [
     index("idx_fixo_sessions_customer").on(table.customerId),

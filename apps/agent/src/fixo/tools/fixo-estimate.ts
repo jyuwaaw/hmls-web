@@ -14,7 +14,7 @@ import {
 } from "../../hmls/skills/estimate/pricing.ts";
 import { toolResult } from "@hmls/shared/tool-result";
 import type { DiscountType, LineItem, ServiceInput } from "../../hmls/skills/estimate/types.ts";
-import type { OrderItem } from "@hmls/shared/db/schema";
+import type { ItemTier, OrderItem } from "@hmls/shared/db/schema";
 import type { ToolContext } from "../../common/convert-tools.ts";
 
 function asToolContext(ctx: unknown): ToolContext | undefined {
@@ -41,7 +41,7 @@ const discountEnum = z.enum([
 function toOrderItem(
   item: LineItem,
   category: OrderItem["category"],
-  opts?: { laborHours?: number; quantity?: number },
+  opts?: { laborHours?: number; quantity?: number; tier?: ItemTier },
 ): OrderItem {
   const quantity = opts?.quantity ?? 1;
   return {
@@ -54,8 +54,11 @@ function toOrderItem(
     totalCents: item.price * quantity,
     taxable: category !== "discount",
     ...(opts?.laborHours ? { laborHours: opts.laborHours } : {}),
+    ...(opts?.tier ? { tier: opts.tier } : {}),
   };
 }
+
+const tierEnum = z.enum(["required", "recommended", "maintenance", "optional"]);
 
 // ---------------------------------------------------------------------------
 // create_fixo_estimate  →  creates a fixo_estimates row
@@ -104,6 +107,13 @@ export const createFixoEstimateTool = {
             .boolean()
             .default(false)
             .describe("True if service involves battery replacement"),
+          tier: tierEnum
+            .optional()
+            .describe(
+              "Repair urgency tier: 'required' = safety-critical or vehicle inoperable; " +
+                "'recommended' = fix soon, not urgent; 'maintenance' = routine service " +
+                "interval; 'optional' = cosmetic / nice-to-have. Customers triage by tier.",
+            ),
         }),
       )
       .describe("List of services to include in estimate"),
@@ -223,7 +233,10 @@ export const createFixoEstimateTool = {
     // 3. Convert LineItems → OrderItem[] (unified item model)
     const orderItems: OrderItem[] = [
       ...serviceLineItems.map((li, i) =>
-        toOrderItem(li, "labor", { laborHours: params.services[i]?.laborHours })
+        toOrderItem(li, "labor", {
+          laborHours: params.services[i]?.laborHours,
+          tier: params.services[i]?.tier,
+        })
       ),
       ...customLineItems.map((li) => toOrderItem(li, "labor")),
       ...feeLineItems.map((li) => toOrderItem(li, "fee")),
@@ -279,6 +292,7 @@ export const createFixoEstimateTool = {
       totalCents: i.totalCents,
       quantity: i.quantity,
       category: i.category,
+      tier: i.tier,
     }));
 
     // 8. Save to fixo_estimates if user is authenticated, otherwise return pricing only

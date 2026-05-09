@@ -4,6 +4,9 @@ export interface ToolContext {
   /** Staff chat: the admin's email, used to build the Actor for
    *  order-state writes. Absent for customer chat. */
   adminEmail?: string;
+  /** Fixo chat: the active fixo_sessions.id. Required by tools that
+   *  mutate session-scoped state (e.g. update_diagnostic_state). */
+  fixoSessionId?: number;
 }
 
 // deno-lint-ignore no-explicit-any

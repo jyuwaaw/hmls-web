@@ -106,6 +106,7 @@ chat.post("/", async (c) => {
       messages: modelMessages,
       systemPrompt,
       userId: auth.userId,
+      fixoSessionId: parsedSessionId,
     });
 
     const response = result.toUIMessageStreamResponse({

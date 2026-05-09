@@ -60,7 +60,16 @@ export type PricingConfig = Wire<PricingConfigRow>;
 // Re-export jsonb element shapes from schema (declared there so Drizzle's
 // $type<...>() can reference them). One canonical definition for both
 // the gateway/agent and the web.
-export type { OrderItem, VehicleInfo } from "./schema.ts";
+export type {
+  DiagnosticCandidateSystem,
+  DiagnosticEstimateTier,
+  DiagnosticIntake,
+  DiagnosticState,
+  DiagnosticTestResult,
+  ItemTier,
+  OrderItem,
+  VehicleInfo,
+} from "./schema.ts";
 
 // Composite shape returned by GET /api/admin/orders/:id (admin sees the
 // customer record alongside; portal endpoint returns a slimmer shape).

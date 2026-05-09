@@ -1,5 +1,7 @@
 // apps/agent/src/skills/estimate/types.ts
 
+import type { ItemTier } from "@hmls/shared/db/schema";
+
 export interface ServiceInput {
   name: string;
   description: string;
@@ -15,6 +17,9 @@ export interface ServiceInput {
    *  (or sets it to 0) for that service line; only labor is billed. The
    *  shop verifies on review. */
   customerSuppliedParts?: boolean;
+  /** Repair urgency tier surfaced on the resulting OrderItem so customers
+   *  can triage by severity (required / recommended / maintenance / optional). */
+  tier?: ItemTier;
 }
 
 export interface LineItem {

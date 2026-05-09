@@ -10,10 +10,66 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import type { FixoEstimateData } from "@/hooks/useAgentChat";
+import type {
+  FixoEstimateData,
+  FixoEstimateItemTier,
+} from "@/hooks/useAgentChat";
 
 interface FixoEstimateCardProps {
   data: FixoEstimateData;
+}
+
+type EstimateItem = FixoEstimateData["items"][number];
+
+// Display order: most-urgent first so customers see required work before optional
+const TIER_ORDER: FixoEstimateItemTier[] = [
+  "required",
+  "recommended",
+  "maintenance",
+  "optional",
+];
+
+const TIER_LABELS: Record<FixoEstimateItemTier, string> = {
+  required: "Required",
+  recommended: "Recommended",
+  maintenance: "Maintenance",
+  optional: "Optional",
+};
+
+const TIER_BADGE_CLASS: Record<FixoEstimateItemTier, string> = {
+  required:
+    "border-red-200 bg-red-50 text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-400",
+  recommended:
+    "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-400",
+  maintenance:
+    "border-sky-200 bg-sky-50 text-sky-700 dark:border-sky-900/40 dark:bg-sky-900/20 dark:text-sky-400",
+  optional: "border-border bg-muted text-muted-foreground",
+};
+
+function groupItemsByTier(items: EstimateItem[]): Array<{
+  tier: FixoEstimateItemTier | "untiered";
+  items: EstimateItem[];
+}> {
+  const buckets = new Map<FixoEstimateItemTier | "untiered", EstimateItem[]>();
+  for (const item of items) {
+    const key = item.tier ?? "untiered";
+    const existing = buckets.get(key);
+    if (existing) existing.push(item);
+    else buckets.set(key, [item]);
+  }
+  // Stable order: TIER_ORDER first, then untiered
+  const result: Array<{
+    tier: FixoEstimateItemTier | "untiered";
+    items: EstimateItem[];
+  }> = [];
+  for (const tier of TIER_ORDER) {
+    const bucket = buckets.get(tier);
+    if (bucket && bucket.length > 0) result.push({ tier, items: bucket });
+  }
+  const untiered = buckets.get("untiered");
+  if (untiered && untiered.length > 0)
+    result.push({ tier: "untiered", items: untiered });
+  return result;
 }
 
 export function FixoEstimateCard({ data }: FixoEstimateCardProps) {
@@ -65,24 +121,41 @@ export function FixoEstimateCard({ data }: FixoEstimateCardProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-1.5 py-3">
-        {data.items.map((item, i) => (
-          <div
-            // biome-ignore lint/suspicious/noArrayIndexKey: items have no stable id
-            key={i}
-            className="flex items-start justify-between gap-3 text-sm"
-          >
-            <div className="min-w-0 flex-1">
-              <span className="font-medium text-foreground">{item.name}</span>
-              {item.description && (
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {item.description}
-                </p>
-              )}
-            </div>
-            <span className="shrink-0 font-mono font-medium tabular-nums">
-              ${(item.unitPrice * item.quantity).toFixed(2)}
-            </span>
+      <CardContent className="space-y-3 py-3">
+        {groupItemsByTier(data.items).map((group) => (
+          <div key={group.tier} className="space-y-1.5">
+            {group.tier !== "untiered" && (
+              <div className="flex items-center gap-2">
+                <span
+                  className={`rounded border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                    TIER_BADGE_CLASS[group.tier]
+                  }`}
+                >
+                  {TIER_LABELS[group.tier]}
+                </span>
+              </div>
+            )}
+            {group.items.map((item, i) => (
+              <div
+                // biome-ignore lint/suspicious/noArrayIndexKey: items have no stable id
+                key={i}
+                className="flex items-start justify-between gap-3 text-sm"
+              >
+                <div className="min-w-0 flex-1">
+                  <span className="font-medium text-foreground">
+                    {item.name}
+                  </span>
+                  {item.description && (
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {item.description}
+                    </p>
+                  )}
+                </div>
+                <span className="shrink-0 font-mono font-medium tabular-nums">
+                  ${(item.unitPrice * item.quantity).toFixed(2)}
+                </span>
+              </div>
+            ))}
           </div>
         ))}
       </CardContent>

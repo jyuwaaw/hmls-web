@@ -25,6 +25,12 @@ import {
   persistSessionId,
 } from "@/lib/session";
 
+export type FixoEstimateItemTier =
+  | "required"
+  | "recommended"
+  | "maintenance"
+  | "optional";
+
 export interface FixoEstimateData {
   success: true;
   estimateId?: number;
@@ -36,6 +42,7 @@ export interface FixoEstimateData {
     unitPrice: number;
     quantity: number;
     category: string;
+    tier?: FixoEstimateItemTier;
   }>;
   subtotal: number;
   priceRange: string;

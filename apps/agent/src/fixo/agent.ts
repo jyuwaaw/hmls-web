@@ -9,6 +9,9 @@ import { askUserQuestionTools } from "../common/tools/ask-user-question.ts";
 import { laborLookupTools } from "../common/tools/labor-lookup.ts";
 import { partsLookupTools } from "../common/tools/parts-lookup.ts";
 import { createFixoEstimateTool } from "./tools/fixo-estimate.ts";
+import { updateDiagnosticStateTool } from "./tools/diagnostic-state.ts";
+import { isolateSystemsTool } from "./tools/system-isolation.ts";
+import { planPinpointTestsTool } from "./tools/pinpoint-test-plan.ts";
 
 const DEFAULT_MODEL = "gemini-3-flash-preview";
 
@@ -17,8 +20,13 @@ const logger = getLogger(["hmls", "agent", "fixo"]);
 export interface RunFixoAgentOptions {
   messages: ModelMessage[];
   userId?: string;
+  /** Active fixo_sessions.id. Required for tools that mutate session-scoped
+   *  state (update_diagnostic_state). Optional only because legacy callers
+   *  predate the diagnostic-state work — new callers should always pass it. */
+  fixoSessionId?: number;
   /** When provided, overrides the constant SYSTEM_PROMPT. Used by the gateway
-   * after buildAgentContext attaches a "Known facts so far" summary. */
+   * after buildAgentContext attaches a "Known facts so far" summary and the
+   * current diagnostic state. */
   systemPrompt?: string;
 }
 
@@ -38,9 +46,15 @@ export function runFixoAgent(options: RunFixoAgentOptions) {
     ...laborLookupTools,
     ...partsLookupTools,
     createFixoEstimateTool,
+    updateDiagnosticStateTool,
+    isolateSystemsTool,
+    planPinpointTestsTool,
   ];
 
-  const tools = convertTools(allTools, { userId: options.userId });
+  const tools = convertTools(allTools, {
+    userId: options.userId,
+    fixoSessionId: options.fixoSessionId,
+  });
   logger.info("Initializing Fixo agent", {
     model: modelId,
     toolCount: Object.keys(tools).length,
