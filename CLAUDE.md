@@ -300,16 +300,17 @@ deno deploy env delete <KEY> --app hmls-api --org spinsirr
 | ----------------- | ------------------------------------ | ------------------------------------------------------------------------ |
 | Web (HMLS)        | `https://hmls.autos`                 | Deno Deploy                                                              |
 | API (main + fixo) | `https://api.fixo.hmls.autos` (fixo) | Deno Deploy (`hmls-api`)                                                 |
-| Fixo Web          | `https://fixo.hmls.autos`            | Vercel (`prj_EzagTZlxfjG6U6h3Cbdt8uWjPwdO`, scope: `spinsirrs-projects`) |
+| Fixo Web          | `https://fixo.ink`                   | Vercel (`prj_EzagTZlxfjG6U6h3Cbdt8uWjPwdO`, scope: `spinsirrs-projects`) |
 
 Both main API and Fixo API run in the same Deno Deploy app (`hmls-api`), routed by hostname.
 
 ### Cloudflare DNS (zone: `hmls.autos`)
 
-| Type  | Name       | Target                 | Proxy                 |
-| ----- | ---------- | ---------------------- | --------------------- |
-| CNAME | `fixo`     | `cname.vercel-dns.com` | DNS only (gray cloud) |
-| CNAME | `api.fixo` | `hmls-api.deno.dev`    | DNS only (gray cloud) |
+| Type  | Name       | Target              | Proxy                 |
+| ----- | ---------- | ------------------- | --------------------- |
+| CNAME | `api.fixo` | `hmls-api.deno.dev` | DNS only (gray cloud) |
+
+(`fixo.ink` is its own zone, registered to the team — not managed in this Cloudflare zone.)
 
 ### Supabase Auth (project: `ddkapmjkubklyzuciscd`)
 
@@ -319,7 +320,7 @@ Both main API and Fixo API run in the same Deno Deploy app (`hmls-api`), routed 
 - **Redirect URLs**:
   - `https://hmls.autos`
   - `http://localhost:3000`
-  - `https://fixo.hmls.autos/**`
+  - `https://fixo.ink/**`
   - `http://localhost:3001/**` (fixo local dev)
 
 ### Vercel Environment Variables (fixo-web)
