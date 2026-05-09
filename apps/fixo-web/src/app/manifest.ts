@@ -2,10 +2,11 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Fixo - AI Vehicle Diagnostics",
+    name: "Fixo — AI Car Diagnosis",
     short_name: "Fixo",
-    description: "AI-powered vehicle diagnostics at your fingertips",
-    start_url: "/chat",
+    description:
+      "Snap a photo, record the noise, or paste an OBD-II code — get an AI diagnosis with cost estimate in 30 seconds.",
+    start_url: "/",
     display: "standalone",
     background_color: "#fafafa",
     theme_color: "#2563eb",

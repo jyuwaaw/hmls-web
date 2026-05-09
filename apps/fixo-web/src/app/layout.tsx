@@ -15,14 +15,60 @@ const inter = Inter({
 
 export const dynamic = "force-dynamic";
 
+const SITE_URL = "https://fixo.hmls.autos";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "Fixo - AI Vehicle Diagnostics",
+    default: "Fixo — AI Car Diagnosis in 30 Seconds | Photo, Sound, OBD-II",
     template: "%s | Fixo",
   },
   description:
-    "AI-powered vehicle diagnostics. Describe your car problem, snap a photo, or enter OBD codes for instant expert analysis.",
+    "Skip the $150 shop diagnostic fee. Snap a photo, record the noise, or paste an OBD-II code — Fixo's AI returns a real diagnosis with parts and labor estimate in 30 seconds. Free to start.",
+  applicationName: "Fixo",
+  authors: [{ name: "Fixo" }],
+  keywords: [
+    "AI car diagnosis",
+    "OBD-II scanner app",
+    "what's wrong with my car",
+    "car repair cost estimate",
+    "engine code lookup",
+    "check engine light",
+    "vehicle diagnostic AI",
+    "car symptom checker",
+    "DTC code reader",
+    "auto repair estimate",
+  ],
+  category: "Automotive",
   manifest: "/manifest.json",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Fixo",
+    title: "Fixo — AI Car Diagnosis in 30 Seconds",
+    description:
+      "Skip the $150 shop fee. Photo, sound, or OBD-II code in — real diagnosis with cost estimate out. Free to start.",
+    url: SITE_URL,
+    locale: "en_US",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Fixo — AI Car Diagnosis in 30 Seconds",
+    description:
+      "Skip the $150 shop fee. Photo, sound, or OBD-II code in — real diagnosis with cost estimate out.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

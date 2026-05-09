@@ -21,20 +21,23 @@ export function PricingSection() {
           <AnimateInView className="rounded-xl border border-border/60 bg-card p-7">
             <h3 className="font-semibold mb-1">Free</h3>
             <div className="mb-5">
-              <span className="text-4xl font-bold">$0</span>
+              <span className="text-4xl font-bold tabular-nums">$0</span>
             </div>
             <ul className="space-y-2 mb-7">
-              {["3 text diagnoses/month", "1 vehicle", "Basic AI analysis"].map(
-                (f) => (
-                  <li
-                    key={f}
-                    className="flex items-start gap-2 text-sm text-muted-foreground"
-                  >
-                    <Check className="size-3.5 text-primary mt-0.5 shrink-0" />
-                    <span>{f}</span>
-                  </li>
-                ),
-              )}
+              {[
+                "200 credits/mo · ~1 full diagnosis",
+                "Photo, audio, video & OBD-II",
+                "PDF reports",
+                "Unlimited vehicles",
+              ].map((f) => (
+                <li
+                  key={f}
+                  className="flex items-start gap-2 text-sm text-muted-foreground"
+                >
+                  <Check className="size-3.5 text-primary mt-0.5 shrink-0" />
+                  <span>{f}</span>
+                </li>
+              ))}
             </ul>
             <Link href="/login">
               <Button variant="outline" className="w-full">
@@ -52,16 +55,16 @@ export function PricingSection() {
             </span>
             <h3 className="font-semibold mb-1">Plus</h3>
             <div className="mb-5">
-              <span className="text-4xl font-bold">$19.99</span>
+              <span className="text-4xl font-bold tabular-nums">$19.90</span>
               <span className="text-sm text-muted-foreground">/mo</span>
             </div>
             <ul className="space-y-2 mb-7">
               {[
-                "Unlimited diagnoses",
-                "Photo, audio & OBD-II",
-                "PDF reports",
-                "Unlimited vehicles",
-                "Full history",
+                "2,000 credits/mo · ~13 full diagnoses",
+                "10× the Free monthly grant",
+                "Top-up packs anytime ($1 = 100 cr)",
+                "Full diagnosis history",
+                "Cancel anytime",
               ].map((f) => (
                 <li
                   key={f}
@@ -73,7 +76,7 @@ export function PricingSection() {
               ))}
             </ul>
             <Link href="/pricing">
-              <Button className="w-full">Start Plus</Button>
+              <Button className="w-full">Start Plus — $19.90/mo</Button>
             </Link>
           </AnimateInView>
         </div>

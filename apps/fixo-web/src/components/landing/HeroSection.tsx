@@ -235,7 +235,7 @@ export function HeroSection() {
             </Link>
           </div>
           <p className="text-xs text-muted-foreground/60 mt-3 font-mono animate-in fade-in duration-400 delay-600 fill-mode-both">
-            3 FREE DIAGNOSES/MONTH · NO CREDIT CARD
+            FREE TO START · NO CREDIT CARD · CANCEL IN 2 CLICKS
           </p>
         </div>
 
