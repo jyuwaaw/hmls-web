@@ -390,6 +390,41 @@ async function sendEmail(
   }
 }
 
+// --- Billing notifications ---
+
+/**
+ * Notify a Plus/Pro subscriber that their card payment failed. Stripe
+ * retries automatically (smart retries / dunning); this email lets the
+ * user fix their card before the subscription cancels. No-op if RESEND
+ * isn't configured.
+ */
+export async function notifyPaymentFailed(opts: {
+  toEmail: string;
+  attempt: number;
+  nextRetryAt?: Date | null;
+  manageBillingUrl: string;
+}): Promise<boolean> {
+  const subject = "Your Fixo payment failed";
+  const retryLine = opts.nextRetryAt
+    ? `Stripe will retry on ${opts.nextRetryAt.toLocaleDateString()}.`
+    : "Stripe will retry shortly.";
+  const text = [
+    `Hi,`,
+    ``,
+    `Your most recent Fixo payment couldn't be processed (attempt ${opts.attempt}).`,
+    retryLine,
+    ``,
+    `To avoid losing your Plus features, please update your card here:`,
+    opts.manageBillingUrl,
+    ``,
+    `If your subscription cancels, your existing credits stay usable —`,
+    `you just won't get next month's grant.`,
+    ``,
+    `— Fixo`,
+  ].join("\n");
+  return await sendEmail(opts.toEmail, subject, text);
+}
+
 // --- Main notification function ---
 
 export async function notifyOrderStatusChange(

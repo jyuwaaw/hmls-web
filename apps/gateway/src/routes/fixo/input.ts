@@ -1,9 +1,8 @@
 import { Hono } from "hono";
 import { db, schema } from "@hmls/agent/db";
 import { eq } from "drizzle-orm";
-import { type InputType, uploadMedia } from "@hmls/agent";
-import { processCredits } from "../../middleware/fixo/credits.ts";
-import { requireMediaTier } from "../../middleware/fixo/tier.ts";
+import { type InputKind, uploadMedia } from "@hmls/agent";
+import { chargeForInput } from "../../middleware/fixo/credits.ts";
 import type { AuthContext } from "../../middleware/fixo/auth.ts";
 
 type Variables = { auth: AuthContext };
@@ -20,6 +19,25 @@ export function contentTypeMatches(
   if (type === "audio") return contentType.startsWith("audio/");
   if (type === "video") return contentType.startsWith("video/");
   return false;
+}
+
+// F6 caps. Server side, can't be bypassed by lying client.
+const MAX_DURATION_SECONDS = 600;
+// Base64 inflates raw bytes by ~4/3, so a 50 MB ceiling on the encoded
+// string maps to ~37 MB raw. Guards against memory abuse during decode +
+// keeps individual uploads sane.
+const MAX_BASE64_LENGTH = 50 * 1024 * 1024;
+
+/** Estimate raw byte size of a base64 string without decoding (cheap).
+ * Returns approximate bytes; caller compares against caps as a defense
+ * against memory exhaustion before atob/decode. */
+export function approxBase64Bytes(b64: string): number {
+  const trimmed = b64.endsWith("==")
+    ? b64.length - 2
+    : b64.endsWith("=")
+    ? b64.length - 1
+    : b64.length;
+  return Math.floor(trimmed * 3 / 4);
 }
 
 // POST /sessions/:id/input - Process input (non-streaming)
@@ -67,6 +85,38 @@ input.post("/:id/input", async (c) => {
     );
   }
 
+  // F6: cap durationSeconds (audio/video billing input) and media size.
+  // Without these, attackers can claim 1s for a 90s clip and undercharge
+  // themselves, or send a multi-GB base64 to OOM the server.
+  if (
+    (type === "audio" || type === "video") &&
+    typeof durationSeconds === "number" &&
+    (durationSeconds < 0 || durationSeconds > MAX_DURATION_SECONDS)
+  ) {
+    return c.json(
+      {
+        error: `durationSeconds out of range`,
+        message: `duration must be between 0 and ${MAX_DURATION_SECONDS} seconds`,
+        max: MAX_DURATION_SECONDS,
+      },
+      400,
+    );
+  }
+  if (
+    (type === "photo" || type === "audio" || type === "video") &&
+    typeof content === "string" &&
+    approxBase64Bytes(content) > MAX_BASE64_LENGTH
+  ) {
+    return c.json(
+      {
+        error: "Media content too large",
+        message: `media must be <= ${MAX_BASE64_LENGTH} base64 bytes (~37 MB raw)`,
+        max: MAX_BASE64_LENGTH,
+      },
+      413,
+    );
+  }
+
   const [session] = await db
     .select()
     .from(schema.fixoSessions)
@@ -80,26 +130,20 @@ input.post("/:id/input", async (c) => {
     return c.json({ error: "Session not found" }, 404);
   }
 
-  // Check free tier limits for SaaS users (non-legacy)
-  if (!auth.customerId) {
-    const tierBlock = requireMediaTier(auth);
-    if (tierBlock) return tierBlock;
+  // Charge credits for this input. Legacy HMLS customers (auth.customerId
+  // set) and DEV_MODE auto-bypass inside chargeForInput. Charge BEFORE
+  // persisting the media so a 402 user doesn't fill up storage with
+  // rejected uploads.
+  const charge = await chargeForInput({
+    auth,
+    kind: type as InputKind,
+    sessionId,
+    durationSeconds,
+  });
+  if (charge instanceof Response) {
+    return charge;
   }
-
-  // Check and deduct credits (only for legacy customers with Stripe)
-  let creditCharged = 0;
-  if (auth.stripeCustomerId && auth.customerId) {
-    const creditResult = await processCredits(
-      auth.stripeCustomerId,
-      type as InputType,
-      sessionId,
-      durationSeconds,
-    );
-    if (creditResult instanceof Response) {
-      return creditResult;
-    }
-    creditCharged = creditResult.charged;
-  }
+  const creditCharged = charge.charged;
 
   // Bump session credit counter.
   await db

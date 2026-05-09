@@ -10,9 +10,10 @@ interface UseMediaUploadOptions {
   /** Authenticated user id, scopes the persisted session id so a sign-out/
    * sign-in on the same browser doesn't reuse the previous account's id. */
   userId: string | null | undefined;
-  /** Free-tier users hit a 403 on photo/audio uploads (gated to Plus by the
-   * gateway). Surface that to the same UpgradeModal the chat flow uses
-   * instead of a generic "upload failed" toast. */
+  /** Out-of-credits responses (402 insufficient_credits, also legacy 403
+   * upgrade_required during the rollout window) are surfaced to the same
+   * upgrade/top-up modal the chat flow uses, instead of a generic
+   * "upload failed" toast. */
   onUpgradeRequired?: (message: string) => void;
 }
 
@@ -31,24 +32,29 @@ async function uploadMedia(
   });
 }
 
-/** When a media upload returns 403 with `upgrade_required` / `limit_reached`,
- * route it to the upgrade modal callback. Returns true if the response was
- * handled as a tier gate so the caller can skip the generic failure toast. */
+/** When a media upload is blocked by credits (402 insufficient_credits,
+ * or the legacy 403 upgrade_required / limit_reached during rollout),
+ * route the error message to the upgrade/top-up modal. Returns true if
+ * handled so the caller skips the generic failure toast. */
 async function tryHandleTierBlock(
   res: Response,
   onUpgradeRequired: ((message: string) => void) | undefined,
 ): Promise<boolean> {
-  if (res.status !== 403 || !onUpgradeRequired) return false;
+  if (!onUpgradeRequired) return false;
+  if (res.status !== 402 && res.status !== 403) return false;
   try {
     const body = (await res.json()) as { error?: string; message?: string };
-    if (body?.error === "upgrade_required" || body?.error === "limit_reached") {
-      onUpgradeRequired(
-        typeof body.message === "string" && body.message.length > 0
-          ? body.message
-          : "Upgrade to Plus to continue.",
-      );
-      return true;
-    }
+    const isCreditBlock =
+      body?.error === "insufficient_credits" ||
+      body?.error === "upgrade_required" ||
+      body?.error === "limit_reached";
+    if (!isCreditBlock) return false;
+    onUpgradeRequired(
+      typeof body.message === "string" && body.message.length > 0
+        ? body.message
+        : "Not enough credits — upgrade to Plus or top up to continue.",
+    );
+    return true;
   } catch {
     /* fall through to generic error */
   }

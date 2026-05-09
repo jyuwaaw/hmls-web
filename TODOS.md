@@ -118,3 +118,34 @@ audio paths.
 - If worse: keep spectrogram path indefinitely; document the call.
 
 **Depends on / blocked by:** Plan B merged (the codepaths are stable).
+
+---
+
+## Credit System (still deferred after Phase 11-16 follow-ups)
+
+Most originally-deferred items shipped in this PR. Remaining (still deferred):
+
+### Migrate to Stripe Entitlements (when 2nd paid tier launches)
+
+When Pro is actually live, migrate from `customer.subscription.*` events to
+`entitlements.active_entitlement_summary.updated`. Today the `tierFromPriceId` helper +
+single-paid-tier setup makes Entitlements overkill, but the SoT-on-Stripe model is the right end
+state for ≥2 paid tiers + feature flags.
+
+### Async webhook processing (when scale demands)
+
+Stripe recommends 2xx-then-queue. Today our DB tx is fast (<100ms) so synchronous handling is fine.
+Revisit if the Plus monthly renewal spike starts saturating the DB pool — then introduce a
+`stripe_events` table + worker.
+
+### Stripe SDK upgrade (20.4.1 → 22.x)
+
+Bump deno.json `stripe` dep, update `STRIPE_API_VERSION` from `2026-02-25.clover` to
+`2026-04-22.dahlia`, also update Stripe Dashboard webhook endpoint API version. Likely safe but
+needs regression check on every webhook event we handle. Single-purpose PR.
+
+### Restricted API Key (RAK) migration
+
+Stripe Dashboard → Developers → Create restricted key with: Customers (RW), Checkout Sessions (RW),
+Billing Portal Sessions (RW), Subscriptions (R), Invoices (R), Charges (R), Webhook Events (R).
+Replace `STRIPE_SECRET_KEY` env var. SDK accepts both transparently. Pure ops change.

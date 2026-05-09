@@ -16,18 +16,39 @@ export { formatUserContext, type UserContext } from "./types/user-context.ts";
 
 // Fixo business logic (used by gateway middleware/routes)
 export {
-  addCredits,
-  calculateAudioCredits,
-  calculateVideoCredits,
+  calculateCost,
+  consumeCredits,
+  CREDIT_COSTS,
+  type CreditBalance,
+  creditsForUsd,
+  ensureFreshMonthlyGrant,
+  getBalance,
+  getCreditHistory,
+  getUsageStats,
+  grantMonthly,
+  grantTopup,
+  type InputKind,
+  InsufficientCreditsError,
+  MONTHLY_GRANT,
+  PromoRedemptionError,
+  redeemPromoCode,
+  refundCredits,
+  revokeTopupCredits,
+  SUGGESTED_TOPUPS_USD,
+  type Tier,
+  TOPUP_CENTS_PER_CREDIT,
+  TOPUP_MAX_USD,
+  TOPUP_MIN_USD,
+  type UsageStats,
+} from "./fixo/lib/credits.ts";
+export {
   createCheckoutSession,
   createPortalSession,
-  CREDIT_COSTS,
-  deductCredits,
-  getCustomerCredits,
+  createTopupCheckoutSession,
   getStripeCustomerIdForUser,
   handleSubscriptionWebhook,
-  type InputType,
   stripe,
+  tierFromPriceId,
 } from "./fixo/lib/stripe.ts";
 export {
   createSignedReadUrl,
@@ -38,7 +59,7 @@ export {
 } from "./fixo/lib/storage.ts";
 
 // Notifications
-export { notifyOrderStatusChange } from "./lib/notifications.ts";
+export { notifyOrderStatusChange, notifyPaymentFailed } from "./lib/notifications.ts";
 
 // PDF components (for gateway rendering)
 export { EstimatePdf } from "./hmls/pdf/EstimatePdf.tsx";

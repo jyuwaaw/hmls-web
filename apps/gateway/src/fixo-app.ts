@@ -89,6 +89,11 @@ export function createFixoApp() {
   app.use("/sessions/*", requireAuth);
   app.use("/reports/*", requireAuth);
   app.use("/billing/checkout", requireAuth);
+  app.use("/billing/topup", requireAuth);
+  app.use("/billing/balance", requireAuth);
+  app.use("/billing/history", requireAuth);
+  app.use("/billing/usage", requireAuth);
+  app.use("/billing/redeem", requireAuth);
   app.use("/billing/portal", requireAuth);
   app.use("/vehicles", requireAuth);
   app.use("/vehicles/*", requireAuth);

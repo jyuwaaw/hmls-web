@@ -120,9 +120,10 @@ export default function PricingPage() {
               name="Free"
               price="$0"
               features={[
-                "3 text diagnoses/month",
-                "1 vehicle",
-                "Basic AI analysis",
+                "200 credits/month",
+                "Photo, audio, video, OBD",
+                "PDF diagnostic reports",
+                "Unlimited vehicles",
               ]}
               cta="Get Started"
               href="/login"
@@ -132,13 +133,13 @@ export default function PricingPage() {
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-400 delay-200 fill-mode-both">
             <PricingCard
               name="Plus"
-              price="$19.99"
+              price="$19.90"
               period="/month"
               features={[
-                "Unlimited diagnoses",
-                "Photo, audio, video, OBD",
-                "Diagnostic reports (PDF)",
-                "Unlimited vehicles",
+                "2,000 credits/month",
+                "10× the Free allowance",
+                "Best per-credit price",
+                "Top-up packs available anytime",
                 "Full diagnosis history",
               ]}
               cta="Start Plus"

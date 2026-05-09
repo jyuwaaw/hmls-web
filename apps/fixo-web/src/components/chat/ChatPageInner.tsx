@@ -196,10 +196,14 @@ export function ChatPageInner({
     [sendMessage],
   );
 
-  // Check for upgrade-related errors from the agent
+  // Out-of-credits errors from the agent (402 insufficient_credits) or
+  // the legacy 403 upgrade_required / limit_reached responses still in the
+  // wire during deploys. Either kind routes to the same modal.
   const isUpgradeError =
     error &&
-    (error.includes("upgrade_required") || error.includes("limit_reached"));
+    (error.includes("insufficient_credits") ||
+      error.includes("upgrade_required") ||
+      error.includes("limit_reached"));
 
   // Move state update out of render to avoid React anti-pattern
   useEffect(() => {
