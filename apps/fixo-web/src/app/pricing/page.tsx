@@ -24,7 +24,7 @@ import { Button } from "@/components/ui/button";
 import { AGENT_URL } from "@/lib/config";
 
 /* ── Source-of-truth credit numbers (mirror apps/agent/src/fixo/lib/credits.ts) ── */
-const FREE_CREDITS = 200;
+const FREE_CREDITS = 100;
 const PLUS_CREDITS = 2_000;
 const PLUS_PRICE_USD = 19.9;
 const TOPUP_CREDITS_PER_DOLLAR = 100;
@@ -41,8 +41,9 @@ const COSTS = {
 } as const;
 
 /* A "full diagnostic" (text intake + 1 photo + 1 OBD + 1 report) ≈ 150 credits.
- * Free covers ~1 (a little tight); Plus covers ~13. We round to the more
- * conservative numbers in the comments to match the credits.ts copy. */
+ * Free (100/mo) is a try-the-platform allowance — under one full diagnostic;
+ * Plus covers ~13. We round to the more conservative numbers in the comments
+ * to match the credits.ts copy. */
 const FULL_DIAGNOSTIC_COST =
   COSTS.text + COSTS.photo + COSTS.obd + COSTS.report;
 
@@ -637,13 +638,13 @@ export default function PricingPage() {
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <AnimateInView>
               <TierCard
-                id="FX-FREE-200"
+                id="FX-FREE-100"
                 name="Free"
-                tagline="One full diagnosis on us. No card."
+                tagline="Try Fixo on us. No card."
                 price="$0"
-                perCredit="200 cr / 30-day window"
+                perCredit="100 cr / 30-day window"
                 credits={FREE_CREDITS}
-                capacity={`≈ 1 full diagnostic / mo`}
+                capacity={`Sample the platform`}
                 features={[
                   "Diagnose by photo, audio, video, or OBD code",
                   "PDF report you can hand any mechanic",

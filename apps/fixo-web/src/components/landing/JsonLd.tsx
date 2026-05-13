@@ -54,7 +54,7 @@ const softwareApplication = {
       name: "Free",
       price: "0",
       priceCurrency: "USD",
-      description: "200 credits per month — about one full diagnosis.",
+      description: "100 credits per month — try the platform.",
     },
     {
       "@type": "Offer",

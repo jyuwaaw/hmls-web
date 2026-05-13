@@ -311,7 +311,7 @@ export const userProfiles = pgTable(
     stripeSubscriptionId: text("stripe_subscription_id"),
     tier: userTierEnum("tier").default("free").notNull(),
     // Credits granted on subscription period (Plus = 2000, Pro = 6000) or
-    // free monthly refresh (Free = 200). Reset to the new grant on each
+    // free monthly refresh (Free = 100). Reset to the new grant on each
     // period boundary (overwrite, not add — this is the expiry mechanism).
     creditsMonthlyRemaining: integer("credits_monthly_remaining")
       .notNull()

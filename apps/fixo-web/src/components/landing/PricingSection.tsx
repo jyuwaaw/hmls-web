@@ -25,7 +25,7 @@ export function PricingSection() {
             </div>
             <ul className="space-y-2 mb-7">
               {[
-                "200 credits/mo · ~1 full diagnosis",
+                "100 credits/mo · try the platform",
                 "Photo, audio, video & OBD-II",
                 "PDF reports",
                 "Unlimited vehicles",

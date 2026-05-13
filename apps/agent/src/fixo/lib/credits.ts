@@ -6,7 +6,7 @@
 //
 // Two buckets per user:
 //   - monthly: granted on subscription period (Plus = 2000, Pro = 6000) or
-//     rolling 30-day window (Free = 200). Resets on each grant — unused
+//     rolling 30-day window (Free = 100). Resets on each grant — unused
 //     expires.
 //   - topup: bought via one-time Stripe Checkout. Never expires.
 // Consumption deducts monthly first, falls through to topup. The DB has
@@ -33,8 +33,9 @@ const { userProfiles, creditLedger, promoCodes, promoRedemptions } = schema;
  *   - report (100) is the priciest single action: long-context
  *     summarization + PDF generation.
  *
- * Free tier (200/mo) covers ~1 full diagnostic. Plus tier (2000/mo)
- * covers ~8-10 full diagnostics. Heavy users top up.
+ * Free tier (100/mo) is a try-the-platform allowance — a few quick text
+ * turns + 1-2 photos, not a full diagnostic. Plus tier (2000/mo) covers
+ * ~8-10 full diagnostics. Heavy users top up.
  */
 export const CREDIT_COSTS = {
   text: 10,
@@ -70,7 +71,7 @@ export function calculateCost(
  * change required; webhook resolves tier via tierFromPriceId.
  */
 export const MONTHLY_GRANT = {
-  free: 200,
+  free: 100,
   plus: 2000,
   pro: 6000,
 } as const;
