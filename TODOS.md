@@ -159,28 +159,31 @@ fixo extracts the line items via vision + returns a verdict (fair / high / very 
 local market averages.
 
 **Why:** Surfaced during /plan-ceo-review of the Speed Wedge 30-day plan (2026-05-14) as a wedge
-candidate for the case where Speed Wedge fails to validate at Week 3. Highest LTV scenario (a
-person checks every repair quote for the rest of their car-owning life). Reddit can't give local
-market averages, ChatGPT can't either. fixo can.
+candidate for the case where Speed Wedge fails to validate at Week 3. Highest LTV scenario (a person
+checks every repair quote for the rest of their car-owning life). Reddit can't give local market
+averages, ChatGPT can't either. fixo can.
 
 **Pros:**
 
 - Highest LTV per user of the three wedge candidates evaluated in /office-hours
 - PDF verdict report is naturally viral (users hand it back to the shop, exposes fixo to mechanics)
-- Reuses existing fixo vision + PDF pipeline ([apps/agent/src/fixo/tools/](apps/agent/src/fixo/tools))
+- Reuses existing fixo vision + PDF pipeline
+  ([apps/agent/src/fixo/tools/](apps/agent/src/fixo/tools))
 
 **Cons:**
 
-- Requires local market price data (labor rate × ZIP + parts markup × region). Data acquisition
-  is the actual hard problem, not the agent UX.
+- Requires local market price data (labor rate × ZIP + parts markup × region). Data acquisition is
+  the actual hard problem, not the agent UX.
 - Legal: publishing per-shop prices could draw threats from local shops. Aggregate-only is safer.
 - Effort: XL — 4 weeks alone in the speed wedge plan budget couldn't ship it; needs its own runway.
 
 **Context:**
 
-- Surfaced as Approach C in [/office-hours design doc 2026-05-14](~/.gstack/projects/hmls-autos-hmls/spenc-spinsirr-pedantic-kilby-a78e57-design-20260514-010011.md).
+- Surfaced as Approach C in
+  [/office-hours design doc 2026-05-14](~/.gstack/projects/hmls-autos-hmls/spenc-spinsirr-pedantic-kilby-a78e57-design-20260514-010011.md).
   Rejected in that session in favor of Speed Wedge.
-- Re-surfaced in [/plan-ceo-review 2026-05-14](~/.gstack/projects/hmls-autos-hmls/ceo-plans/2026-05-14-fixo-speed-wedge-30day.md)
+- Re-surfaced in
+  [/plan-ceo-review 2026-05-14](~/.gstack/projects/hmls-autos-hmls/ceo-plans/2026-05-14-fixo-speed-wedge-30day.md)
   as a wedge-switch target. If Speed Wedge kill criteria (Week 2 ChatGPT in ≥80% scenarios at fixo
   quality OR Week 3 SEO 0 impressions) trigger, this is the most natural pivot.
 - Data acquisition options to evaluate when picked up:

@@ -19,6 +19,7 @@
 import Stripe from "stripe";
 import { and, desc, eq, lt, or, sql } from "drizzle-orm";
 import { db, schema } from "../../db/client.ts";
+import { recordFunnelEvent } from "../../lib/funnel.ts";
 import {
   creditsForUsd,
   grantMonthly,
@@ -512,7 +513,7 @@ export async function handleSubscriptionWebhook(
         );
         break;
       }
-      await grantTopup({
+      const grantResult = await grantTopup({
         userId,
         amount: credits,
         stripeEvent: event.id,
@@ -522,6 +523,31 @@ export async function handleSubscriptionWebhook(
           dollars: meta.dollars,
         },
       });
+      // Funnel: record paid_top_up so the推广 plan's D5 kill criteria
+      // queries can compute per-channel conversion. We don't know the
+      // origin channel here (Stripe doesn't carry our UTM); attribution
+      // happens at query time by joining to the user's most recent
+      // fixo_funnel_events entry with a non-direct channel within a
+      // 30-day window.
+      //
+      // Idempotency: only fire on the first delivery of this stripe
+      // event. grantTopup returns {granted: false} for retries/replays
+      // (creditLedger UNIQUE on stripeEvent). Without this guard,
+      // Stripe's at-least-once delivery + Dashboard replays would
+      // overcount paid conversions.
+      if (grantResult.granted) {
+        await recordFunnelEvent({
+          eventName: "paid_top_up",
+          channel: "direct",
+          userId,
+          metadata: {
+            stripe_event: event.id,
+            stripe_session: session.id,
+            credits,
+            dollars: meta.dollars ?? null,
+          },
+        });
+      }
       break;
     }
     case "checkout.session.async_payment_failed": {

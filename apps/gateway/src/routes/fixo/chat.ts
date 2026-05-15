@@ -2,7 +2,7 @@
 import { Hono } from "hono";
 import { convertToModelMessages, generateText, type UIMessage } from "ai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { buildAgentContext, runFixoAgent } from "@hmls/agent";
+import { buildAgentContext, recordFunnelEvent, runFixoAgent } from "@hmls/agent";
 import { chargeForInput } from "../../middleware/fixo/credits.ts";
 import { getLogger } from "@logtape/logtape";
 import { db, schema } from "@hmls/agent/db";
@@ -141,6 +141,20 @@ chat.post("/", async (c) => {
           ),
         );
       return charge;
+    }
+
+    // Funnel: record first_diagnosis when this is the first user message
+    // in the session. messages.length === 1 means the client hasn't yet
+    // accumulated assistant turns — i.e., this is the first request on
+    // the session. Bounded to isNewMessage so retries don't double-fire.
+    // Fire-and-forget — failures here must not abort the chat request.
+    if (messages.length === 1) {
+      void recordFunnelEvent({
+        eventName: "first_diagnosis",
+        channel: "direct",
+        userId: auth.userId,
+        sessionId: parsedSessionId,
+      });
     }
   }
 

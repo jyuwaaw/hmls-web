@@ -61,6 +61,9 @@ export {
 // Notifications
 export { notifyOrderStatusChange, notifyPaymentFailed } from "./lib/notifications.ts";
 
+// Funnel telemetry (channel attribution for fixo推广 plan)
+export { type FunnelEventInput, insertFunnelEvent, recordFunnelEvent } from "./lib/funnel.ts";
+
 // PDF components (for gateway rendering)
 export { EstimatePdf } from "./hmls/pdf/EstimatePdf.tsx";
 export { DiagnosticReportPdf } from "./fixo/pdf/fixo-report.tsx";
