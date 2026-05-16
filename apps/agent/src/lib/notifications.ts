@@ -44,6 +44,14 @@ const BASE_URL = Deno.env.get("BASE_URL") || "https://hmls.autos";
 const PORTAL_URL = Deno.env.get("PORTAL_URL") || `${BASE_URL}/portal`;
 const BUSINESS_ADDRESS = Deno.env.get("BUSINESS_ADDRESS") ?? "";
 
+// Fixo推广 CTA targets (CEO plan 2026-05-14 Lane D — HMLS rejection
+// flow becomes fixo's first dogfood channel). The CTA in rejection /
+// cancellation emails routes through the fixo gateway's
+// /funnel/track GET endpoint so we capture the click before the
+// browser leaves for fixo.ink, then redirects to FIXO_PUBLIC_URL.
+const FIXO_PUBLIC_URL = Deno.env.get("FIXO_PUBLIC_URL") || "https://fixo.ink";
+const FIXO_API_URL = Deno.env.get("FIXO_API_URL") || "https://api.fixo.hmls.autos";
+
 if (!BUSINESS_ADDRESS) {
   logger.warn(
     "BUSINESS_ADDRESS env var not set — outgoing emails will lack the physical address required by CAN-SPAM",
@@ -141,6 +149,37 @@ function pricingBlock(ctx: NotificationContext): string {
     </div>`;
 }
 
+function fixoCtaUrl(channelDetail: string): string {
+  // GET /funnel/track records the click then 302s to FIXO_PUBLIC_URL.
+  // channel='hmls' is fixed for all rejection-side CTAs; channelDetail
+  // disambiguates which template fired the click (cancelled / declined).
+  const qs = new URLSearchParams({
+    event: "hmls_rejection_click",
+    channel: "hmls",
+    channel_detail: channelDetail,
+    to: FIXO_PUBLIC_URL,
+  });
+  return `${FIXO_API_URL}/funnel/track?${qs.toString()}`;
+}
+
+// Subtle "by the way, here's a free tool" CTA. Honest, not over-sell —
+// the customer just heard "we're done" or "we can't help". Pushy copy
+// would harm HMLS's brand. The CTA is a single understated paragraph
+// with a low-emphasis link, NOT a prominent button.
+function fixoFreeCtaBlock(channelDetail: string): string {
+  return `
+    <div style="padding:18px 24px;border-top:1px solid #f4f4f5;background:#fafafa;">
+      <p style="margin:0;font-size:13px;color:#52525b;line-height:1.6;">
+        If you want a second opinion before you call another shop, we built
+        a free AI tool for that: <a href="${
+    fixoCtaUrl(channelDetail)
+  }" style="color:#18181b;text-decoration:underline;">fixo.ink</a>.
+        It listens to engine sounds and reads OBD codes — 90-second answer,
+        no signup wall.
+      </p>
+    </div>`;
+}
+
 function htmlWrapper(content: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -231,7 +270,9 @@ const STATUS_EMAILS: Record<string, EmailTemplate> = {
   declined: {
     subject: "Estimate Declined",
     text: (ctx) =>
-      `Hi ${ctx.customerName},\n\nWe received your decision to decline estimate #${ctx.orderId}. If you change your mind or have questions, feel free to reach out.\n\nThanks,\nHMLS Team`,
+      `Hi ${ctx.customerName},\n\nWe received your decision to decline estimate #${ctx.orderId}. If you change your mind or have questions, feel free to reach out.\n\nIf you want a second opinion before you call another shop, fixo.ink is a free AI diagnostic — 90-second answer. ${
+        fixoCtaUrl("declined")
+      }\n\nThanks,\nHMLS Team`,
     html: (ctx) =>
       htmlWrapper(`
       <div style="padding:32px 24px;text-align:center;">
@@ -239,7 +280,8 @@ const STATUS_EMAILS: Record<string, EmailTemplate> = {
         <p style="margin:0;color:#71717a;font-size:14px;line-height:1.6;">
           Hi ${ctx.customerName}, no problem. If you change your mind or need a revised estimate, just reply to this email or give us a call.
         </p>
-      </div>`),
+      </div>
+      ${fixoFreeCtaBlock("declined")}`),
   },
 
   revised: {
@@ -319,7 +361,9 @@ const STATUS_EMAILS: Record<string, EmailTemplate> = {
   cancelled: {
     subject: "Your HMLS Order Has Been Cancelled",
     text: (ctx) =>
-      `Hi ${ctx.customerName},\n\nOrder #${ctx.orderId} has been cancelled. If you have questions, please reach out.\n\nThanks,\nHMLS Team`,
+      `Hi ${ctx.customerName},\n\nOrder #${ctx.orderId} has been cancelled. If you have questions, please reach out.\n\nIf you still need the work done and want a quick second opinion, fixo.ink is a free AI diagnostic. ${
+        fixoCtaUrl("cancelled")
+      }\n\nThanks,\nHMLS Team`,
     html: (ctx) =>
       htmlWrapper(`
       <div style="padding:32px 24px;text-align:center;">
@@ -327,7 +371,8 @@ const STATUS_EMAILS: Record<string, EmailTemplate> = {
         <p style="margin:0;color:#71717a;font-size:14px;line-height:1.6;">
           Hi ${ctx.customerName}, order #${ctx.orderId} has been cancelled. If you have questions or need anything, just reply to this email.
         </p>
-      </div>`),
+      </div>
+      ${fixoFreeCtaBlock("cancelled")}`),
   },
 };
 
