@@ -166,6 +166,10 @@ export default async function ObdCodePage({ params }: PageProps) {
           Fixo
         </Link>{" "}
         <span aria-hidden>›</span>{" "}
+        <Link href="/obd" className="hover:text-text">
+          OBD-II codes
+        </Link>{" "}
+        <span aria-hidden>›</span>{" "}
         <span className="text-text">{entry.code}</span>
       </nav>
 
