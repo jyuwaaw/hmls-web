@@ -10,8 +10,8 @@ import { AnimateInView } from "@/components/ui/animate-in-view";
 const TRUST_POINTS = [
   {
     icon: Zap,
-    label: "Powered by Gemini 3",
-    body: "Frontier multimodal AI cross-referenced against a curated DTC + symptom database, not a generic chatbot.",
+    label: "Frontier multimodal AI",
+    body: "Vision, audio, and text models cross-referenced against a curated DTC + symptom database, not a generic chatbot.",
   },
   {
     icon: ShieldCheck,
