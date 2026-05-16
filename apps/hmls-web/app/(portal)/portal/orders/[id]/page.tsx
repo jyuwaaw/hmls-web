@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { FixoCtaBanner } from "@/components/FixoCtaBanner";
 import { OrderProgressBar } from "@/components/OrderProgressBar";
 import { DateTime } from "@/components/ui/DateTime";
 import { askReason } from "@/components/ui/ReasonDialog";
@@ -352,6 +353,13 @@ export default function PortalOrderDetailPage() {
             tentativeBooking={tentative}
           />
         </div>
+
+        {/* Fixo CTA — only shown when the order is in a terminal-decline
+            state. Mirrors the email CTA so the customer journey is
+            consistent whether they arrived via inbox or direct portal. */}
+        {(order.status === "declined" || order.status === "cancelled") && (
+          <FixoCtaBanner channelDetail={`portal_${order.status}`} />
+        )}
 
         {/* Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

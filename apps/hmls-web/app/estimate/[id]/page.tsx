@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { FixoCtaBanner } from "@/components/FixoCtaBanner";
 import { askConfirm } from "@/components/ui/ConfirmDialog";
 import { AGENT_URL } from "@/lib/config";
 
@@ -281,12 +282,16 @@ export default function EstimateReviewPage() {
                 : "processed"}
             .
           </p>
+          {orderStatus === "declined" && (
+            <FixoCtaBanner channelDetail="estimate_declined" />
+          )}
         </div>
       ) : expired ? (
         <div className="text-center py-4">
           <p className="text-sm text-text-secondary">
             This estimate has expired. Please contact us for a new one.
           </p>
+          <FixoCtaBanner channelDetail="estimate_expired" />
         </div>
       ) : (
         <div className="flex gap-3">
