@@ -12,6 +12,9 @@ export function Footer() {
           Fixo<span className="text-primary">.</span>
         </div>
         <div className="flex gap-6">
+          <Link href="/obd" className="hover:text-foreground transition-colors">
+            OBD Codes
+          </Link>
           <Link
             href="/pricing"
             className="hover:text-foreground transition-colors"

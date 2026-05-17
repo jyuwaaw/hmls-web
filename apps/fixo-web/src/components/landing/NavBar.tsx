@@ -17,6 +17,11 @@ export function NavBar() {
           </span>
         </Link>
         <div className="flex items-center gap-1">
+          <Link href="/obd" className="hidden sm:inline-block">
+            <Button variant="ghost" size="sm" className="text-muted-foreground">
+              OBD Codes
+            </Button>
+          </Link>
           <Link href="/pricing">
             <Button variant="ghost" size="sm" className="text-muted-foreground">
               Pricing
