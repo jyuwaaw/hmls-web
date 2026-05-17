@@ -240,6 +240,41 @@ export default async function ObdCodePage({ params }: PageProps) {
 
       <EEATBlock />
 
+      {entry.relatedCodes && entry.relatedCodes.length > 0 && (
+        <section className="mb-8">
+          <h2 className="mb-3 text-xl font-semibold text-text">
+            Codes commonly seen alongside {entry.code}
+          </h2>
+          <ul className="space-y-3">
+            {entry.relatedCodes.map((related) => {
+              const target = OBD_SEO_CODES[related.code];
+              if (!target) return null;
+              return (
+                <li key={related.code}>
+                  <Link
+                    href={`/obd/${target.code}`}
+                    className="block rounded-lg border border-border bg-surface p-4 transition hover:border-border-hover hover:bg-surface-hover"
+                  >
+                    <p className="m-0 font-mono text-xs uppercase tracking-widest text-text-secondary">
+                      {target.code} · {target.system}
+                    </p>
+                    <p className="m-0 mt-1 text-sm font-semibold text-text">
+                      {target.headline}
+                    </p>
+                    <p className="m-0 mt-2 text-sm leading-relaxed text-text-secondary">
+                      <span className="font-medium text-text">
+                        Why it&apos;s related:
+                      </span>{" "}
+                      {related.reason}
+                    </p>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
       <section className="rounded-lg bg-surface-alt p-6 text-center">
         <h2 className="m-0 mb-2 text-lg font-semibold text-text">
           Want a real diagnosis right now?

@@ -38,6 +38,15 @@ export interface ObdSeoEntry {
   typicalFixCost: { lowUsd: number; highUsd: number; mostCommonFix: string };
   /** SEO metadata tail — "P0420 Honda" / "P0420 Toyota" search variants. */
   searchVariantHint?: string;
+  /**
+   * Codes commonly seen alongside this one — compound failures (e.g.
+   * P0420 + P0300 = misfire damaging the cat), same-system variants
+   * (P0420 bank 1 + P0430 bank 2), or shared root causes (P0171 lean
+   * + P0300 random misfire both point at MAF / vacuum leak). Each
+   * entry must be a code that exists in OBD_SEO_CODES — orphan links
+   * would 404 via the dynamicParams=false guard on /obd/[code].
+   */
+  relatedCodes?: { code: string; reason: string }[];
 }
 
 export const OBD_SEO_CODES: Record<string, ObdSeoEntry> = {
@@ -70,6 +79,18 @@ export const OBD_SEO_CODES: Record<string, ObdSeoEntry> = {
         "downstream O2 sensor replacement OR full catalyst replacement",
     },
     searchVariantHint: "P0420 Honda Civic, P0420 Toyota Camry, P0420 fix cost",
+    relatedCodes: [
+      {
+        code: "P0300",
+        reason:
+          "Misfires dump unburned fuel through the cat and can cause P0420 within days — fix the misfire first.",
+      },
+      {
+        code: "P0171",
+        reason:
+          "A lean condition lets unburned air through the cat, which over time triggers the same downstream-O2 reading P0420 watches for.",
+      },
+    ],
   },
 
   P0300: {
@@ -102,6 +123,18 @@ export const OBD_SEO_CODES: Record<string, ObdSeoEntry> = {
         "spark plug + coil pack replacement (DIY-friendly for many makes)",
     },
     searchVariantHint: "P0300 misfire fix, P0300 rough idle, P0300 cold start",
+    relatedCodes: [
+      {
+        code: "P0171",
+        reason:
+          "Lean fuel mixture is a common misfire cause — check fuel trims and vacuum leaks before changing plugs.",
+      },
+      {
+        code: "P0420",
+        reason:
+          "Misfires that go unfixed for weeks can compound into P0420 by damaging the catalytic converter.",
+      },
+    ],
   },
 
   P0171: {
@@ -132,6 +165,18 @@ export const OBD_SEO_CODES: Record<string, ObdSeoEntry> = {
       mostCommonFix: "MAF cleaning OR intake gasket replacement",
     },
     searchVariantHint: "P0171 Ford F-150, P0171 vacuum leak, P0171 MAF sensor",
+    relatedCodes: [
+      {
+        code: "P0300",
+        reason:
+          "A lean condition often shows up as random misfires before fuel trim limits trip P0171 — both codes together strongly point to a vacuum leak.",
+      },
+      {
+        code: "P0420",
+        reason:
+          "A long-running lean condition lets uncombusted oxygen through to the cat, which downstream looks like P0420 efficiency loss.",
+      },
+    ],
   },
 
   P0455: {
