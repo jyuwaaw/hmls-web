@@ -12,6 +12,7 @@ import {
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { MobileDrawerTrigger } from "@/components/MobileDrawer";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { AGENT_URL } from "@/lib/config";
 
@@ -162,7 +163,8 @@ export default function SettingsPage() {
 
   return (
     <div className="flex h-dvh flex-col">
-      <header className="sticky top-0 z-10 flex h-14 items-center border-b border-border bg-background px-4">
+      <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b border-border bg-background px-4">
+        <MobileDrawerTrigger />
         <h1 className="text-[15px] font-semibold tracking-tight">Settings</h1>
       </header>
 

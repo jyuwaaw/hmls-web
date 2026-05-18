@@ -50,7 +50,7 @@ export function ChatInput({
   };
 
   return (
-    <div className="fixed bottom-12 left-0 right-0 z-40 px-3 pb-2 pt-3 lg:bottom-0 lg:left-60 lg:pb-4">
+    <div className="fixed bottom-0 left-0 right-0 z-40 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-3 lg:left-60 lg:pb-4">
       {/* Soft gradient fade replaces a hard border-t — content scrolls
           *under* the input area and softly disappears, instead of being
           "cut" by a 1px line. Matches Vercel chatbot composer. */}

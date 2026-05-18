@@ -3,6 +3,7 @@
 import { Loader2, Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { MobileDrawerTrigger } from "@/components/MobileDrawer";
 import { AddVehicleModal } from "@/components/vehicles/AddVehicleModal";
 import { EmptyState } from "@/components/vehicles/EmptyState";
 import { VehicleCard } from "@/components/vehicles/VehicleCard";
@@ -102,7 +103,10 @@ export default function VehiclesPage() {
   return (
     <div className="flex h-dvh flex-col">
       <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border bg-background px-4">
-        <h1 className="text-[15px] font-semibold tracking-tight">Vehicles</h1>
+        <div className="flex items-center gap-2">
+          <MobileDrawerTrigger />
+          <h1 className="text-[15px] font-semibold tracking-tight">Vehicles</h1>
+        </div>
         <button
           type="button"
           onClick={() => setShowForm(true)}

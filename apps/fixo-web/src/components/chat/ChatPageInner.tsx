@@ -34,6 +34,7 @@ import {
 import { ChatInput } from "@/components/chat/ChatInput";
 import { FixoEstimateCard } from "@/components/chat/FixoEstimateCard";
 import { renderToolCard } from "@/components/chat/tool-cards";
+import { MobileDrawerTrigger } from "@/components/MobileDrawer";
 import { AudioRecorder } from "@/components/media/AudioRecorder";
 import { CameraCapture } from "@/components/media/CameraCapture";
 import { ObdInput } from "@/components/media/ObdInput";
@@ -228,20 +229,23 @@ export function ChatPageInner({
   return (
     <div className="flex flex-col h-dvh">
       <header className="sticky top-0 z-10 flex h-14 items-center justify-between border-b border-border bg-background px-4">
-        {/* Mobile: "Fixo." logo (no sidebar to host it).
+        {/* Mobile: ☰ + "Fixo." logo (no sidebar to host it).
             Desktop: page title "Chat" matches the other pages — sidebar
             already shows the logo so repeating it here read as duplication. */}
-        <h1 className="flex items-center text-[15px] font-semibold tracking-tight">
-          <span className="text-accent lg:hidden">
-            Fixo<span className="text-accent-hover">.</span>
-          </span>
-          <span className="hidden lg:inline">Chat</span>
-          {archived && (
-            <span className="ml-2 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">
-              Archived
+        <div className="flex items-center gap-2">
+          <MobileDrawerTrigger />
+          <h1 className="flex items-center text-[15px] font-semibold tracking-tight">
+            <span className="text-accent lg:hidden">
+              Fixo<span className="text-accent-hover">.</span>
             </span>
-          )}
-        </h1>
+            <span className="hidden lg:inline">Chat</span>
+            {archived && (
+              <span className="ml-2 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                Archived
+              </span>
+            )}
+          </h1>
+        </div>
         {renderable.length > 0 && !isLoading && (
           <div className="flex items-center gap-2">
             {sessionIdRef.current && (
