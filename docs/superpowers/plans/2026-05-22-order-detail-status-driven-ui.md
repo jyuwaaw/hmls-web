@@ -4,15 +4,14 @@
 > (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use
 > checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Collapse the admin order detail page's three parallel UI paths (`BookingPanel`,
-`Actions` Card, draft banner) into a single status-driven action model. Each `OrderStatus`
-declaratively names its candidate actions + editable sections; the page becomes a renderer over
-two registries.
+**Goal:** Collapse the admin order detail page's three parallel UI paths (`BookingPanel`, `Actions`
+Card, draft banner) into a single status-driven action model. Each `OrderStatus` declaratively names
+its candidate actions + editable sections; the page becomes a renderer over two registries.
 
 **Architecture:** Two-tier model. `packages/shared/src/order/profiles.ts` holds the pure-data
-`STATUS_PROFILES` (React-free, importable by gateway and agent). `apps/hmls-web/lib/order-actions.ts`
-holds `ACTION_REGISTRY` + `useActionInvoker` + `leadAction` (UI tier; touches dialogs, toast, SWR).
-Components are pure renderers over these two registries.
+`STATUS_PROFILES` (React-free, importable by gateway and agent).
+`apps/hmls-web/lib/order-actions.ts` holds `ACTION_REGISTRY` + `useActionInvoker` + `leadAction` (UI
+tier; touches dialogs, toast, SWR). Components are pure renderers over these two registries.
 
 **Tech Stack:** Deno workspace, TypeScript strict mode, Drizzle types via `@hmls/shared/db/types`,
 Next.js 16 App Router, React 19, Tailwind 4, shadcn, SWR, sonner, `bun:test` (web) + `deno test`
@@ -21,10 +20,12 @@ Next.js 16 App Router, React 19, Tailwind 4, shadcn, SWR, sonner, `bun:test` (we
 **Spec:**
 [docs/superpowers/specs/2026-05-22-order-detail-status-driven-ui-design.md](docs/superpowers/specs/2026-05-22-order-detail-status-driven-ui-design.md)
 
-**Migration is 4 independent PRs.** Each PR leaves `bun run typecheck && bun run lint && bun run
-build && deno task check` green and the app shippable. Tests in this plan target pure logic
-(profiles, action descriptors, leadAction); component-level RTL tests are out of scope (no React
-testing library is installed today — would require a separate setup PR).
+**Migration is 4 independent PRs.** Each PR leaves
+`bun run typecheck && bun run lint && bun run
+build && deno task check` green and the app shippable.
+Tests in this plan target pure logic (profiles, action descriptors, leadAction); component-level RTL
+tests are out of scope (no React testing library is installed today — would require a separate setup
+PR).
 
 ---
 
@@ -41,8 +42,8 @@ git fetch origin
 git status
 ```
 
-Expected: working tree clean (modulo untracked items the user already had — `.claude/commands/`
-and a `CLAUDE.md` edit are OK to carry).
+Expected: working tree clean (modulo untracked items the user already had — `.claude/commands/` and
+a `CLAUDE.md` edit are OK to carry).
 
 - [ ] **Step 2: Create feature branch off the current `pr-59` tip**
 
@@ -56,12 +57,13 @@ Expected: switched to a new branch.
 
 ## Phase 1 — Description layer (PR 1)
 
-Adds `STATUS_PROFILES` to `@hmls/shared`. No web changes; no UI difference. PR 1 is the
-foundation other PRs build on.
+Adds `STATUS_PROFILES` to `@hmls/shared`. No web changes; no UI difference. PR 1 is the foundation
+other PRs build on.
 
 ### Task 1.1: Create profiles.ts with types and full STATUS_PROFILES table
 
 **Files:**
+
 - Create: `packages/shared/src/order/profiles.ts`
 
 - [ ] **Step 1: Write the file**
@@ -190,6 +192,7 @@ Expected: PASS (no diagnostics).
 ### Task 1.2: Unit tests for STATUS_PROFILES completeness
 
 **Files:**
+
 - Create: `packages/shared/src/order/profiles_test.ts`
 
 - [ ] **Step 1: Write the failing tests**
@@ -310,68 +313,68 @@ Adds `ACTION_REGISTRY` + `useActionInvoker` + `leadAction` to the web app. Exten
 ### Task 2.1: Extend useOrderMutations with markPaid
 
 **Files:**
+
 - Modify: `apps/hmls-web/lib/api-paths.ts` (add `orderPayment`)
 - Modify: `apps/hmls-web/hooks/useOrderMutations.ts`
 
 - [ ] **Step 1: Add the payment path to `adminPaths`**
 
-In `apps/hmls-web/lib/api-paths.ts`, after the `orderSchedule` entry inside the
-`adminPaths` object:
+In `apps/hmls-web/lib/api-paths.ts`, after the `orderSchedule` entry inside the `adminPaths` object:
 
 ```ts
-  orderPayment: (id: number | string) => `/api/admin/orders/${id}/payment`,
+orderPayment: (id: number | string) => `/api/admin/orders/${id}/payment`,
 ```
 
 - [ ] **Step 2: Add `markPaid` to useOrderMutations**
 
-In `apps/hmls-web/hooks/useOrderMutations.ts`, add `savingPayment` state + `markPaid`
-function modeled after `setSchedule`, and include them in the return value.
+In `apps/hmls-web/hooks/useOrderMutations.ts`, add `savingPayment` state + `markPaid` function
+modeled after `setSchedule`, and include them in the return value.
 
 Insert after the `savingSchedule` state declaration:
 
 ```ts
-  const [savingPayment, setSavingPayment] = useState(false);
+const [savingPayment, setSavingPayment] = useState(false);
 ```
 
 Insert after the `setSchedule` function:
 
 ```ts
-  async function markPaid(args: {
-    amountCents: number;
-    method: string;
-    reference?: string;
-    paidAt?: string;
-  }): Promise<void> {
-    setSavingPayment(true);
-    try {
-      await api.post<Order>(adminPaths.orderPayment(id), args);
-      revalidate();
-    } catch (e) {
-      toast.error(
-        e instanceof Error ? e.message : "Failed to record payment",
-      );
-      throw e;
-    } finally {
-      setSavingPayment(false);
-    }
+async function markPaid(args: {
+  amountCents: number;
+  method: string;
+  reference?: string;
+  paidAt?: string;
+}): Promise<void> {
+  setSavingPayment(true);
+  try {
+    await api.post<Order>(adminPaths.orderPayment(id), args);
+    revalidate();
+  } catch (e) {
+    toast.error(
+      e instanceof Error ? e.message : "Failed to record payment",
+    );
+    throw e;
+  } finally {
+    setSavingPayment(false);
   }
+}
 ```
 
 Update the returned object to include `markPaid` and `savingPayment`:
 
 ```ts
-  return {
-    transitionStatus,
-    saveItems,
-    saveCustomer,
-    setSchedule,
-    markPaid,
-    transitioning,
-    savingItems,
-    savingCustomer,
-    savingSchedule,
-    savingPayment,
-  };
+return {
+  transitionStatus,
+  saveItems,
+  saveCustomer,
+  setSchedule,
+  markPaid,
+  transitioning,
+  savingItems,
+  savingCustomer,
+  savingSchedule,
+  savingPayment,
+};
 ```
 
 - [ ] **Step 3: Type-check**
@@ -385,6 +388,7 @@ Expected: PASS.
 ### Task 2.2: Create order-actions.ts skeleton (types + ActionContext)
 
 **Files:**
+
 - Create: `apps/hmls-web/lib/order-actions.ts`
 
 - [ ] **Step 1: Write the skeleton**
@@ -459,6 +463,7 @@ Expected: PASS.
 ### Task 2.3: Populate ACTION_REGISTRY with all 14 descriptors
 
 **Files:**
+
 - Modify: `apps/hmls-web/lib/order-actions.ts`
 
 - [ ] **Step 1: Replace the empty `ACTION_REGISTRY` stub with the full table**
@@ -471,8 +476,7 @@ export const ACTION_REGISTRY: Readonly<Record<ActionId, ActionDescriptor>> = {
     id: "send_to_customer",
     label: () => "Send to customer",
     variant: () => "primary",
-    visible: (o) =>
-      !(o.scheduledAt != null && o.providerId != null && o.status === "draft"),
+    visible: (o) => !(o.scheduledAt != null && o.providerId != null && o.status === "draft"),
     enabled: () => true,
     invoke: (ctx) => ctx.transitionStatus("estimated"),
   },
@@ -618,6 +622,7 @@ Expected: PASS.
 ### Task 2.4: Tests for ACTION_REGISTRY + leadAction
 
 **Files:**
+
 - Create: `apps/hmls-web/lib/order-actions.test.ts`
 
 - [ ] **Step 1: Write the failing tests**
@@ -628,11 +633,7 @@ import { describe, expect, mock, test } from "bun:test";
 import type { Order } from "@hmls/shared/db/types";
 import type { OrderStatus } from "@hmls/shared/order/status";
 import { STATUS_PROFILES } from "@hmls/shared/order/profiles";
-import {
-  ACTION_REGISTRY,
-  type ActionContext,
-  leadAction,
-} from "./order-actions";
+import { ACTION_REGISTRY, type ActionContext, leadAction } from "./order-actions";
 
 function makeOrder(overrides: Partial<Order> = {}): Order {
   const base = {
@@ -786,8 +787,8 @@ describe("leadAction", () => {
 });
 ```
 
-> **Note:** the `makeOrder` helper uses a narrow type cast because `Order` has many fields the
-> tests don't exercise. Keep the cast confined to test files.
+> **Note:** the `makeOrder` helper uses a narrow type cast because `Order` has many fields the tests
+> don't exercise. Keep the cast confined to test files.
 
 - [ ] **Step 2: Run tests**
 
@@ -829,13 +830,13 @@ Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>"
 ## Phase 3 — Right column replacement (PR 3)
 
 Replaces `BookingPanel`, the generic `Actions` Card, and the banner button with a single
-`OrderOpsPanel` that renders from the registry. Dialogs (`SetTimeDialog`,
-`ReassignBookingDialog`) move under a panel-local `DialogHost`. `useActionInvoker` owns dialog
-state.
+`OrderOpsPanel` that renders from the registry. Dialogs (`SetTimeDialog`, `ReassignBookingDialog`)
+move under a panel-local `DialogHost`. `useActionInvoker` owns dialog state.
 
 ### Task 3.1: Create useActionInvoker hook
 
 **Files:**
+
 - Modify: `apps/hmls-web/lib/order-actions.ts`
 
 - [ ] **Step 1: Append the `useActionInvoker` hook to `order-actions.ts`**
@@ -897,8 +898,7 @@ export function useActionInvoker(
     invoke,
     dialog,
     closeDialog: () => setDialog(null),
-    transitioning:
-      m.transitioning ||
+    transitioning: m.transitioning ||
       m.savingSchedule ||
       m.savingPayment,
   };
@@ -916,6 +916,7 @@ Expected: PASS.
 ### Task 3.2: Create ActionButton component
 
 **Files:**
+
 - Create: `apps/hmls-web/components/order/ActionButton.tsx`
 
 - [ ] **Step 1: Write the component**
@@ -954,9 +955,7 @@ export function ActionButton({
 
   return (
     <Button
-      variant={
-        variant === "danger" ? "outline" : prominent ? "default" : "ghost"
-      }
+      variant={variant === "danger" ? "outline" : prominent ? "default" : "ghost"}
       size={prominent ? "sm" : "xs"}
       disabled={!isEnabled}
       onClick={() => onClick(action)}
@@ -984,6 +983,7 @@ Expected: PASS.
 ### Task 3.3: Create DialogHost (mounts existing SetTime + Reassign dialogs)
 
 **Files:**
+
 - Create: `apps/hmls-web/components/order/DialogHost.tsx`
 
 - [ ] **Step 1: Write the component**
@@ -1047,8 +1047,10 @@ export function DialogHost({
           }}
         />
       )}
-      {/* mark_paid is rendered by PR 4's MarkPaidDialog. Until then we ignore
-          it — completed-status pages today simply do nothing. */}
+      {
+        /* mark_paid is rendered by PR 4's MarkPaidDialog. Until then we ignore
+          it — completed-status pages today simply do nothing. */
+      }
     </>
   );
 }
@@ -1060,12 +1062,13 @@ export function DialogHost({
 cd apps/hmls-web && bun run typecheck
 ```
 
-Expected: PASS. (Imports for `ReassignBookingDialog`, `SetTimeDialog`, and `Order.durationMinutes`
-/ `Order.location` already exist; this just consumes them.)
+Expected: PASS. (Imports for `ReassignBookingDialog`, `SetTimeDialog`, and `Order.durationMinutes` /
+`Order.location` already exist; this just consumes them.)
 
 ### Task 3.4: Create OrderOpsPanel
 
 **Files:**
+
 - Create: `apps/hmls-web/components/order/OrderOpsPanel.tsx`
 
 - [ ] **Step 1: Write the component**
@@ -1180,6 +1183,7 @@ Expected: PASS.
 ### Task 3.5: Create OrderDetailsCard
 
 **Files:**
+
 - Create: `apps/hmls-web/components/order/OrderDetailsCard.tsx`
 
 - [ ] **Step 1: Write the component**
@@ -1233,8 +1237,9 @@ export function OrderDetailsCard({ order, mechanicName }: Props) {
 ```
 
 Notes:
-- The inline "Reassign" button is intentionally dropped from this card. Reassign is now an action
-  in `OrderOpsPanel` (via `reassign_mechanic`) so it only appears in one place.
+
+- The inline "Reassign" button is intentionally dropped from this card. Reassign is now an action in
+  `OrderOpsPanel` (via `reassign_mechanic`) so it only appears in one place.
 
 - [ ] **Step 2: Type-check**
 
@@ -1247,6 +1252,7 @@ Expected: PASS.
 ### Task 3.6: Create DraftBanner using shared ActionButton
 
 **Files:**
+
 - Create: `apps/hmls-web/components/order/DraftBanner.tsx`
 
 - [ ] **Step 1: Write the component**
@@ -1258,7 +1264,12 @@ Expected: PASS.
 import { AlertTriangle } from "lucide-react";
 import type { Order } from "@hmls/shared/db/types";
 import { Card, CardContent } from "@/components/ui/card";
-import { ACTION_REGISTRY, leadAction, type ReasonAsker, useActionInvoker } from "@/lib/order-actions";
+import {
+  ACTION_REGISTRY,
+  leadAction,
+  type ReasonAsker,
+  useActionInvoker,
+} from "@/lib/order-actions";
 import { ActionButton } from "./ActionButton";
 
 type Props = {
@@ -1272,8 +1283,7 @@ export function DraftBanner({ order, revalidate, askReason }: Props) {
   const invoker = useActionInvoker(order, revalidate, askReason);
 
   // Identify the tentative case so the explanatory text matches the action.
-  const tentative =
-    ACTION_REGISTRY.confirm_tentative_booking.visible(order);
+  const tentative = ACTION_REGISTRY.confirm_tentative_booking.visible(order);
 
   if (!lead) return null;
 
@@ -1284,9 +1294,7 @@ export function DraftBanner({ order, revalidate, askReason }: Props) {
           <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
           <div className="text-xs">
             <p className="font-semibold text-amber-900 dark:text-amber-200">
-              {tentative
-                ? "Tentative booking — pending your confirmation"
-                : "Pending shop review"}
+              {tentative ? "Tentative booking — pending your confirmation" : "Pending shop review"}
             </p>
             <p className="text-amber-800 dark:text-amber-300/90 mt-0.5">
               {tentative
@@ -1322,6 +1330,7 @@ Expected: PASS.
 ### Task 3.7: Wire OrderOpsPanel + DraftBanner into the page, remove BookingPanel and Actions Card
 
 **Files:**
+
 - Modify: `apps/hmls-web/app/(admin)/admin/orders/[id]/page.tsx`
 
 This task replaces three regions of the page in one go. Each region is shown with the exact
@@ -1339,26 +1348,28 @@ import { OrderOpsPanel } from "@/components/order/OrderOpsPanel";
 
 - [ ] **Step 2: Replace the draft banner**
 
-Find the existing draft banner block (the JSX that starts with
-`{order.status === "draft" && (` and includes `Approve & confirm` / `Send to customer`
-buttons — around the area near `handleBookingConfirm`).
+Find the existing draft banner block (the JSX that starts with `{order.status === "draft" && (` and
+includes `Approve & confirm` / `Send to customer` buttons — around the area near
+`handleBookingConfirm`).
 
 Replace it with:
 
 ```tsx
-{order.status === "draft" && (
-  <DraftBanner order={order} revalidate={mutate} askReason={askReason} />
-)}
+{
+  order.status === "draft" && (
+    <DraftBanner order={order} revalidate={mutate} askReason={askReason} />
+  );
+}
 ```
 
-> `askReason` is the existing function returned by `useReasonDialog()` in the page. If
-> the page does not yet hold a single `askReason` reference at the top scope, hoist the
-> existing dialog hook call so all three new components share one instance.
+> `askReason` is the existing function returned by `useReasonDialog()` in the page. If the page does
+> not yet hold a single `askReason` reference at the top scope, hoist the existing dialog hook call
+> so all three new components share one instance.
 
 - [ ] **Step 3: Replace `BookingPanel` and `Actions` Card in the aside**
 
-Find the existing `<aside>` content (the column that today contains: `BookingPanel`, the
-Actions Card with the `allowed.map(...)` button list, and the Details Card with Reassign).
+Find the existing `<aside>` content (the column that today contains: `BookingPanel`, the Actions
+Card with the `allowed.map(...)` button list, and the Details Card with Reassign).
 
 Replace the entire aside content with:
 
@@ -1382,26 +1393,23 @@ Replace the entire aside content with:
       <ActivityTimeline events={data.events ?? []} />
     </CardContent>
   </Card>
-</aside>
+</aside>;
 ```
 
-`suggestedDurationMinutes` is the same value the existing `<BookingPanel>` was reading
-(computed from `order.items` via the existing helper in the page). Re-use the existing
-computation; do not rename or move it in this PR.
+`suggestedDurationMinutes` is the same value the existing `<BookingPanel>` was reading (computed
+from `order.items` via the existing helper in the page). Re-use the existing computation; do not
+rename or move it in this PR.
 
 - [ ] **Step 4: Delete the now-orphaned code in `[id]/page.tsx`**
 
-Remove the following items inline. The exact line numbers will shift as edits land; rely on
-search:
+Remove the following items inline. The exact line numbers will shift as edits land; rely on search:
 
-- Delete the `BookingPanel` function declaration (the React component, ~lines 451-505
-  in the original).
-- Delete the `bookingBusy` state + `handleBookingConfirm` + `handleBookingReject`
-  helpers.
+- Delete the `BookingPanel` function declaration (the React component, ~lines 451-505 in the
+  original).
+- Delete the `bookingBusy` state + `handleBookingConfirm` + `handleBookingReject` helpers.
 - Delete the `reassignOpen` + `setTimeOpen` `useState` declarations.
 - Delete the standalone `<ReassignBookingDialog ... />` and `{setTimeOpen && <SetTimeDialog ... />}`
-  blocks at the bottom of the JSX — they are now mounted inside `OrderOpsPanel` via
-  `DialogHost`.
+  blocks at the bottom of the JSX — they are now mounted inside `OrderOpsPanel` via `DialogHost`.
 
 - [ ] **Step 5: Type-check, lint, build**
 
@@ -1409,9 +1417,8 @@ search:
 cd apps/hmls-web && bun run typecheck && bun run lint && bun run build
 ```
 
-Expected: all green. If lint complains about unused imports
-(`ReassignBookingDialog`, `SetTimeDialog`, `Send`, `CheckCircle`, etc.), remove
-them.
+Expected: all green. If lint complains about unused imports (`ReassignBookingDialog`,
+`SetTimeDialog`, `Send`, `CheckCircle`, etc.), remove them.
 
 ### Task 3.8: Manual visual parity check
 
@@ -1431,24 +1438,24 @@ cd apps/hmls-web && GATEWAY_URL=http://localhost:8080 infisical run --env=dev --
 
 - [ ] **Step 2: Walk through each status manually**
 
-For each status below, open an order in that state in `/admin/orders/:id` and verify the
-right column now shows a single "Actions" card matching the old behavior:
+For each status below, open an order in that state in `/admin/orders/:id` and verify the right
+column now shows a single "Actions" card matching the old behavior:
 
-| Status | Expected actions visible |
-|---|---|
-| draft (plain) | Send to customer (primary), Reassign mechanic, Set/Reschedule, Cancel |
+| Status                                           | Expected actions visible                                                             |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| draft (plain)                                    | Send to customer (primary), Reassign mechanic, Set/Reschedule, Cancel                |
 | draft + tentative (scheduledAt + providerId set) | Approve & confirm (primary in banner + panel), Reassign mechanic, Reschedule, Cancel |
-| estimated | Approve, Decline, Cancel — no primary |
-| declined | Revise (primary) |
-| revised | Send to customer (primary), Cancel |
-| approved | Confirm booking (primary), Set time, Reassign mechanic, Reject booking |
-| scheduled | Start (primary), Reschedule, Reassign mechanic, Cancel |
-| in_progress | Complete (primary), Cancel |
-| completed | Mark paid (primary, hides once paidAt set) |
-| cancelled | No Actions card rendered |
+| estimated                                        | Approve, Decline, Cancel — no primary                                                |
+| declined                                         | Revise (primary)                                                                     |
+| revised                                          | Send to customer (primary), Cancel                                                   |
+| approved                                         | Confirm booking (primary), Set time, Reassign mechanic, Reject booking               |
+| scheduled                                        | Start (primary), Reschedule, Reassign mechanic, Cancel                               |
+| in_progress                                      | Complete (primary), Cancel                                                           |
+| completed                                        | Mark paid (primary, hides once paidAt set)                                           |
+| cancelled                                        | No Actions card rendered                                                             |
 
-If any case diverges from the table above, fix in the relevant `ActionDescriptor.visible`
-or in `STATUS_PROFILES`. Document the change in the PR description.
+If any case diverges from the table above, fix in the relevant `ActionDescriptor.visible` or in
+`STATUS_PROFILES`. Document the change in the PR description.
 
 ### Task 3.9: Ship PR 3
 
@@ -1487,6 +1494,7 @@ Replaces the inline `editMode` switch in the main column with four section compo
 ### Task 4.1: Build the section contract — common types
 
 **Files:**
+
 - Create: `apps/hmls-web/components/order/sections/types.ts`
 
 - [ ] **Step 1: Write the shared section types**
@@ -1506,9 +1514,10 @@ export type SectionProps = {
 ### Task 4.2: ItemsSection (replaces inline ItemEditor)
 
 **Files:**
+
 - Create: `apps/hmls-web/components/order/sections/ItemsSection.tsx`
-- Keep `apps/hmls-web/components/order/ItemEditor.tsx` for now — section delegates to it
-  internally so this PR doesn't touch the editor's internals.
+- Keep `apps/hmls-web/components/order/ItemEditor.tsx` for now — section delegates to it internally
+  so this PR doesn't touch the editor's internals.
 
 - [ ] **Step 1: Write the section**
 
@@ -1569,18 +1578,16 @@ export function ItemsSection({ order, readOnly, revalidate }: SectionProps) {
             </span>
           </div>
         ))}
-        {(order.items ?? []).length === 0 && (
-          <p className="text-muted-foreground">No items yet.</p>
-        )}
+        {(order.items ?? []).length === 0 && <p className="text-muted-foreground">No items yet.</p>}
       </CardContent>
     </Card>
   );
 }
 ```
 
-> If the existing `ItemEditor` exposes a different prop signature than the call above, adapt
-> the names — but keep the contract `(items, notes) → Promise<void>`. Do not rename the
-> editor in this PR.
+> If the existing `ItemEditor` exposes a different prop signature than the call above, adapt the
+> names — but keep the contract `(items, notes) → Promise<void>`. Do not rename the editor in this
+> PR.
 
 - [ ] **Step 2: Type-check**
 
@@ -1588,12 +1595,13 @@ export function ItemsSection({ order, readOnly, revalidate }: SectionProps) {
 cd apps/hmls-web && bun run typecheck
 ```
 
-Expected: PASS. If `formatCurrency` doesn't exist, inline the formatter the page already
-uses (search for `Intl.NumberFormat` in the codebase).
+Expected: PASS. If `formatCurrency` doesn't exist, inline the formatter the page already uses
+(search for `Intl.NumberFormat` in the codebase).
 
 ### Task 4.3: CustomerSection (replaces inline CustomerEditor)
 
 **Files:**
+
 - Create: `apps/hmls-web/components/order/sections/CustomerSection.tsx`
 
 - [ ] **Step 1: Write the section**
@@ -1671,6 +1679,7 @@ Expected: PASS.
 ### Task 4.4: ScheduleSection (genuinely new component)
 
 **Files:**
+
 - Create: `apps/hmls-web/components/order/sections/ScheduleSection.tsx`
 
 - [ ] **Step 1: Write the section — view mode delegates edit to the existing dialogs**
@@ -1718,9 +1727,7 @@ export function ScheduleSection({
         </div>
         <div className="flex items-center gap-2">
           <User className="w-3.5 h-3.5 text-muted-foreground" />
-          {mechanic?.name ?? (
-            <span className="text-muted-foreground">Unassigned</span>
-          )}
+          {mechanic?.name ?? <span className="text-muted-foreground">Unassigned</span>}
         </div>
         {order.location && (
           <div className="flex items-center gap-2">
@@ -1744,9 +1751,9 @@ export function ScheduleSection({
 }
 ```
 
-The "Edit" affordance lives as two buttons that reuse the same dialogs the actions panel
-already mounts via `DialogHost`. The buttons forward to the same invoker — see Task 4.6 for
-how the parent page wires `onSetTime` / `onReassign`.
+The "Edit" affordance lives as two buttons that reuse the same dialogs the actions panel already
+mounts via `DialogHost`. The buttons forward to the same invoker — see Task 4.6 for how the parent
+page wires `onSetTime` / `onReassign`.
 
 - [ ] **Step 2: Type-check**
 
@@ -1759,6 +1766,7 @@ Expected: PASS. (`useAdminMechanics` already exists.)
 ### Task 4.5: NotesSection
 
 **Files:**
+
 - Create: `apps/hmls-web/components/order/sections/NotesSection.tsx`
 
 - [ ] **Step 1: Write the section (read-only for this PR)**
@@ -1797,9 +1805,9 @@ export function NotesSection({ order }: SectionProps) {
 }
 ```
 
-> Notes editing is not in any `STATUS_PROFILES.editableSections` today (no status lists
-> `"notes"`). The section is included for parity with the spec; if the user later wants
-> editable notes, add it to the relevant profile and extend this component.
+> Notes editing is not in any `STATUS_PROFILES.editableSections` today (no status lists `"notes"`).
+> The section is included for parity with the spec; if the user later wants editable notes, add it
+> to the relevant profile and extend this component.
 
 - [ ] **Step 2: Type-check**
 
@@ -1812,6 +1820,7 @@ Expected: PASS.
 ### Task 4.6: OrderSectionsRegion
 
 **Files:**
+
 - Create: `apps/hmls-web/components/order/OrderSectionsRegion.tsx`
 
 - [ ] **Step 1: Write the region**
@@ -1821,7 +1830,7 @@ Expected: PASS.
 "use client";
 
 import type { Order } from "@hmls/shared/db/types";
-import { STATUS_PROFILES, type EditableSection } from "@hmls/shared/order/profiles";
+import { type EditableSection, STATUS_PROFILES } from "@hmls/shared/order/profiles";
 import { CustomerSection } from "./sections/CustomerSection";
 import { ItemsSection } from "./sections/ItemsSection";
 import { NotesSection } from "./sections/NotesSection";
@@ -1872,6 +1881,7 @@ Expected: PASS.
 ### Task 4.7: MarkPaidDialog
 
 **Files:**
+
 - Create: `apps/hmls-web/components/order/MarkPaidDialog.tsx`
 
 - [ ] **Step 1: Write the dialog**
@@ -1962,11 +1972,11 @@ export function MarkPaidDialog({
           <div>
             <Label htmlFor="method">Method</Label>
             <Select value={method} onValueChange={setMethod}>
-              <SelectTrigger id="method"><SelectValue /></SelectTrigger>
+              <SelectTrigger id="method">
+                <SelectValue />
+              </SelectTrigger>
               <SelectContent>
-                {METHODS.map((m) => (
-                  <SelectItem key={m} value={m}>{m}</SelectItem>
-                ))}
+                {METHODS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -2001,12 +2011,13 @@ export function MarkPaidDialog({
 cd apps/hmls-web && bun run typecheck
 ```
 
-Expected: PASS. If `Select` / `Label` / `Input` paths differ in this repo, adjust the
-imports — these are shadcn primitives that already exist elsewhere.
+Expected: PASS. If `Select` / `Label` / `Input` paths differ in this repo, adjust the imports —
+these are shadcn primitives that already exist elsewhere.
 
 ### Task 4.8: Wire MarkPaidDialog into DialogHost
 
 **Files:**
+
 - Modify: `apps/hmls-web/components/order/DialogHost.tsx`
 
 - [ ] **Step 1: Add MarkPaidDialog mount + markPaid call**
@@ -2014,34 +2025,40 @@ imports — these are shadcn primitives that already exist elsewhere.
 In `DialogHost.tsx`, replace the trailing comment
 
 ```tsx
-      {/* mark_paid is rendered by PR 4's MarkPaidDialog. Until then we ignore
-          it — completed-status pages today simply do nothing. */}
+{
+  /* mark_paid is rendered by PR 4's MarkPaidDialog. Until then we ignore
+          it — completed-status pages today simply do nothing. */
+}
 ```
 
 with:
 
 ```tsx
-      {dialog === "mark_paid" && (
-        <MarkPaidDialog
-          open={true}
-          onOpenChange={(open) => {
-            if (!open) onClose();
-          }}
-          defaultAmountCents={order.subtotalCents ?? 0}
-          saving={savingPayment}
-          onSubmit={async (args) => {
-            await markPaid(args);
-            onClose();
-          }}
-        />
-      )}
+{
+  dialog === "mark_paid" && (
+    <MarkPaidDialog
+      open={true}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+      defaultAmountCents={order.subtotalCents ?? 0}
+      saving={savingPayment}
+      onSubmit={async (args) => {
+        await markPaid(args);
+        onClose();
+      }}
+    />
+  );
+}
 ```
 
 Update the destructure at the top of `DialogHost`:
 
 ```tsx
-const { setSchedule, savingSchedule, markPaid, savingPayment } =
-  useOrderMutations(order.id, revalidate);
+const { setSchedule, savingSchedule, markPaid, savingPayment } = useOrderMutations(
+  order.id,
+  revalidate,
+);
 ```
 
 Add the import:
@@ -2061,6 +2078,7 @@ Expected: PASS.
 ### Task 4.9: Replace the page main column with OrderSectionsRegion
 
 **Files:**
+
 - Modify: `apps/hmls-web/app/(admin)/admin/orders/[id]/page.tsx`
 
 - [ ] **Step 1: Add imports**
@@ -2071,12 +2089,11 @@ import { OrderSectionsRegion } from "@/components/order/OrderSectionsRegion";
 
 - [ ] **Step 2: Extend `useActionInvoker` to expose `openDialog`**
 
-`OrderSectionsRegion`'s `ScheduleSection` needs to open the same dialogs `OrderOpsPanel`
-mounts. Cleanest path: hoist the invoker to the page level so both consumers share one
-instance.
+`OrderSectionsRegion`'s `ScheduleSection` needs to open the same dialogs `OrderOpsPanel` mounts.
+Cleanest path: hoist the invoker to the page level so both consumers share one instance.
 
-In `apps/hmls-web/lib/order-actions.ts`, update the `OrderInvoker` return type and value
-to expose `openDialog`:
+In `apps/hmls-web/lib/order-actions.ts`, update the `OrderInvoker` return type and value to expose
+`openDialog`:
 
 ```ts
 export type OrderInvoker = {
@@ -2093,8 +2110,7 @@ return {
   dialog,
   openDialog: setDialog,
   closeDialog: () => setDialog(null),
-  transitioning:
-    m.transitioning || m.savingSchedule || m.savingPayment,
+  transitioning: m.transitioning || m.savingSchedule || m.savingPayment,
 };
 ```
 
@@ -2112,8 +2128,8 @@ In `apps/hmls-web/components/order/OrderOpsPanel.tsx`:
   };
   ```
 - Remove the internal `useActionInvoker(...)` call; use the passed `invoker` directly.
-- Add `import type { OrderInvoker } from "@/lib/order-actions";` and drop the
-  `ReasonAsker` / `useActionInvoker` imports.
+- Add `import type { OrderInvoker } from "@/lib/order-actions";` and drop the `ReasonAsker` /
+  `useActionInvoker` imports.
 
 - [ ] **Step 4: Hoist `useActionInvoker` in the page and add `OrderSectionsRegion`**
 
@@ -2137,7 +2153,7 @@ Replace the existing main-column JSX (the editMode region) with:
     onSetTime={() => invoker.openDialog("set_time")}
     onReassign={() => invoker.openDialog("reassign")}
   />
-</main>
+</main>;
 ```
 
 Update the `<OrderOpsPanel>` call site in the aside to pass the shared invoker:
@@ -2148,11 +2164,11 @@ Update the `<OrderOpsPanel>` call site in the aside to pass the shared invoker:
   invoker={invoker}
   revalidate={mutate}
   suggestedDurationMinutes={suggestedDurationMinutes}
-/>
+/>;
 ```
 
-The visual contract is unchanged — only the hook lifecycle moves up one level so dialogs
-opened from either side land in the same `DialogHost`.
+The visual contract is unchanged — only the hook lifecycle moves up one level so dialogs opened from
+either side land in the same `DialogHost`.
 
 - [ ] **Step 5: Delete the now-orphaned code in `[id]/page.tsx`**
 
@@ -2164,10 +2180,10 @@ opened from either side land in the same `DialogHost`.
 - Delete the `TRANSITION_LABELS` map.
 - Delete the `DANGER_ACTIONS` set.
 
-**Do NOT delete** `apps/hmls-web/components/order/ItemEditor.tsx` or
-`CustomerEditor.tsx`. The new `ItemsSection` / `CustomerSection` delegate to them in
-edit mode. Inlining their internals into the sections is a mechanical follow-up
-(flagged under "Follow-ups" at the bottom of this plan) — out of scope for this PR.
+**Do NOT delete** `apps/hmls-web/components/order/ItemEditor.tsx` or `CustomerEditor.tsx`. The new
+`ItemsSection` / `CustomerSection` delegate to them in edit mode. Inlining their internals into the
+sections is a mechanical follow-up (flagged under "Follow-ups" at the bottom of this plan) — out of
+scope for this PR.
 
 - [ ] **Step 6: Type-check, lint, build**
 
@@ -2175,8 +2191,7 @@ edit mode. Inlining their internals into the sections is a mechanical follow-up
 cd apps/hmls-web && bun run typecheck && bun run lint && bun run build
 ```
 
-Expected: all green. Final `[id]/page.tsx` should now be ~350-450 lines (vs 1213
-before).
+Expected: all green. Final `[id]/page.tsx` should now be ~350-450 lines (vs 1213 before).
 
 ### Task 4.10: Manual main-column parity check
 
@@ -2188,26 +2203,26 @@ before).
 
 For each status with editable sections, verify:
 
-| Status | Editable sections (per profile) |
-|---|---|
-| draft | items, customer, schedule |
-| estimated | items, customer |
-| revised | items, customer |
-| approved | schedule |
-| scheduled | schedule |
-| declined / in_progress / completed / cancelled | none |
+| Status                                         | Editable sections (per profile) |
+| ---------------------------------------------- | ------------------------------- |
+| draft                                          | items, customer, schedule       |
+| estimated                                      | items, customer                 |
+| revised                                        | items, customer                 |
+| approved                                       | schedule                        |
+| scheduled                                      | schedule                        |
+| declined / in_progress / completed / cancelled | none                            |
 
-In each editable status, click "Edit" on the listed sections, change a field, save, and
-confirm the SWR refetch updates the view. In non-editable statuses, confirm no "Edit"
-button is rendered.
+In each editable status, click "Edit" on the listed sections, change a field, save, and confirm the
+SWR refetch updates the view. In non-editable statuses, confirm no "Edit" button is rendered.
 
 - [ ] **Step 3: Verify mark_paid**
 
 On a completed order with `paidAt == null`:
+
 - "Mark paid" is the primary action.
 - Clicking it opens `MarkPaidDialog`.
-- Submitting with a valid amount records the payment and the action disappears
-  (since `paidAt != null` now).
+- Submitting with a valid amount records the payment and the action disappears (since
+  `paidAt != null` now).
 
 ### Task 4.11: Ship PR 4
 
@@ -2269,17 +2284,17 @@ EOF
 )"
 ```
 
-> If the team prefers landing the 4 PRs separately instead of as one feature branch,
-> branch each phase off main and rebase. Each phase's commits are self-contained.
+> If the team prefers landing the 4 PRs separately instead of as one feature branch, branch each
+> phase off main and rebase. Each phase's commits are self-contained.
 
 ---
 
 ## Follow-ups (out of scope for this plan)
 
-- Inline `ItemEditor` / `CustomerEditor` into their sections so the legacy components can
-  be deleted (mechanical refactor; ~1 commit).
+- Inline `ItemEditor` / `CustomerEditor` into their sections so the legacy components can be deleted
+  (mechanical refactor; ~1 commit).
 - React Testing Library setup (no current dependency) so `OrderOpsPanel` rendering can be
   unit-tested instead of relying on the manual parity check in Tasks 3.8 / 4.10.
-- Staff agent consumes `STATUS_PROFILES` to answer "what can I do on this order"
-  (would extend the agent's `order-ops` tools).
+- Staff agent consumes `STATUS_PROFILES` to answer "what can I do on this order" (would extend the
+  agent's `order-ops` tools).
 - Editable `notes` section (add `"notes"` to relevant profiles and wire a save flow).
