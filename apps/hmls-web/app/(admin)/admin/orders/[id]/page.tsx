@@ -1,18 +1,13 @@
 "use client";
 
-import type { OrderEvent, OrderItem } from "@hmls/shared/db/types";
-import {
-  EDITABLE_STATUSES,
-  isOrderStatus,
-  type OrderStatus,
-} from "@hmls/shared/order/status";
+import type { OrderEvent } from "@hmls/shared/db/types";
+import { isOrderStatus, type OrderStatus } from "@hmls/shared/order/status";
 import {
   ArrowLeft,
   ClipboardEdit,
   ExternalLink,
   FileText,
   MessageSquare,
-  Pencil,
   Printer,
   Tag,
   User,
@@ -21,11 +16,10 @@ import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { OrderProgressBar } from "@/components/OrderProgressBar";
-import { CustomerEditor } from "@/components/order/CustomerEditor";
 import { DraftBanner } from "@/components/order/DraftBanner";
-import { ItemEditor } from "@/components/order/ItemEditor";
 import { OrderDetailsCard } from "@/components/order/OrderDetailsCard";
 import { OrderOpsPanel } from "@/components/order/OrderOpsPanel";
+import { OrderSectionsRegion } from "@/components/order/OrderSectionsRegion";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,16 +41,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminOrder } from "@/hooks/useAdmin";
 import { useAdminMechanics } from "@/hooks/useAdminMechanics";
 import {
-  type OrderContactPatch,
-  useOrderMutations,
-} from "@/hooks/useOrderMutations";
-import {
   getAdminOrdersListHref,
   parseAdminOrdersFilter,
   parseAdminOrdersSearch,
 } from "@/lib/admin-order-filters";
 import { AGENT_URL } from "@/lib/config";
 import { formatCents } from "@/lib/format";
+import { useActionInvoker } from "@/lib/order-actions";
 import {
   isTentativeBooking,
   ORDER_STEP_LABELS_ADMIN,
@@ -432,10 +423,7 @@ export default function OrderDetailPage() {
   const orderId = params.id as string;
   const { data, isLoading, isError, mutate } = useAdminOrder(orderId);
 
-  const [editMode, setEditMode] = useState<null | "items" | "customer">(null);
   const { mechanics } = useAdminMechanics();
-  const { saveItems, saveCustomer, savingItems, savingCustomer } =
-    useOrderMutations(orderId, mutate);
 
   // Hooks must run before any early return.
   const orderItems = data?.order.items ?? [];
@@ -450,6 +438,16 @@ export default function OrderDetailPage() {
         ) || 60,
       ),
     [orderItems],
+  );
+
+  // `useActionInvoker` is a hook — must run unconditionally before any early
+  // return. It tolerates `order: null` during load; no action surface is
+  // mounted until data resolves.
+  const invoker = useActionInvoker(
+    data?.order ?? null,
+    orderId,
+    mutate,
+    askReason,
   );
 
   if (isLoading) {
@@ -494,13 +492,7 @@ export default function OrderDetailPage() {
   }
 
   const { order } = data;
-  const items: OrderItem[] = order.items ?? [];
-  const vehicle = order.vehicleInfo;
-  const vehicleStr = vehicle
-    ? [vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(" ")
-    : null;
   const knownStatus = isOrderStatus(order.status) ? order.status : undefined;
-  const isEditable = knownStatus ? EDITABLE_STATUSES.has(knownStatus) : false;
   const tentative = isTentativeBooking(order);
   const adminStatus = statusDisplay(order.status, "admin", {
     tentativeBooking: tentative,
@@ -516,24 +508,6 @@ export default function OrderDetailPage() {
     order.providerId != null
       ? (mechanics.find((m) => m.id === order.providerId)?.name ?? null)
       : null;
-
-  async function handleSaveItems(newItems: OrderItem[], newNotes: string) {
-    try {
-      await saveItems(newItems, newNotes);
-      setEditMode(null);
-    } catch {
-      /* error toast shown by hook */
-    }
-  }
-
-  async function handleSaveCustomer(patch: OrderContactPatch) {
-    try {
-      await saveCustomer(patch);
-      setEditMode(null);
-    } catch {
-      /* error toast shown by hook */
-    }
-  }
 
   return (
     <div className="space-y-6">
@@ -587,168 +561,20 @@ export default function OrderDetailPage() {
 
       {/* Content grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Left: main details */}
+        {/* Left: main details — sections region renders Items, Customer,
+            Schedule, Notes with status-aware edit affordances. */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Customer info */}
-          <Card className="gap-0 py-0">
-            <CardHeader className="px-4 py-4">
-              <CardTitle className="text-sm">Contact</CardTitle>
-              <CardAction>
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  onClick={() =>
-                    setEditMode(editMode === "customer" ? null : "customer")
-                  }
-                >
-                  <User className="w-3.5 h-3.5" />
-                  Edit
-                </Button>
-              </CardAction>
-            </CardHeader>
-            <CardContent className="px-4 pb-4">
-              {editMode === "customer" ? (
-                <CustomerEditor
-                  order={order}
-                  saving={savingCustomer}
-                  onCancel={() => setEditMode(null)}
-                  onSave={handleSaveCustomer}
-                />
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <span className="text-muted-foreground">Name</span>
-                    <p className="text-foreground font-medium">
-                      {order.contactName ?? "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Email</span>
-                    <p className="text-foreground font-medium">
-                      {order.contactEmail ?? "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Phone</span>
-                    <p className="text-foreground font-medium">
-                      {order.contactPhone ?? "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Address</span>
-                    <p className="text-foreground font-medium">
-                      {order.contactAddress ?? "—"}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {/* Status-contextual estimate/quote PDF panels (moved from aside in
+              Phase 4 — they live with the editable content they describe). */}
+          {showEstimatePanel && <EstimatePanel order={order} />}
+          {showQuotePanel && <QuotePanel order={order} />}
 
-          {/* Vehicle */}
-          {vehicleStr && (
-            <Card className="gap-0 py-0">
-              <CardHeader className="px-4 py-4">
-                <CardTitle className="text-sm">Vehicle</CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-4">
-                <p className="text-xs text-foreground">{vehicleStr}</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Items table */}
-          <Card className="gap-0 py-0">
-            <CardHeader className="px-4 py-4">
-              <CardTitle className="text-sm">Line Items</CardTitle>
-              {isEditable && editMode !== "items" && (
-                <CardAction>
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    onClick={() => setEditMode("items")}
-                  >
-                    <Pencil className="w-3 h-3" /> Edit
-                  </Button>
-                </CardAction>
-              )}
-            </CardHeader>
-            <CardContent className="px-4 pb-4 space-y-3">
-              {editMode === "items" && isEditable ? (
-                <ItemEditor
-                  items={items}
-                  notes={order.notes}
-                  saving={savingItems}
-                  onCancel={() => setEditMode(null)}
-                  onSave={handleSaveItems}
-                />
-              ) : items.length > 0 ? (
-                <>
-                  <div className="border border-border rounded-lg overflow-x-auto">
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr className="bg-muted text-muted-foreground">
-                          <th className="text-left px-3 py-1.5 font-medium">
-                            Item
-                          </th>
-                          <th className="text-right px-3 py-1.5 font-medium">
-                            Qty
-                          </th>
-                          <th className="text-right px-3 py-1.5 font-medium">
-                            Price
-                          </th>
-                          <th className="text-right px-3 py-1.5 font-medium">
-                            Total
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {items.map((item) => (
-                          <tr key={item.id} className="border-t border-border">
-                            <td className="px-3 py-1.5 text-foreground">
-                              <span className="text-[10px] uppercase text-muted-foreground mr-1.5">
-                                {item.category}
-                              </span>
-                              {item.name}
-                            </td>
-                            <td className="px-3 py-1.5 text-right text-foreground">
-                              {item.quantity}
-                            </td>
-                            <td className="px-3 py-1.5 text-right text-foreground">
-                              {formatCents(item.unitPriceCents)}
-                            </td>
-                            <td className="px-3 py-1.5 text-right text-foreground font-medium">
-                              {formatCents(item.totalCents)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                      <tfoot>
-                        <tr className="border-t border-border bg-muted">
-                          <td
-                            colSpan={3}
-                            className="px-3 py-1.5 text-right font-medium text-foreground"
-                          >
-                            Subtotal
-                          </td>
-                          <td className="px-3 py-1.5 text-right font-semibold text-foreground">
-                            {formatCents(order.subtotalCents ?? 0)}
-                          </td>
-                        </tr>
-                      </tfoot>
-                    </table>
-                  </div>
-                  {order.notes && (
-                    <p className="text-xs text-muted-foreground italic">
-                      {order.notes}
-                    </p>
-                  )}
-                </>
-              ) : (
-                <p className="text-xs text-muted-foreground">No items yet.</p>
-              )}
-            </CardContent>
-          </Card>
+          <OrderSectionsRegion
+            order={order}
+            revalidate={mutate}
+            onSetTime={() => invoker.openDialog("set_time")}
+            onReassign={() => invoker.openDialog("reassign")}
+          />
 
           {order.cancellationReason && (
             <Card className="gap-0 py-0 border-destructive/50">
@@ -767,15 +593,10 @@ export default function OrderDetailPage() {
         </div>
 
         <aside className="space-y-4">
-          {/* Status-contextual estimate/quote PDF panels still live here for
-              now — Phase 4 moves them into the main column. */}
-          {showEstimatePanel && <EstimatePanel order={order} />}
-          {showQuotePanel && <QuotePanel order={order} />}
-
           <OrderOpsPanel
             order={order}
+            invoker={invoker}
             revalidate={mutate}
-            askReason={askReason}
             suggestedDurationMinutes={suggestedDurationMinutes}
           />
           <OrderDetailsCard order={order} mechanicName={bookingProviderName} />

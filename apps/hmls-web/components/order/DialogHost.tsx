@@ -5,6 +5,7 @@ import { ReassignBookingDialog } from "@/components/admin/mechanics/ReassignBook
 import { SetTimeDialog } from "@/components/admin/orders/SetTimeDialog";
 import { useOrderMutations } from "@/hooks/useOrderMutations";
 import type { DialogId } from "@/lib/order-actions";
+import { MarkPaidDialog } from "./MarkPaidDialog";
 
 type Props = {
   order: Order;
@@ -26,10 +27,8 @@ export function DialogHost({
   // TODO(phase-4): this is a second useOrderMutations subscription on the
   // same order — useActionInvoker holds the first. Collapse when MarkPaidDialog
   // lands so there's one mutation hook and one source of busy truth.
-  const { setSchedule, savingSchedule } = useOrderMutations(
-    order.id,
-    revalidate,
-  );
+  const { setSchedule, savingSchedule, markPaid, savingPayment } =
+    useOrderMutations(order.id, revalidate);
 
   return (
     <>
@@ -61,8 +60,20 @@ export function DialogHost({
           }}
         />
       )}
-      {/* mark_paid is rendered by PR 4's MarkPaidDialog. Until then we ignore
-          it — completed-status pages today simply do nothing. */}
+      {dialog === "mark_paid" && (
+        <MarkPaidDialog
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) onClose();
+          }}
+          defaultAmountCents={order.subtotalCents ?? 0}
+          saving={savingPayment}
+          onSubmit={async (args) => {
+            await markPaid(args);
+            onClose();
+          }}
+        />
+      )}
     </>
   );
 }

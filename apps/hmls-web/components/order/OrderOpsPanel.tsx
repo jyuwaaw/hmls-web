@@ -8,28 +8,24 @@ import { Separator } from "@/components/ui/separator";
 import {
   ACTION_REGISTRY,
   leadAction,
-  type ReasonAsker,
-  useActionInvoker,
+  type OrderInvoker,
 } from "@/lib/order-actions";
 import { ActionButton } from "./ActionButton";
 import { DialogHost } from "./DialogHost";
 
 type Props = {
   order: Order;
+  invoker: OrderInvoker;
   revalidate(): void;
-  askReason: ReasonAsker;
   suggestedDurationMinutes: number;
 };
 
 export function OrderOpsPanel({
   order,
+  invoker,
   revalidate,
-  askReason,
   suggestedDurationMinutes,
 }: Props) {
-  // Always call hooks before any early return.
-  const invoker = useActionInvoker(order, revalidate, askReason);
-
   // Defensive: a row with an off-machine status (legacy data, in-flight
   // migration) shouldn't crash the page. leadAction handles this too, but
   // STATUS_PROFILES[order.status] would `undefined.actions` below otherwise.

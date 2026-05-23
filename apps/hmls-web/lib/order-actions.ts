@@ -226,32 +226,36 @@ export type ReasonAsker = (opts: {
 export type OrderInvoker = {
   invoke(action: ActionDescriptor): Promise<void>;
   dialog: DialogId | null;
+  openDialog(id: DialogId): void;
   closeDialog(): void;
   transitioning: boolean;
 };
 
 export function useActionInvoker(
-  order: Order,
+  /** `null` while the order is still loading — invoker still runs so React
+   *  hook order stays stable, but `invoke` becomes a no-op until order arrives. */
+  order: Order | null,
+  orderId: number | string,
   revalidate: () => void,
   askReason: ReasonAsker,
 ): OrderInvoker {
-  const m = useOrderMutations(order.id, revalidate);
+  const m = useOrderMutations(orderId, revalidate);
   const [dialog, setDialog] = useState<DialogId | null>(null);
-
-  const ctx: ActionContext = {
-    order,
-    transitionStatus: m.transitionStatus,
-    setSchedule: m.setSchedule,
-    markPaid: m.markPaid,
-    openDialog: setDialog,
-    askReason,
-    mutate: revalidate,
-  };
 
   // useOrderMutations already toasts + rethrows on failure. Catching here
   // would produce a second toast. Non-mutation actions (dialog opens, reason
   // prompts) don't throw, so propagating is safe.
   async function invoke(action: ActionDescriptor) {
+    if (!order) return; // Order still loading; no action surface is mounted yet.
+    const ctx: ActionContext = {
+      order,
+      transitionStatus: m.transitionStatus,
+      setSchedule: m.setSchedule,
+      markPaid: m.markPaid,
+      openDialog: setDialog,
+      askReason,
+      mutate: revalidate,
+    };
     try {
       await action.invoke(ctx);
     } catch (e) {
@@ -267,6 +271,7 @@ export function useActionInvoker(
   return {
     invoke,
     dialog,
+    openDialog: setDialog,
     closeDialog: () => setDialog(null),
     // Only includes busy flags reachable via ActionContext. saveItems /
     // saveCustomer aren't exposed on ctx, so they don't gate registry actions.

@@ -18,7 +18,7 @@ type Props = {
 
 export function DraftBanner({ order, revalidate, askReason }: Props) {
   const lead = leadAction(order);
-  const invoker = useActionInvoker(order, revalidate, askReason);
+  const invoker = useActionInvoker(order, order.id, revalidate, askReason);
 
   if (!lead) return null;
 
