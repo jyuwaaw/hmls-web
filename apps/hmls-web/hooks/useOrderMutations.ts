@@ -29,6 +29,7 @@ export function useOrderMutations(
   const [savingItems, setSavingItems] = useState(false);
   const [savingCustomer, setSavingCustomer] = useState(false);
   const [savingSchedule, setSavingSchedule] = useState(false);
+  const [savingPayment, setSavingPayment] = useState(false);
 
   async function transitionStatus(
     newStatus: string,
@@ -96,14 +97,34 @@ export function useOrderMutations(
     }
   }
 
+  async function markPaid(args: {
+    amountCents: number;
+    method: string;
+    reference?: string;
+    paidAt?: string;
+  }): Promise<void> {
+    setSavingPayment(true);
+    try {
+      await api.post<Order>(adminPaths.orderPayment(id), args);
+      revalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to record payment");
+      throw e;
+    } finally {
+      setSavingPayment(false);
+    }
+  }
+
   return {
     transitionStatus,
     saveItems,
     saveCustomer,
     setSchedule,
+    markPaid,
     transitioning,
     savingItems,
     savingCustomer,
     savingSchedule,
+    savingPayment,
   };
 }

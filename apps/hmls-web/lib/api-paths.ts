@@ -27,6 +27,7 @@ export const adminPaths = {
   order: (id: number | string) => `/api/admin/orders/${id}`,
   orderStatus: (id: number | string) => `/api/admin/orders/${id}/status`,
   orderSchedule: (id: number | string) => `/api/admin/orders/${id}/schedule`,
+  orderPayment: (id: number | string) => `/api/admin/orders/${id}/payment`,
 
   // --- admin-mechanics.ts (mounted at /api/admin/mechanics) ---
   mechanics: () => "/api/admin/mechanics",

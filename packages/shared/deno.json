@@ -8,6 +8,7 @@
     "./db/schema": "./src/db/schema.ts",
     "./db/types": "./src/db/types.ts",
     "./order/status": "./src/order/status.ts",
+    "./order/profiles": "./src/order/profiles.ts",
     "./api/contracts/admin": "./src/api/contracts/admin.ts",
     "./api/contracts/admin-mechanics": "./src/api/contracts/admin-mechanics.ts",
     "./api/contracts/mechanic": "./src/api/contracts/mechanic.ts",

@@ -7,7 +7,7 @@
 //      in the next 7 days
 //
 // Triggered automatically after `attachSchedule` succeeds on an unassigned
-// order. Admin can still reassign via the BookingPanel.
+// order. Admin can still reassign via the order detail action panel.
 
 import { and, desc, eq, gte, inArray, lte, ne, sql } from "drizzle-orm";
 import { getLogger } from "@logtape/logtape";
