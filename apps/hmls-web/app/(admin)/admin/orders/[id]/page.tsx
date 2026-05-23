@@ -1,6 +1,5 @@
 "use client";
 
-import { isOrderStatus, type OrderStatus } from "@hmls/shared/order/status";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -8,11 +7,10 @@ import { useMemo } from "react";
 import { OrderProgressBar } from "@/components/OrderProgressBar";
 import { ActivityTimeline } from "@/components/order/ActivityTimeline";
 import { DraftBanner } from "@/components/order/DraftBanner";
-import { EstimatePanel } from "@/components/order/EstimatePanel";
 import { OrderDetailsCard } from "@/components/order/OrderDetailsCard";
+import { OrderDocumentCard } from "@/components/order/OrderDocumentCard";
 import { OrderOpsPanel } from "@/components/order/OrderOpsPanel";
 import { OrderSectionsRegion } from "@/components/order/OrderSectionsRegion";
-import { QuotePanel } from "@/components/order/QuotePanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,19 +28,6 @@ import { useActionInvoker } from "@/lib/order-actions";
 import { isTentativeBooking, statusDisplay } from "@/lib/status-display";
 import { cn } from "@/lib/utils";
 
-/* ── Constants ────────────────────────────────────────────────────────── */
-
-// Panel-visibility predicates over canonical OrderStatus. These are NOT
-// quote/booking *statuses* (those tables were dropped in Layer 3) — they
-// just decide which side panel to render in the order detail view.
-const SHOW_ESTIMATE_PANEL_STATUSES: ReadonlySet<OrderStatus> = new Set([
-  "draft",
-  "revised",
-]);
-const SHOW_QUOTE_PANEL_STATUSES: ReadonlySet<OrderStatus> = new Set([
-  "estimated",
-  "approved",
-]);
 /* ── Status Badge (using shadcn Badge) ─────────────────────────────── */
 
 function OrderStatusBadge({
@@ -148,18 +133,11 @@ export default function OrderDetailPage() {
   }
 
   const { order } = data;
-  const knownStatus = isOrderStatus(order.status) ? order.status : undefined;
   const tentative = isTentativeBooking(order);
   const adminStatus = statusDisplay(order.status, "admin", {
     tentativeBooking: tentative,
   });
 
-  const showEstimatePanel = knownStatus
-    ? SHOW_ESTIMATE_PANEL_STATUSES.has(knownStatus)
-    : false;
-  const showQuotePanel = knownStatus
-    ? SHOW_QUOTE_PANEL_STATUSES.has(knownStatus)
-    : false;
   const bookingProviderName =
     order.providerId != null
       ? (mechanics.find((m) => m.id === order.providerId)?.name ?? null)
@@ -222,8 +200,7 @@ export default function OrderDetailPage() {
         <div className="lg:col-span-2 space-y-4">
           {/* Status-contextual estimate/quote PDF panels (moved from aside in
               Phase 4 — they live with the editable content they describe). */}
-          {showEstimatePanel && <EstimatePanel order={order} />}
-          {showQuotePanel && <QuotePanel order={order} />}
+          <OrderDocumentCard order={order} />
 
           <OrderSectionsRegion
             order={order}
