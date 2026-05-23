@@ -4,36 +4,28 @@ import type { OrderEvent, OrderItem } from "@hmls/shared/db/types";
 import {
   EDITABLE_STATUSES,
   isOrderStatus,
-  TRANSITIONS as ORDER_TRANSITIONS,
   type OrderStatus,
 } from "@hmls/shared/order/status";
 import {
-  AlertTriangle,
   ArrowLeft,
-  Calendar,
-  CheckCircle,
   ClipboardEdit,
   ExternalLink,
   FileText,
-  MapPin,
   MessageSquare,
   Pencil,
   Printer,
-  Send,
   Tag,
   User,
-  UserPlus,
-  XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
-import { ReassignBookingDialog } from "@/components/admin/mechanics/ReassignBookingDialog";
-import { SetTimeDialog } from "@/components/admin/orders/SetTimeDialog";
 import { OrderProgressBar } from "@/components/OrderProgressBar";
 import { CustomerEditor } from "@/components/order/CustomerEditor";
+import { DraftBanner } from "@/components/order/DraftBanner";
 import { ItemEditor } from "@/components/order/ItemEditor";
+import { OrderDetailsCard } from "@/components/order/OrderDetailsCard";
+import { OrderOpsPanel } from "@/components/order/OrderOpsPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,7 +43,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { askReason } from "@/components/ui/ReasonDialog";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminOrder } from "@/hooks/useAdmin";
 import { useAdminMechanics } from "@/hooks/useAdminMechanics";
@@ -75,19 +66,6 @@ import { cn } from "@/lib/utils";
 
 /* ── Constants ────────────────────────────────────────────────────────── */
 
-const TRANSITION_LABELS: Record<string, string> = {
-  estimated: "Send",
-  approved: "Approve",
-  declined: "Decline",
-  revised: "Revise",
-  scheduled: "Schedule",
-  in_progress: "Start",
-  completed: "Complete",
-  cancelled: "Cancel",
-};
-
-const DANGER_ACTIONS = new Set(["cancelled", "declined"]);
-
 // Panel-visibility predicates over canonical OrderStatus. These are NOT
 // quote/booking *statuses* (those tables were dropped in Layer 3) — they
 // just decide which side panel to render in the order detail view.
@@ -99,12 +77,6 @@ const SHOW_QUOTE_PANEL_STATUSES: ReadonlySet<OrderStatus> = new Set([
   "estimated",
   "approved",
 ]);
-const SHOW_BOOKING_PANEL_STATUSES: ReadonlySet<OrderStatus> = new Set([
-  "scheduled",
-  "in_progress",
-  "completed",
-]);
-
 /* ── Status Badge (using shadcn Badge) ─────────────────────────────── */
 
 function OrderStatusBadge({
@@ -325,185 +297,6 @@ function QuotePanel({
   );
 }
 
-/* ── Booking Panel ────────────────────────────────────────────────────── */
-
-function BookingPanel({
-  order,
-  providerName,
-  onAssign,
-  onSetTime,
-  onConfirm,
-  onReject,
-  actionBusy,
-}: {
-  order: {
-    status: string;
-    vehicleInfo: { year?: string; make?: string; model?: string } | null;
-    scheduledAt: string | Date | null;
-    providerId?: number | null;
-    location?: string | null;
-    adminNotes: string | null;
-    accessInstructions?: string | null;
-    symptomDescription?: string | null;
-  };
-  providerName: string | null;
-  onAssign: () => void;
-  onSetTime: () => void;
-  onConfirm: () => void;
-  onReject: () => void;
-  actionBusy: boolean;
-}) {
-  const vehicle = order.vehicleInfo;
-  const isUnassigned = order.providerId == null;
-  const isUnscheduled = order.scheduledAt == null;
-  // Dispatch controls show on draft (chat-flow accumulation), approved
-  // (legacy portal flow), and scheduled (already-confirmed bookings need
-  // reschedule / reassign / reject overrides). The Confirm button is the
-  // single shop gate that promotes a complete draft to scheduled.
-  const needsDispatch =
-    order.status === "draft" ||
-    order.status === "approved" ||
-    order.status === "scheduled";
-  const canConfirm =
-    order.status === "draft" && !isUnscheduled && !isUnassigned;
-  return (
-    <Card className="gap-0 py-0">
-      <CardHeader className="px-3 py-3">
-        <CardTitle className="text-xs font-semibold uppercase tracking-wide">
-          Appointment
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="px-3 pb-3 space-y-1.5">
-        {vehicle && (
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <MapPin className="w-3 h-3" />
-            {[vehicle.year, vehicle.make, vehicle.model]
-              .filter(Boolean)
-              .join(" ")}
-          </p>
-        )}
-        {order.scheduledAt ? (
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Calendar className="w-3 h-3" />
-            {new Date(order.scheduledAt).toLocaleString("en-US", {
-              weekday: "short",
-              month: "short",
-              day: "numeric",
-              hour: "numeric",
-              minute: "2-digit",
-              hour12: true,
-            })}
-          </p>
-        ) : (
-          <p className="flex items-center gap-1.5 text-xs">
-            <Calendar className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-            <span className="text-amber-600 dark:text-amber-400 font-medium">
-              No appointment time
-            </span>
-          </p>
-        )}
-        <p className="flex items-center gap-1.5 text-xs">
-          <User className="w-3 h-3 text-muted-foreground" />
-          {isUnassigned ? (
-            <span className="text-amber-600 dark:text-amber-400 font-medium">
-              Unassigned
-            </span>
-          ) : (
-            <span className="text-muted-foreground">
-              {providerName ?? `Mechanic #${order.providerId}`}
-            </span>
-          )}
-        </p>
-        {order.location && (
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <MapPin className="w-3 h-3" />
-            {order.location}
-          </p>
-        )}
-        {order.accessInstructions && (
-          <>
-            <Separator />
-            <p className="text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">Access:</span>{" "}
-              {order.accessInstructions}
-            </p>
-          </>
-        )}
-        {order.symptomDescription && (
-          <>
-            <Separator />
-            <p className="text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">Symptoms:</span>{" "}
-              {order.symptomDescription}
-            </p>
-          </>
-        )}
-        {order.adminNotes && (
-          <>
-            <Separator />
-            <p className="text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">Admin notes:</span>{" "}
-              {order.adminNotes}
-            </p>
-          </>
-        )}
-
-        {needsDispatch && (
-          <>
-            <Separator />
-            <div className="flex flex-col gap-1.5 pt-1">
-              <Button
-                variant="ghost"
-                size="xs"
-                onClick={onSetTime}
-                disabled={actionBusy}
-                className="justify-center text-amber-700 bg-amber-100 hover:bg-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/40"
-              >
-                <Calendar className="size-3" />
-                {isUnscheduled ? "Set appointment time" : "Reschedule"}
-              </Button>
-              {isUnassigned && (
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  onClick={onAssign}
-                  disabled={actionBusy}
-                  className="justify-center text-blue-700 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/40"
-                >
-                  <UserPlus className="size-3" />
-                  Assign mechanic
-                </Button>
-              )}
-              {canConfirm && (
-                <Button
-                  variant="default"
-                  size="xs"
-                  onClick={onConfirm}
-                  disabled={actionBusy}
-                  className="justify-center bg-green-600 hover:bg-green-700 text-white"
-                >
-                  <CheckCircle className="size-3" />
-                  Confirm booking
-                </Button>
-              )}
-              <Button
-                variant="ghost"
-                size="xs"
-                onClick={onReject}
-                disabled={actionBusy}
-                className="justify-center text-red-700 bg-red-100 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40"
-              >
-                <XCircle className="size-3" />
-                Reject booking
-              </Button>
-            </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
 /* ── Activity Timeline ────────────────────────────────────────────────── */
 
 function relativeTime(dateStr: string): string {
@@ -640,20 +433,9 @@ export default function OrderDetailPage() {
   const { data, isLoading, isError, mutate } = useAdminOrder(orderId);
 
   const [editMode, setEditMode] = useState<null | "items" | "customer">(null);
-  const [reassignOpen, setReassignOpen] = useState(false);
-  const [setTimeOpen, setSetTimeOpen] = useState(false);
-  const [bookingBusy, setBookingBusy] = useState(false);
   const { mechanics } = useAdminMechanics();
-  const {
-    transitionStatus,
-    saveItems,
-    saveCustomer,
-    setSchedule,
-    transitioning,
-    savingItems,
-    savingCustomer,
-    savingSchedule,
-  } = useOrderMutations(orderId, mutate);
+  const { saveItems, saveCustomer, savingItems, savingCustomer } =
+    useOrderMutations(orderId, mutate);
 
   // Hooks must run before any early return.
   const orderItems = data?.order.items ?? [];
@@ -718,7 +500,6 @@ export default function OrderDetailPage() {
     ? [vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(" ")
     : null;
   const knownStatus = isOrderStatus(order.status) ? order.status : undefined;
-  const allowed = knownStatus ? ORDER_TRANSITIONS[knownStatus] : [];
   const isEditable = knownStatus ? EDITABLE_STATUSES.has(knownStatus) : false;
   const tentative = isTentativeBooking(order);
   const adminStatus = statusDisplay(order.status, "admin", {
@@ -731,66 +512,10 @@ export default function OrderDetailPage() {
   const showQuotePanel = knownStatus
     ? SHOW_QUOTE_PANEL_STATUSES.has(knownStatus)
     : false;
-  const showBookingPanel =
-    (knownStatus ? SHOW_BOOKING_PANEL_STATUSES.has(knownStatus) : false) ||
-    order.scheduledAt != null ||
-    order.status === "approved" ||
-    // Chat-flow drafts accumulate the appointment + auto-assigned mechanic
-    // and wait on shop Confirm — admin needs the BookingPanel to set time
-    // (if customer didn't), reassign, or confirm.
-    order.status === "draft";
   const bookingProviderName =
     order.providerId != null
       ? (mechanics.find((m) => m.id === order.providerId)?.name ?? null)
       : null;
-
-  async function handleBookingConfirm() {
-    setBookingBusy(true);
-    try {
-      // The harness allows draft → scheduled when scheduledAt + providerId
-      // are present (the chat flow ensures this before the button enables).
-      await transitionStatus("scheduled");
-      await mutate();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to confirm booking");
-    } finally {
-      setBookingBusy(false);
-    }
-  }
-
-  async function handleBookingReject() {
-    const reason = await askReason({
-      title: "Reject booking",
-      description: "Optional reason for the customer.",
-    });
-    if (reason === null) return;
-    setBookingBusy(true);
-    try {
-      await transitionStatus("cancelled", reason || undefined);
-      await mutate();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to reject booking");
-    } finally {
-      setBookingBusy(false);
-    }
-  }
-
-  async function handleTransition(newStatus: string) {
-    let reason: string | undefined;
-    if (newStatus === "cancelled") {
-      const input = await askReason({
-        title: "Cancel order",
-        description: "Optional cancellation reason.",
-      });
-      if (input === null) return;
-      reason = input || undefined;
-    }
-    try {
-      await transitionStatus(newStatus, reason);
-    } catch {
-      /* error toast shown by hook */
-    }
-  }
 
   async function handleSaveItems(newItems: OrderItem[], newNotes: string) {
     try {
@@ -845,55 +570,8 @@ export default function OrderDetailPage() {
         </span>
       </div>
 
-      {/* AI draft review banner.
-          Two flavors:
-          - tentative (draft + scheduledAt): customer accepted in chat. Review,
-            then "Approve & confirm" promotes draft → scheduled. The
-            BookingPanel below offers reschedule/reassign before the click.
-          - plain draft (no scheduling yet): customer hasn't been offered a
-            time. "Send to customer" promotes draft → estimated; customer
-            then approves and picks a slot via the portal. */}
       {order.status === "draft" && (
-        <Card className="border-amber-500/40 bg-amber-50 dark:bg-amber-950/20 gap-0 py-0">
-          <CardContent className="px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
-            <div className="flex items-start gap-2 flex-1 min-w-0">
-              <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-              <div className="text-xs">
-                <p className="font-semibold text-amber-900 dark:text-amber-200">
-                  {tentative
-                    ? "Tentative booking — pending your confirmation"
-                    : "Pending shop review"}
-                </p>
-                <p className="text-amber-800 dark:text-amber-300/90 mt-0.5">
-                  {tentative
-                    ? "Customer accepted the AI-drafted estimate and a time slot in chat. Review line items and pricing, then confirm to lock in the appointment."
-                    : "AI drafted this estimate from the customer chat. Review line items and pricing, then send it to the customer."}
-                </p>
-              </div>
-            </div>
-            {tentative ? (
-              <Button
-                size="sm"
-                onClick={handleBookingConfirm}
-                disabled={bookingBusy}
-                className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white"
-              >
-                <CheckCircle className="w-3.5 h-3.5" />
-                Approve &amp; confirm
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                onClick={() => handleTransition("estimated")}
-                disabled={transitioning}
-                className="shrink-0 bg-amber-600 hover:bg-amber-700 text-white"
-              >
-                <Send className="w-3.5 h-3.5" />
-                Send to customer
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+        <DraftBanner order={order} revalidate={mutate} askReason={askReason} />
       )}
 
       {/* Progress bar */}
@@ -1088,126 +766,29 @@ export default function OrderDetailPage() {
           )}
         </div>
 
-        {/* Right sidebar: panels + actions */}
-        <div className="space-y-4">
-          {/* Status-contextual panels */}
+        <aside className="space-y-4">
+          {/* Status-contextual estimate/quote PDF panels still live here for
+              now — Phase 4 moves them into the main column. */}
           {showEstimatePanel && <EstimatePanel order={order} />}
           {showQuotePanel && <QuotePanel order={order} />}
-          {showBookingPanel && (
-            <BookingPanel
-              order={order}
-              providerName={bookingProviderName}
-              onAssign={() => setReassignOpen(true)}
-              onSetTime={() => setSetTimeOpen(true)}
-              onConfirm={handleBookingConfirm}
-              onReject={handleBookingReject}
-              actionBusy={bookingBusy}
-            />
-          )}
 
-          {/* Actions */}
-          {allowed.length > 0 && (
-            <Card className="gap-0 py-0">
-              <CardHeader className="px-4 py-4">
-                <CardTitle className="text-sm">Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-4">
-                <div className="flex flex-col gap-2">
-                  {allowed.map((next: OrderStatus) => {
-                    const isDanger = DANGER_ACTIONS.has(next);
-                    return (
-                      <Button
-                        key={next}
-                        variant={isDanger ? "outline" : "default"}
-                        size="sm"
-                        className={cn(
-                          "w-full",
-                          isDanger &&
-                            "text-destructive border-destructive/30 hover:bg-destructive/10",
-                        )}
-                        onClick={() => handleTransition(next)}
-                        disabled={transitioning}
-                      >
-                        {TRANSITION_LABELS[next] ?? next}
-                      </Button>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Order metadata */}
+          <OrderOpsPanel
+            order={order}
+            revalidate={mutate}
+            askReason={askReason}
+            suggestedDurationMinutes={suggestedDurationMinutes}
+          />
+          <OrderDetailsCard order={order} mechanicName={bookingProviderName} />
           <Card className="gap-0 py-0">
             <CardHeader className="px-4 py-4">
-              <CardTitle className="text-sm">Details</CardTitle>
+              <CardTitle className="text-sm">Activity</CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4">
-              <div className="text-xs space-y-1.5">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Order ID</span>
-                  <span className="text-foreground font-mono">#{order.id}</span>
-                </div>
-                {order.providerId != null && (
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-muted-foreground">Mechanic</span>
-                    <span className="flex items-center gap-2">
-                      <span className="text-foreground">
-                        {bookingProviderName ?? `#${order.providerId}`}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setReassignOpen(true)}
-                      >
-                        Reassign
-                      </Button>
-                    </span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Updated</span>
-                  <span className="text-foreground">
-                    <DateTime value={order.updatedAt} format="datetime" />
-                  </span>
-                </div>
-              </div>
+              <ActivityTimeline events={data.events ?? []} />
             </CardContent>
           </Card>
-        </div>
+        </aside>
       </div>
-
-      {/* Activity log */}
-      <Card className="gap-0 py-0">
-        <CardHeader className="px-4 py-4">
-          <CardTitle className="text-sm">Activity</CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 pb-4">
-          <ActivityTimeline events={data.events ?? []} />
-        </CardContent>
-      </Card>
-
-      <ReassignBookingDialog
-        order={order}
-        open={reassignOpen}
-        onOpenChange={setReassignOpen}
-        onAssigned={() => mutate()}
-      />
-
-      {setTimeOpen && (
-        <SetTimeDialog
-          open
-          onOpenChange={setSetTimeOpen}
-          initialScheduledAt={
-            order.scheduledAt ? new Date(order.scheduledAt).toISOString() : null
-          }
-          initialDurationMinutes={order.durationMinutes}
-          suggestedDurationMinutes={suggestedDurationMinutes}
-          initialLocation={order.location}
-          saving={savingSchedule}
-          onSave={setSchedule}
-        />
-      )}
     </div>
   );
 }

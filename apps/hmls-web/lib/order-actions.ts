@@ -2,6 +2,9 @@ import type { Order } from "@hmls/shared/db/types";
 import type { ActionId } from "@hmls/shared/order/profiles";
 import { STATUS_PROFILES } from "@hmls/shared/order/profiles";
 import { isOrderStatus, type OrderStatus } from "@hmls/shared/order/status";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useOrderMutations } from "@/hooks/useOrderMutations";
 
 export type ActionVariant = "primary" | "secondary" | "danger";
 
@@ -205,4 +208,68 @@ export function leadAction(order: Order): ActionDescriptor | undefined {
     if (a?.visible(order) && a.variant(order) === "primary") return a;
   }
   return undefined;
+}
+
+// ---------------------------------------------------------------------------
+// Hook — wires registry against the mutation hook + dialog + toast layers.
+// ---------------------------------------------------------------------------
+
+/** Reason-prompt is currently a Promise<string | null> abstraction in the
+ *  page; PR 3 keeps the existing `useReasonDialog` hook the page already
+ *  uses. Pass it in so order-actions.ts stays free of dialog-component
+ *  imports. */
+export type ReasonAsker = (opts: {
+  title: string;
+  description?: string;
+}) => Promise<string | null>;
+
+export type OrderInvoker = {
+  invoke(action: ActionDescriptor): Promise<void>;
+  dialog: DialogId | null;
+  closeDialog(): void;
+  transitioning: boolean;
+};
+
+export function useActionInvoker(
+  order: Order,
+  revalidate: () => void,
+  askReason: ReasonAsker,
+): OrderInvoker {
+  const m = useOrderMutations(order.id, revalidate);
+  const [dialog, setDialog] = useState<DialogId | null>(null);
+
+  const ctx: ActionContext = {
+    order,
+    transitionStatus: m.transitionStatus,
+    setSchedule: m.setSchedule,
+    markPaid: m.markPaid,
+    openDialog: setDialog,
+    askReason,
+    mutate: revalidate,
+  };
+
+  // useOrderMutations already toasts + rethrows on failure. Catching here
+  // would produce a second toast. Non-mutation actions (dialog opens, reason
+  // prompts) don't throw, so propagating is safe.
+  async function invoke(action: ActionDescriptor) {
+    try {
+      await action.invoke(ctx);
+    } catch (e) {
+      // Only surface unexpected (non-mutation) errors — the mutation hook
+      // owns the "Failed to <verb>" toast for transitionStatus / setSchedule
+      // / markPaid failures.
+      if (!(e instanceof Error) || !/^Failed to /.test(e.message)) {
+        toast.error(e instanceof Error ? e.message : "Action failed");
+      }
+    }
+  }
+
+  return {
+    invoke,
+    dialog,
+    closeDialog: () => setDialog(null),
+    // Only includes busy flags reachable via ActionContext. saveItems /
+    // saveCustomer aren't exposed on ctx, so they don't gate registry actions.
+    transitioning: m.transitioning || m.savingSchedule || m.savingPayment,
+  };
 }
