@@ -45,11 +45,16 @@ export function MarkPaidDialog({
       return;
     }
     setError(null);
-    await onSubmit({
-      amountCents: cents,
-      method,
-      reference: reference.trim() || undefined,
-    });
+    try {
+      await onSubmit({
+        amountCents: cents,
+        method,
+        reference: reference.trim() || undefined,
+      });
+    } catch {
+      // useOrderMutations.markPaid already toasts on failure; swallow here
+      // so the click handler doesn't leak an unhandled rejection.
+    }
   }
 
   return (

@@ -136,7 +136,7 @@ const scheduleOrderTool = {
 
     // Uber-style auto-dispatch. If no mechanic is eligible (e.g. all booked),
     // we leave the order unassigned and surface that in the message — admin
-    // can handle manually from the BookingPanel.
+    // can handle manually from the order detail action panel.
     const dispatched = result.value.providerId == null
       ? await autoAssignProvider(id)
       : { providerId: result.value.providerId as number };

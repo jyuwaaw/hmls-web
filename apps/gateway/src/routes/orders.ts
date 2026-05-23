@@ -351,7 +351,7 @@ orders.post("/:id/schedule", zValidator("json", scheduleOrderInput), async (c) =
   if (!result.ok) return sendOrderStateResult(c, result);
 
   // Uber-style auto-dispatch when admin sets the time on an unassigned
-  // order. Admin can still reassign manually from the BookingPanel.
+  // order. Admin can still reassign manually from the order detail action panel.
   if (result.value.providerId == null) {
     await autoAssignProvider(id);
   }
