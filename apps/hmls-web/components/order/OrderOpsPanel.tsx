@@ -88,8 +88,7 @@ export function OrderOpsPanel({
       </Card>
       <DialogHost
         order={order}
-        dialog={invoker.dialog}
-        onClose={invoker.closeDialog}
+        invoker={invoker}
         revalidate={revalidate}
         suggestedDurationMinutes={suggestedDurationMinutes}
       />

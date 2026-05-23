@@ -3,22 +3,16 @@
 import type { Order } from "@hmls/shared/db/types";
 import { AlertTriangle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  leadAction,
-  type ReasonAsker,
-  useActionInvoker,
-} from "@/lib/order-actions";
+import { leadAction, type OrderInvoker } from "@/lib/order-actions";
 import { ActionButton } from "./ActionButton";
 
 type Props = {
   order: Order;
-  revalidate(): void;
-  askReason: ReasonAsker;
+  invoker: OrderInvoker;
 };
 
-export function DraftBanner({ order, revalidate, askReason }: Props) {
+export function DraftBanner({ order, invoker }: Props) {
   const lead = leadAction(order);
-  const invoker = useActionInvoker(order, order.id, revalidate, askReason);
 
   if (!lead) return null;
 

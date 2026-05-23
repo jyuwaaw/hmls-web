@@ -229,6 +229,22 @@ export type OrderInvoker = {
   openDialog(id: DialogId): void;
   closeDialog(): void;
   transitioning: boolean;
+  /** Set the appointment time / duration / location. Forwarded for dialogs
+   *  that need direct access (SetTimeDialog) rather than via an action. */
+  setSchedule(
+    scheduledAt: string,
+    durationMinutes: number,
+    location?: string | null,
+  ): Promise<void>;
+  savingSchedule: boolean;
+  /** Record a manual payment. */
+  markPaid(args: {
+    amountCents: number;
+    method: string;
+    reference?: string;
+    paidAt?: string;
+  }): Promise<void>;
+  savingPayment: boolean;
 };
 
 export function useActionInvoker(
@@ -276,5 +292,9 @@ export function useActionInvoker(
     // Only includes busy flags reachable via ActionContext. saveItems /
     // saveCustomer aren't exposed on ctx, so they don't gate registry actions.
     transitioning: m.transitioning || m.savingSchedule || m.savingPayment,
+    setSchedule: m.setSchedule,
+    savingSchedule: m.savingSchedule,
+    markPaid: m.markPaid,
+    savingPayment: m.savingPayment,
   };
 }
