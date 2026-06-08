@@ -7,6 +7,7 @@ import {
 } from "@hmls/shared/order/profiles";
 import { isOrderStatus } from "@hmls/shared/order/status";
 import { CustomerSection } from "./sections/CustomerSection";
+import { DiagnosisSection } from "./sections/DiagnosisSection";
 import { ItemsSection } from "./sections/ItemsSection";
 import { NotesSection } from "./sections/NotesSection";
 import { ScheduleSection } from "./sections/ScheduleSection";
@@ -48,6 +49,11 @@ export function OrderSectionsRegion({
         revalidate={revalidate}
         onSetTime={onSetTime}
         onReassign={onReassign}
+      />
+      <DiagnosisSection
+        order={order}
+        readOnly={!can("diagnosis")}
+        revalidate={revalidate}
       />
       <NotesSection order={order} />
     </div>

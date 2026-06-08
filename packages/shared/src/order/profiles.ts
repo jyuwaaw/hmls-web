@@ -3,7 +3,12 @@ import type { OrderStatus } from "./status.ts";
 /** Sections of the order detail main column that can be in "edit" mode at a
  *  given status. Independent of {@link ActionId}: an editable section is an
  *  affordance on the page, not a button. */
-export type EditableSection = "items" | "customer" | "schedule" | "notes";
+export type EditableSection =
+  | "items"
+  | "customer"
+  | "schedule"
+  | "notes"
+  | "diagnosis";
 
 /** Every action the admin can take on an order. Names match the human-visible
  *  intent ("send_to_customer") rather than the target status, because some
@@ -85,13 +90,13 @@ export const STATUS_PROFILES: Readonly<Record<OrderStatus, StatusProfile>> = {
     status: "in_progress",
     actions: ["complete_job", "cancel_order"],
     primary: "complete_job",
-    editableSections: [],
+    editableSections: ["diagnosis"],
   },
   completed: {
     status: "completed",
     actions: ["mark_paid"],
     primary: "mark_paid",
-    editableSections: [],
+    editableSections: ["diagnosis"],
   },
   cancelled: {
     status: "cancelled",

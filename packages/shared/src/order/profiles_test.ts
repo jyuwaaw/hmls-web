@@ -26,6 +26,7 @@ const VALID_SECTIONS = new Set<EditableSection>([
   "customer",
   "schedule",
   "notes",
+  "diagnosis",
 ]);
 
 Deno.test("every OrderStatus has a profile", () => {

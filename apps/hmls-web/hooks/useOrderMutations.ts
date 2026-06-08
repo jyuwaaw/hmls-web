@@ -30,6 +30,7 @@ export function useOrderMutations(
   const [savingCustomer, setSavingCustomer] = useState(false);
   const [savingSchedule, setSavingSchedule] = useState(false);
   const [savingPayment, setSavingPayment] = useState(false);
+  const [savingDiagnosis, setSavingDiagnosis] = useState(false);
 
   async function transitionStatus(
     newStatus: string,
@@ -115,16 +116,35 @@ export function useOrderMutations(
     }
   }
 
+  /** Records the mechanic's confirmed diagnosis — the ground-truth half of the
+   *  (symptom → confirmed) loop. Writes via the generic order PATCH. */
+  async function saveConfirmedDiagnosis(
+    confirmedDiagnosis: string,
+  ): Promise<void> {
+    setSavingDiagnosis(true);
+    try {
+      await api.patch<Order>(adminPaths.order(id), { confirmedDiagnosis });
+      revalidate();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to save diagnosis");
+      throw e;
+    } finally {
+      setSavingDiagnosis(false);
+    }
+  }
+
   return {
     transitionStatus,
     saveItems,
     saveCustomer,
     setSchedule,
     markPaid,
+    saveConfirmedDiagnosis,
     transitioning,
     savingItems,
     savingCustomer,
     savingSchedule,
     savingPayment,
+    savingDiagnosis,
   };
 }

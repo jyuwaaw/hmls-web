@@ -287,6 +287,9 @@ orders.patch("/:id", zValidator("json", updateOrderInput), async (c) => {
   if (body.contact_email !== undefined) directUpdates.contactEmail = body.contact_email;
   if (body.contact_phone !== undefined) directUpdates.contactPhone = body.contact_phone;
   if (body.contact_address !== undefined) directUpdates.contactAddress = body.contact_address;
+  if (body.confirmedDiagnosis !== undefined) {
+    directUpdates.confirmedDiagnosis = body.confirmedDiagnosis;
+  }
 
   if (Object.keys(directUpdates).length > 0) {
     directUpdates.updatedAt = new Date();

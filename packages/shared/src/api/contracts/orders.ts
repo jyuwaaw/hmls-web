@@ -61,6 +61,7 @@ export const orderItemPatchInput = z.record(z.string(), z.unknown());
 export const updateOrderInput = z.object({
   items: z.array(orderItemPatchInput).optional(),
   notes: z.string().nullish(),
+  confirmedDiagnosis: z.string().nullish(),
   vehicleInfo: z.record(z.string(), z.unknown()).nullish(),
   validDays: z.number().int().positive().optional(),
   expiresAt: z.string().nullish(),

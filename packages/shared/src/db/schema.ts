@@ -191,6 +191,11 @@ export const orders = pgTable("orders", {
   paymentMethod: paymentMethodEnum("payment_method"),
   paymentReference: varchar("payment_reference", { length: 255 }),
   adminNotes: text("admin_notes"),
+  // Mechanic's confirmed diagnosis after the on-site visit ("what it actually
+  // was"). Paired with order_intake.symptom_description (the customer's original
+  // complaint) to form the labeled (symptom → truth) data the diagnostic model
+  // trains on. Nullable: filled on/after the visit.
+  confirmedDiagnosis: text("confirmed_diagnosis"),
   cancellationReason: text("cancellation_reason"),
   // Per-order contact snapshot — edit these instead of mutating the customers record
   contactName: varchar("contact_name", { length: 255 }),
