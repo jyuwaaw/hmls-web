@@ -7,7 +7,8 @@ import { BUSINESS, REGIONS, type RegionId } from "@/lib/business";
 import { breadcrumbSchema } from "@/lib/schema";
 import { CITIES } from "@/lib/seo-content";
 
-const REGION_ORDER: RegionId[] = ["oc", "sj"];
+// San Jose / South Bay leads — it's the metro we're actively expanding into.
+const REGION_ORDER: RegionId[] = ["sj", "oc"];
 
 export const metadata: Metadata = {
   title: "Service Areas — Orange County & San Jose Mobile Mechanic",
