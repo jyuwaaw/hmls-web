@@ -9,7 +9,10 @@
  * differentiated copy. Templated layout fills in the rest from BUSINESS.
  */
 
+import type { RegionId } from "./business";
+
 export type CitySlug =
+  // Orange County
   | "irvine"
   | "newport-beach"
   | "costa-mesa"
@@ -23,18 +26,31 @@ export type CitySlug =
   | "mission-viejo"
   | "aliso-viejo"
   | "laguna-hills"
-  | "laguna-niguel";
+  | "laguna-niguel"
+  // San Jose / South Bay
+  | "san-jose"
+  | "santa-clara"
+  | "sunnyvale"
+  | "mountain-view"
+  | "cupertino"
+  | "campbell"
+  | "milpitas"
+  | "los-gatos"
+  | "saratoga"
+  | "morgan-hill";
 
 export interface CityContent {
   slug: CitySlug;
+  region: RegionId;
   name: string;
+  /** Minutes from this city's *region* home base (Irvine for OC, San Jose for SJ). */
   driveMinutes: number;
   neighborhoods: string[];
   intro: string;
   callout: string;
 }
 
-export const CITIES: readonly CityContent[] = [
+const OC_CITIES: readonly Omit<CityContent, "region">[] = [
   {
     slug: "irvine",
     name: "Irvine",
@@ -239,7 +255,161 @@ export const CITIES: readonly CityContent[] = [
     callout:
       "Frequent flyer: front-brake replacement on hybrid sedans (Prius, Camry hybrid, Insight).",
   },
-] as const;
+];
+
+const SJ_CITIES: readonly Omit<CityContent, "region">[] = [
+  {
+    slug: "san-jose",
+    name: "San Jose",
+    driveMinutes: 0,
+    neighborhoods: [
+      "Willow Glen",
+      "Almaden Valley",
+      "Evergreen",
+      "Berryessa",
+      "Japantown",
+    ],
+    intro:
+      "We’re based in the South Bay, so San Jose is home turf — same-day driveway service from Willow Glen to Evergreen, and we’re used to apartment lots, townhome complexes, and tight downtown parking. Tell us where the car sits and we come to it.",
+    callout:
+      "Most common: brake jobs and oil changes for tech commuters racking up miles on the 101 and 280.",
+  },
+  {
+    slug: "santa-clara",
+    name: "Santa Clara",
+    driveMinutes: 12,
+    neighborhoods: [
+      "Rivermark",
+      "Old Quad",
+      "Santa Clara University",
+      "Mission College",
+    ],
+    intro:
+      "Santa Clara runs on commuter cars and apartment parking — the Nvidia, Intel, and university crowd. We come to your complex or office lot, so you don’t burn a workday sitting in a shop.",
+    callout:
+      "Battery and brake work top the list along the 101 / Great America corridor.",
+  },
+  {
+    slug: "sunnyvale",
+    name: "Sunnyvale",
+    driveMinutes: 15,
+    neighborhoods: [
+      "Downtown Sunnyvale",
+      "Ponderosa Park",
+      "Cherry Chase",
+      "Lakewood",
+    ],
+    intro:
+      "Sunnyvale’s dense apartment blocks and tech campuses are exactly where mobile service wins — we work in the spot your car is already parked, from Murphy Ave to the big campus lots.",
+    callout:
+      "High-mileage commuter maintenance (60k / 90k services) is the most-requested Sunnyvale job.",
+  },
+  {
+    slug: "mountain-view",
+    name: "Mountain View",
+    driveMinutes: 20,
+    neighborhoods: [
+      "Castro Street",
+      "Shoreline West",
+      "Cuesta Park",
+      "Whisman",
+    ],
+    intro:
+      "Mountain View skews hybrid and EV-heavy — we handle 12V batteries, brakes, and accessory work on Priuses, Teslas, and everything between, right at your place near Shoreline or Castro.",
+    callout:
+      "Brake and battery service on hybrids is the bread and butter here.",
+  },
+  {
+    slug: "cupertino",
+    name: "Cupertino",
+    driveMinutes: 18,
+    neighborhoods: [
+      "Rancho Rinconada",
+      "Monta Vista",
+      "Oak Valley",
+      "near Apple Park",
+    ],
+    intro:
+      "Cupertino drivers keep clean, well-kept cars and care about doing it right — we service European and Japanese makes at independent-shop labor rates, no dealership markup, in your driveway.",
+    callout:
+      "Pre-purchase inspections and scheduled maintenance lead the Cupertino mix.",
+  },
+  {
+    slug: "campbell",
+    name: "Campbell",
+    driveMinutes: 12,
+    neighborhoods: ["Downtown Campbell", "Pruneyard", "San Tomas", "Cambrian"],
+    intro:
+      "Campbell’s mix of older homes and downtown apartments is ideal for mobile work — curbside or in the lot off the Pruneyard, we keep it clean and leave no trace.",
+    callout:
+      "Brakes, batteries, and diagnostics before the daily 17 / 85 commute.",
+  },
+  {
+    slug: "milpitas",
+    name: "Milpitas",
+    driveMinutes: 15,
+    neighborhoods: [
+      "McCarthy Ranch",
+      "Sandalwood",
+      "Midtown",
+      "Great Mall area",
+    ],
+    intro:
+      "Milpitas commuters lean on the 880 and 237 and rack up miles fast — we bring fluids, pads, and batteries to your home or near the Great Mall so you’re not stuck waiting at a shop.",
+    callout:
+      "High-mileage maintenance and brake jobs are the most common Milpitas asks.",
+  },
+  {
+    slug: "los-gatos",
+    name: "Los Gatos",
+    driveMinutes: 20,
+    neighborhoods: [
+      "Downtown Los Gatos",
+      "Monte Sereno",
+      "Blossom Hill",
+      "Vasona",
+    ],
+    intro:
+      "Los Gatos drivers tend to keep their cars longer and own more European luxury — BMW, Mercedes, Audi, Porsche. We handle them at independent labor rates, at your home in the hills or downtown.",
+    callout:
+      "Diagnostics and luxury-make maintenance are the most-requested Los Gatos services.",
+  },
+  {
+    slug: "saratoga",
+    name: "Saratoga",
+    driveMinutes: 22,
+    neighborhoods: [
+      "Downtown Saratoga",
+      "Argonaut",
+      "Quito",
+      "Congress Springs",
+    ],
+    intro:
+      "Saratoga’s hillside homes and winding roads are tough on brakes and suspension — we bring OE-grade parts and do the work in your driveway, no trip down the hill required.",
+    callout:
+      "Front-brake and suspension work show up most on Saratoga’s hill routes.",
+  },
+  {
+    slug: "morgan-hill",
+    name: "Morgan Hill",
+    driveMinutes: 30,
+    neighborhoods: [
+      "Downtown Morgan Hill",
+      "Jackson Oaks",
+      "Paradise Valley",
+      "Nordstrom",
+    ],
+    intro:
+      "Morgan Hill sits at the south end of our South Bay coverage — book a day ahead and we come to you. The 101 commute wear shows up in brakes, tires, and batteries.",
+    callout:
+      "Commuter brake and battery service is the frequent Morgan Hill request.",
+  },
+];
+
+export const CITIES: readonly CityContent[] = [
+  ...OC_CITIES.map((c) => ({ ...c, region: "oc" as RegionId })),
+  ...SJ_CITIES.map((c) => ({ ...c, region: "sj" as RegionId })),
+];
 
 export function findCity(slug: string): CityContent | undefined {
   return CITIES.find((c) => c.slug === slug);

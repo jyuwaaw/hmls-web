@@ -101,3 +101,72 @@ export type Business = typeof BUSINESS;
  * and any place a single string is needed.
  */
 export const BUSINESS_ADDRESS_ONELINE = `${BUSINESS.address.street}, ${BUSINESS.address.city}, ${BUSINESS.address.region} ${BUSINESS.address.postalCode}`;
+
+/**
+ * Multi-metro support. `BUSINESS` above stays the OC/default identity (home
+ * page, root metadata, CAN-SPAM email footer). `REGIONS` layers per-metro NAP
+ * onto the programmatic SEO pages (`/areas/[city]`) so a San Jose page shows
+ * SJ-relevant drive times + geo and does NOT borrow Orange County's review
+ * count.
+ *
+ * Phone is shared across metros for now (one line). When SJ gets a local 408
+ * number, give the `sj` entry its own `phone` / `phoneDisplay`.
+ */
+export type RegionId = "oc" | "sj";
+
+export interface Region {
+  id: RegionId;
+  /** Metro display name, e.g. "Orange County". */
+  label: string;
+  /** Home-base city — rendered as "~N min from {baseCity} base". */
+  baseCity: string;
+  phone: string;
+  phoneDisplay: string;
+  address: {
+    street?: string;
+    city: string;
+    region: string;
+    postalCode: string;
+    country: string;
+  };
+  geo: { latitude: number; longitude: number };
+  /**
+   * Per-listing review snapshot. `null` until the metro has its own reviews —
+   * SJ starts here so its pages never advertise OC's rating in JSON-LD.
+   */
+  rating: { value: number; count: number } | null;
+  /** Google Business Profile share URL for this metro, once it has a listing. */
+  gmbShareUrl?: string;
+}
+
+export const REGIONS: Record<RegionId, Region> = {
+  oc: {
+    id: "oc",
+    label: "Orange County",
+    baseCity: "Irvine",
+    phone: BUSINESS.phone,
+    phoneDisplay: BUSINESS.phoneDisplay,
+    address: BUSINESS.address,
+    geo: BUSINESS.geo,
+    rating: BUSINESS.rating,
+    gmbShareUrl: BUSINESS.gmb.shareUrl,
+  },
+  sj: {
+    id: "sj",
+    label: "San Jose",
+    baseCity: "San Jose",
+    // Shared line for now — swap in a local 408 number when SJ gets one.
+    phone: BUSINESS.phone,
+    phoneDisplay: BUSINESS.phoneDisplay,
+    // Service-area business: no public street address yet (set during GBP setup).
+    address: {
+      city: "San Jose",
+      region: "CA",
+      postalCode: "95113",
+      country: "US",
+    },
+    geo: { latitude: 37.3361663, longitude: -121.890591 },
+    // No reviews yet — SJ pages omit aggregateRating until real reviews land.
+    rating: null,
+  },
+};

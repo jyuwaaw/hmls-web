@@ -51,7 +51,7 @@ export default function ServiceArea() {
               Service Area
             </p>
             <h2 className="text-4xl md:text-5xl font-display font-extrabold text-text tracking-tight">
-              Serving Orange County
+              Serving Orange County &amp; San Jose
             </h2>
           </div>
         </RevealOnScroll>

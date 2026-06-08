@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JsonLd } from "@/components/JsonLd";
 import { FadeIn } from "@/components/ui/Animations";
-import { BUSINESS } from "@/lib/business";
+import { BUSINESS, REGIONS } from "@/lib/business";
 import { breadcrumbSchema, cityServiceSchema } from "@/lib/schema";
 import { CITIES, findCity } from "@/lib/seo-content";
 
@@ -35,7 +35,10 @@ export default async function CityPage({ params }: Props) {
   const city = findCity(slug);
   if (!city) notFound();
 
-  const nearbyCities = CITIES.filter((c) => c.slug !== city.slug)
+  const region = REGIONS[city.region];
+  const nearbyCities = CITIES.filter(
+    (c) => c.slug !== city.slug && c.region === city.region,
+  )
     .sort(
       (a, b) =>
         Math.abs(a.driveMinutes - city.driveMinutes) -
@@ -73,16 +76,18 @@ export default async function CityPage({ params }: Props) {
               <span>
                 {city.driveMinutes === 0
                   ? "Same-day service (we’re local)"
-                  : `~${city.driveMinutes} min from Irvine base`}
+                  : `~${city.driveMinutes} min from ${region.baseCity} base`}
               </span>
             </div>
-            <div className="flex items-center gap-2 text-text-secondary">
-              <Star className="w-4 h-4 text-red-primary fill-current" />
-              <span>
-                {BUSINESS.rating.value.toFixed(1)} on Google (
-                {BUSINESS.rating.count} reviews)
-              </span>
-            </div>
+            {region.rating && (
+              <div className="flex items-center gap-2 text-text-secondary">
+                <Star className="w-4 h-4 text-red-primary fill-current" />
+                <span>
+                  {region.rating.value.toFixed(1)} on Google (
+                  {region.rating.count} reviews)
+                </span>
+              </div>
+            )}
             <a
               href={`tel:${BUSINESS.phone}`}
               className="flex items-center gap-2 text-red-primary hover:underline"
@@ -163,7 +168,7 @@ export default async function CityPage({ params }: Props) {
               >
                 <span className="font-medium">{c.name}</span>
                 <span className="text-xs text-text-secondary">
-                  ~{c.driveMinutes} min from Irvine
+                  ~{c.driveMinutes} min from {region.baseCity}
                 </span>
               </Link>
             ))}

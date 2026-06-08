@@ -23,7 +23,7 @@ export default function Hero() {
       {/* Content */}
       <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
         <p className="hero-animate hero-animate-1 text-sm md:text-base uppercase tracking-[0.35em] text-red-400 font-display font-semibold mb-8">
-          Mobile Mechanic &bull; Orange County, CA
+          Mobile Mechanic &bull; Orange County &amp; San Jose, CA
         </p>
 
         <h1 className="hero-animate hero-animate-2 text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-display font-extrabold text-white mb-8 tracking-tighter leading-[0.9]">

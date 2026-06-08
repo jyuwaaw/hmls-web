@@ -12,7 +12,7 @@ export default function Footer() {
               HMLS<span className="text-red-500">.</span>
             </div>
             <div className="text-sm text-white/40 mt-1">
-              Mobile Mechanic &bull; Orange County, CA
+              Mobile Mechanic &bull; Orange County &amp; San Jose, CA
             </div>
             <div className="text-xs text-white/30 mt-3">
               {BUSINESS_ADDRESS_ONELINE}
