@@ -1,11 +1,11 @@
 import type { MetadataRoute } from "next";
+import { BUSINESS } from "@/lib/business";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "HMLS Mobile Mechanic",
+    name: BUSINESS.name,
     short_name: "HMLS",
-    description:
-      "Expert mobile mechanic service in Orange County. We come to you.",
+    description: BUSINESS.shortDescription,
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

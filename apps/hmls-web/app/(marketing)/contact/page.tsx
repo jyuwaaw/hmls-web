@@ -6,7 +6,7 @@ import { BUSINESS } from "@/lib/business";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: `Get in touch for reliable auto care. We come to you anywhere in Orange County. Call ${BUSINESS.phoneDisplay}.`,
+  description: `Get in touch for reliable auto care. We come to you across San Jose, the South Bay, and Orange County. Call ${BUSINESS.phoneDisplay}.`,
 };
 
 export default function Contact() {
@@ -24,7 +24,8 @@ export default function Contact() {
             </h1>
             <p className="text-xl text-text-secondary font-light mb-12 max-w-lg mx-auto">
               Ready to schedule a service or have a question? We&apos;re here to
-              help. We come to you anywhere in Orange County.
+              help. We come to you across San Jose, the South Bay, and Orange
+              County.
             </p>
 
             <div className="flex flex-col sm:flex-row justify-center gap-8 mb-12">
@@ -36,7 +37,9 @@ export default function Contact() {
                   <div className="text-xs text-text-secondary">
                     Service Area
                   </div>
-                  <div className="text-sm font-medium">Orange County, CA</div>
+                  <div className="text-sm font-medium">
+                    San Jose &amp; Orange County, CA
+                  </div>
                 </div>
               </div>
 

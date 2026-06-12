@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "HMLS Mobile Mechanic - Orange County";
+export const alt = "HMLS Mobile Mechanic - San Jose & Orange County";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -35,7 +35,7 @@ export default function OGImage() {
           marginTop: 12,
         }}
       >
-        Mobile Mechanic — Orange County
+        Mobile Mechanic — San Jose &amp; Orange County
       </span>
     </div>,
     { ...size },

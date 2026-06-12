@@ -11,9 +11,9 @@ export const BUSINESS = {
   name: "HMLS Mobile Mechanic",
   legalName: "HMLS Mobile Mechanic",
   description:
-    "Expert mobile mechanic service in Orange County. We come to you for oil changes, brake repair, diagnostics & more.",
+    "Expert mobile mechanic service in San Jose, the South Bay, and Orange County. We come to you for oil changes, brake repair, diagnostics & more.",
   shortDescription:
-    "Mobile mechanic service that comes to you in Orange County, CA.",
+    "Mobile mechanic service that comes to you in San Jose & Orange County, CA.",
 
   url: "https://hmls.autos",
 
@@ -48,22 +48,8 @@ export const BUSINESS = {
 
   priceRange: "$$",
 
-  serviceAreaCities: [
-    "Irvine",
-    "Newport Beach",
-    "Costa Mesa",
-    "Santa Ana",
-    "Tustin",
-    "Anaheim",
-    "Orange",
-    "Huntington Beach",
-    "Fountain Valley",
-    "Lake Forest",
-    "Mission Viejo",
-    "Aliso Viejo",
-    "Laguna Hills",
-    "Laguna Niguel",
-  ],
+  // (serviceAreaCities removed — dead OC-only field; the canonical served-city
+  // list lives in lib/seo-content.ts CITIES, keyed by region.)
 
   serviceTypes: [
     "Mobile Mechanic",

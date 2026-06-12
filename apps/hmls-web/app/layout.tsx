@@ -11,6 +11,7 @@ import { PageEnter } from "@/components/PageEnter";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ReasonDialog } from "@/components/ui/ReasonDialog";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { BUSINESS } from "@/lib/business";
 import { websiteSchema } from "@/lib/schema";
 
 const barlow = Barlow({
@@ -23,17 +24,19 @@ const barlow = Barlow({
 export const metadata: Metadata = {
   metadataBase: new URL("https://hmls.autos"),
   title: {
-    default: "HMLS Mobile Mechanic - Orange County",
+    default: "HMLS Mobile Mechanic - San Jose & Orange County",
     template: "%s | HMLS Mobile Mechanic",
   },
-  description:
-    "Expert mobile mechanic service in Orange County. We come to you for oil changes, brake repair, diagnostics & more.",
+  description: BUSINESS.description,
   keywords: [
     "mobile mechanic",
+    "San Jose",
+    "South Bay",
     "Orange County",
     "auto repair",
     "car mechanic near me",
     "mobile car repair",
+    "mobile mechanic San Jose",
     "mobile mechanic Orange County",
   ],
   openGraph: {

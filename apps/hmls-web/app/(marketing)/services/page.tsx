@@ -8,8 +8,8 @@ import { breadcrumbSchema } from "@/lib/schema";
 import { SERVICES } from "@/lib/seo-content";
 
 export const metadata: Metadata = {
-  title: "Services — Mobile Mechanic Orange County",
-  description: `Full mobile mechanic services in Orange County: oil changes, brake repair, batteries, diagnostics, and pre-purchase inspections. Call ${BUSINESS.phoneDisplay}.`,
+  title: "Services — Mobile Mechanic San Jose & Orange County",
+  description: `Full mobile mechanic services in San Jose, the South Bay, and Orange County: oil changes, brake repair, batteries, diagnostics, and pre-purchase inspections. Call ${BUSINESS.phoneDisplay}.`,
   alternates: { canonical: `${BUSINESS.url}/services` },
 };
 

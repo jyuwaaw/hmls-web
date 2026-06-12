@@ -76,11 +76,13 @@ export function autoRepairSchema() {
     geo: geoCoordinates(),
     openingHoursSpecification: openingHoursSpecification(),
     areaServed: areaServedCities(),
-    serviceArea: {
+    // One circle per metro base — a single Irvine-centered circle would
+    // contradict the SJ entries in areaServed.
+    serviceArea: Object.values(REGIONS).map((region) => ({
       "@type": "GeoCircle",
-      geoMidpoint: geoCoordinates(),
+      geoMidpoint: geoCoordinates(region),
       geoRadius: 40000, // ~25 miles
-    },
+    })),
     hasOfferCatalog: offerCatalog(),
     sameAs: [BUSINESS.gmb.shareUrl, BUSINESS.gmb.mapsUrl],
     aggregateRating: {
