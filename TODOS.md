@@ -72,7 +72,7 @@ UIMessage whose last tool part is `input-available`/`input-streaming` (no result
 `convertToModelMessages` (default) emits an assistant `functionCall` with no matching
 `functionResponse`, and Gemini rejects the request: "function response turn must come immediately
 after a function call turn." Mirror of the leading-orphan windowing bug fixed in
-`apps/agent/src/fixo/build-context.ts` (`trimOrphanedToolResults`), but on the tail edge.
+`apps/agent/src/fixo/build-context.ts` (`trimToUserTurnStart`), but on the tail edge.
 
 **Why not fixed in the windowing PR:** The obvious one-liner
 `convertToModelMessages(messages, {

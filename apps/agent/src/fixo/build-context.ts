@@ -58,36 +58,34 @@ export function findCursorIndex(uiMessages: UIMessage[], markerId: string | null
 }
 
 /**
- * Drop leading orphaned tool-result messages from a windowed message array.
+ * Trim a windowed message array to a valid Gemini conversation start.
  *
- * `convertToModelMessages` expands one tool-using assistant turn into
- * interleaved `assistant` (functionCall) + `tool` (functionResponse) messages.
- * A blind `.slice(-N)` window can start partway through that interleaving,
- * leaving a `tool` message whose originating `assistant` tool-call was sliced
- * off. Gemini rejects exactly this: "Please ensure that function response turn
- * comes immediately after a function call turn."
+ * `convertToModelMessages` expands tool use into interleaved
+ * `assistant`(functionCall) / `tool`(functionResponse) messages, so a blind
+ * `.slice(-N)` window can begin mid-exchange. Gemini requires a conversation to
+ * begin at a turn boundary and rejects BOTH partial starts:
+ *   - leading `tool` (a functionResponse with no preceding call):
+ *     "function response turn comes immediately after a function call turn"
+ *   - leading `assistant` functionCall (a call with no preceding user/response):
+ *     "function call turn comes immediately after a user turn or a function
+ *     response turn"
  *
- * A tail slice of a well-formed transcript can only corrupt the HEAD (every
- * assistant tool-call is immediately followed by its tool result, so the tail
- * stays intact). So advancing the start past any leading `tool` messages is
- * sufficient: the next message is either a `user` turn or an `assistant`
- * tool-call whose result follows in-window — both valid Gemini starts.
+ * The only universally valid start is a `user` turn (a contiguous suffix of a
+ * valid conversation that begins at a user turn is itself valid). Advance the
+ * window to the first `user` message; older context is carried by the
+ * system-prompt summary, and the current turn is always a user message so the
+ * window never empties.
  *
- * The mirror failure — a trailing dangling tool-call from an aborted turn — is
- * a separate, rarer issue. Stripping it naively (`ignoreIncompleteToolCalls`)
- * risks replaying already-executed non-idempotent tools, so it needs
- * replay-safe handling and is NOT addressed here. Tracked as a follow-up.
+ * The mirror failure — a trailing dangling tool-call from an aborted turn — is a
+ * separate, rarer issue (it needs replay-safe handling, not just trimming) and
+ * is tracked as a follow-up in TODOS.md.
  */
-export function trimOrphanedToolResults(messages: ModelMessage[]): ModelMessage[] {
-  let start = 0;
-  while (start < messages.length && messages[start].role === "tool") {
-    start++;
-  }
-  // Defensive: never return an empty window (Gemini rejects an empty message
-  // list). Unreachable while a trailing user turn is always present, but guards
-  // a future smaller KEEP_RECENT_COUNT or an all-tool window.
-  if (start >= messages.length) return messages;
-  return start === 0 ? messages : messages.slice(start);
+export function trimToUserTurnStart(messages: ModelMessage[]): ModelMessage[] {
+  const firstUser = messages.findIndex((m) => m.role === "user");
+  // No user turn in window — unreachable (the live turn is always a user
+  // message), but keep the slice rather than send Gemini an empty list.
+  if (firstUser < 0) return messages;
+  return firstUser === 0 ? messages : messages.slice(firstUser);
 }
 
 /**
@@ -116,7 +114,7 @@ export async function buildAgentContext(
       // Session disappeared mid-flight (delete race?). Fall back to no-summary.
       return {
         systemPrompt: SYSTEM_PROMPT,
-        modelMessages: trimOrphanedToolResults(
+        modelMessages: trimToUserTurnStart(
           opts.latestMessages.slice(-KEEP_RECENT_COUNT),
         ),
       };
@@ -188,7 +186,7 @@ export async function buildAgentContext(
 
     return {
       systemPrompt,
-      modelMessages: trimOrphanedToolResults(
+      modelMessages: trimToUserTurnStart(
         opts.latestMessages.slice(-KEEP_RECENT_COUNT),
       ),
     };

@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { findCursorIndex, trimOrphanedToolResults } from "./build-context.ts";
+import { findCursorIndex, trimToUserTurnStart } from "./build-context.ts";
 import type { ModelMessage, UIMessage } from "ai";
 
 const role = (r: string): ModelMessage => ({ role: r, content: [] }) as unknown as ModelMessage;
@@ -26,11 +26,25 @@ Deno.test("findCursorIndex — marker missing → 0 + warn", () => {
   assertEquals(findCursorIndex(msgs, "ghost"), 0);
 });
 
-// Regression: session 43 (brake + scheduling) errored with Gemini's
-// "function response turn comes immediately after a function call turn".
-// slice(-12) over interleaved assistant/tool messages orphaned a leading
-// `tool` (functionResponse). This is the exact window roles from that session.
-Deno.test("trimOrphanedToolResults — fixes session-43 orphaned window", () => {
+// Gemini's full ordering contract: a windowed conversation must START at a
+// `user` turn. Two partial-start shapes are both rejected:
+//   - leading `tool`     → "function response turn comes ... after a function call turn"
+//   - leading `assistant` functionCall → "function call turn comes ... after a user turn"
+// (Both observed live on session 43: the first bug was the leading tool; trimming
+// only the tool then exposed the leading assistant functionCall.)
+function assertValidGeminiStart(msgs: ModelMessage[]) {
+  assertEquals(msgs[0]?.role, "user", "windowed conversation must start at a user turn");
+  for (let i = 0; i < msgs.length; i++) {
+    if (msgs[i].role === "tool") {
+      assertEquals(msgs[i - 1]?.role, "assistant", `tool at ${i} must follow an assistant`);
+    }
+  }
+}
+
+// Regression: session 43 (brake + scheduling). slice(-12) over interleaved
+// assistant/tool messages gave this exact role sequence (leading tool, then a
+// leading assistant functionCall once the tool was dropped).
+Deno.test("trimToUserTurnStart — session-43 window starts at the first user turn", () => {
   const window43 = [
     "tool",
     "assistant",
@@ -45,34 +59,32 @@ Deno.test("trimOrphanedToolResults — fixes session-43 orphaned window", () => 
     "assistant",
     "user",
   ].map(role);
-  assertEquals(window43[0].role, "tool"); // the bug: orphaned functionResponse
-  const fixed = trimOrphanedToolResults(window43);
-  assertEquals(fixed[0].role, "assistant"); // window now starts clean
-  // Gemini contract: every tool (functionResponse) must follow an assistant.
-  for (let i = 0; i < fixed.length; i++) {
-    if (fixed[i].role === "tool") {
-      assertEquals(fixed[i - 1]?.role, "assistant", `tool at ${i} must follow assistant`);
-    }
-  }
+  const fixed = trimToUserTurnStart(window43);
+  assertEquals(fixed.map((m) => m.role), ["user", "assistant", "tool", "assistant", "user"]);
+  assertValidGeminiStart(fixed);
 });
 
-Deno.test("trimOrphanedToolResults — clean window (leading user) unchanged", () => {
+Deno.test("trimToUserTurnStart — clean window (leading user) unchanged", () => {
   const msgs = [role("user"), role("assistant"), role("tool"), role("assistant")];
-  assertEquals(trimOrphanedToolResults(msgs), msgs);
+  assertEquals(trimToUserTurnStart(msgs), msgs);
+  assertValidGeminiStart(trimToUserTurnStart(msgs));
 });
 
-Deno.test("trimOrphanedToolResults — leading assistant tool-call kept (valid Gemini start)", () => {
-  const msgs = [role("assistant"), role("tool"), role("user")];
-  assertEquals(trimOrphanedToolResults(msgs), msgs);
+Deno.test("trimToUserTurnStart — leading assistant functionCall dropped (NOT a valid start)", () => {
+  // The bug the live test caught: a leading assistant tool-call is rejected by
+  // Gemini. Trimming must advance to the user turn, not keep the assistant.
+  const msgs = [role("assistant"), role("tool"), role("user"), role("assistant")];
+  assertEquals(trimToUserTurnStart(msgs).map((m) => m.role), ["user", "assistant"]);
 });
 
-Deno.test("trimOrphanedToolResults — multiple leading tools all dropped", () => {
-  const msgs = [role("tool"), role("tool"), role("user"), role("assistant")];
-  assertEquals(trimOrphanedToolResults(msgs).map((m) => m.role), ["user", "assistant"]);
+Deno.test("trimToUserTurnStart — leading tools + assistant all dropped to user", () => {
+  const msgs = [role("tool"), role("tool"), role("assistant"), role("tool"), role("user")];
+  assertEquals(trimToUserTurnStart(msgs).map((m) => m.role), ["user"]);
 });
 
-Deno.test("trimOrphanedToolResults — all-tool window falls back to original (never empty)", () => {
-  const msgs = [role("tool"), role("tool")];
-  // Guard: returning [] would make Gemini reject an empty message list.
-  assertEquals(trimOrphanedToolResults(msgs), msgs);
+Deno.test("trimToUserTurnStart — no user turn falls back to original (never empty)", () => {
+  const msgs = [role("tool"), role("assistant"), role("tool")];
+  // Unreachable in practice (the live turn is always a user message), but the
+  // guard must never return an empty list (Gemini rejects that too).
+  assertEquals(trimToUserTurnStart(msgs), msgs);
 });
