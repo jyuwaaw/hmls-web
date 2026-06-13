@@ -58,6 +58,39 @@ export function findCursorIndex(uiMessages: UIMessage[], markerId: string | null
 }
 
 /**
+ * Drop leading orphaned tool-result messages from a windowed message array.
+ *
+ * `convertToModelMessages` expands one tool-using assistant turn into
+ * interleaved `assistant` (functionCall) + `tool` (functionResponse) messages.
+ * A blind `.slice(-N)` window can start partway through that interleaving,
+ * leaving a `tool` message whose originating `assistant` tool-call was sliced
+ * off. Gemini rejects exactly this: "Please ensure that function response turn
+ * comes immediately after a function call turn."
+ *
+ * A tail slice of a well-formed transcript can only corrupt the HEAD (every
+ * assistant tool-call is immediately followed by its tool result, so the tail
+ * stays intact). So advancing the start past any leading `tool` messages is
+ * sufficient: the next message is either a `user` turn or an `assistant`
+ * tool-call whose result follows in-window — both valid Gemini starts.
+ *
+ * The mirror failure — a trailing dangling tool-call from an aborted turn — is
+ * a separate, rarer issue. Stripping it naively (`ignoreIncompleteToolCalls`)
+ * risks replaying already-executed non-idempotent tools, so it needs
+ * replay-safe handling and is NOT addressed here. Tracked as a follow-up.
+ */
+export function trimOrphanedToolResults(messages: ModelMessage[]): ModelMessage[] {
+  let start = 0;
+  while (start < messages.length && messages[start].role === "tool") {
+    start++;
+  }
+  // Defensive: never return an empty window (Gemini rejects an empty message
+  // list). Unreachable while a trailing user turn is always present, but guards
+  // a future smaller KEEP_RECENT_COUNT or an all-tool window.
+  if (start >= messages.length) return messages;
+  return start === 0 ? messages : messages.slice(start);
+}
+
+/**
  * Build agent context (systemPrompt + windowed modelMessages) for a Fixo turn.
  *
  * The whole body runs inside one transaction with `SELECT ... FOR UPDATE` on
@@ -83,7 +116,9 @@ export async function buildAgentContext(
       // Session disappeared mid-flight (delete race?). Fall back to no-summary.
       return {
         systemPrompt: SYSTEM_PROMPT,
-        modelMessages: opts.latestMessages.slice(-KEEP_RECENT_COUNT),
+        modelMessages: trimOrphanedToolResults(
+          opts.latestMessages.slice(-KEEP_RECENT_COUNT),
+        ),
       };
     }
 
@@ -153,7 +188,9 @@ export async function buildAgentContext(
 
     return {
       systemPrompt,
-      modelMessages: opts.latestMessages.slice(-KEEP_RECENT_COUNT),
+      modelMessages: trimOrphanedToolResults(
+        opts.latestMessages.slice(-KEEP_RECENT_COUNT),
+      ),
     };
   });
 }
