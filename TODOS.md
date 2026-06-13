@@ -65,6 +65,42 @@ structured-output schema + UI.
 
 ---
 
+## Gemini trailing-orphan: aborted-mid-tool-call turns (P2 — needs replay-safe design)
+
+**What:** A chat turn aborted mid-tool-execution (client disconnect, tab crash, timeout) persists a
+UIMessage whose last tool part is `input-available`/`input-streaming` (no result). On the next turn,
+`convertToModelMessages` (default) emits an assistant `functionCall` with no matching
+`functionResponse`, and Gemini rejects the request: "function response turn must come immediately
+after a function call turn." Mirror of the leading-orphan windowing bug fixed in
+`apps/agent/src/fixo/build-context.ts` (`trimOrphanedToolResults`), but on the tail edge.
+
+**Why not fixed in the windowing PR:** The obvious one-liner
+`convertToModelMessages(messages, {
+ignoreIncompleteToolCalls: true })` DROPS the incomplete
+tool-call. On routes whose agents run non-idempotent mutations — `/chat` + `/staff-chat` expose
+`schedule_order` (auto-assigns providers), `modify_order_items`, `add_order_note` — the tool may
+have ALREADY executed server-side before the disconnect. Dropping the call lets the model re-call it
+on replay → duplicate schedule / duplicate line items / duplicate audit note. Trades a hard
+fail-closed (Gemini 400) for silent data corruption. (Codex adversarial finding, 2026-06-13.)
+`ignoreIncompleteToolCalls` also only filters `input-*` states, not
+`approval-requested`/`approval-responded`, so it doesn't fully establish the "every functionCall has
+a functionResponse" invariant.
+
+**Design needed (pick one, per-route):**
+
+- **Abort-aware persistence:** in the `toUIMessageStreamResponse({ onFinish })` handlers
+  (`apps/gateway/src/routes/fixo/chat.ts`, `chat.ts`, `staff-chat.ts`), skip persisting when
+  `isAborted` is true, or strip the trailing incomplete tool part before persisting.
+- **Idempotency keys** on the mutating tools so a replay is a no-op (then
+  `ignoreIncompleteToolCalls` becomes safe everywhere).
+- **Synthesize an error tool-result** for the incomplete call ("tool aborted, result unknown") so
+  the model sees it happened and doesn't blindly re-call.
+
+`fixo/complete.ts` (report summarization, no tools executed) is the one safe place to apply
+`ignoreIncompleteToolCalls` directly — no replay risk there.
+
+---
+
 ## Credit-deduction race (codex finding #4 from 2026-04-26 plan-eng-review)
 
 **What:** `apps/gateway/src/middleware/fixo/credits.ts:42` `processCredits` is check-then-deduct
