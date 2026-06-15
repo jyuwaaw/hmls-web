@@ -1,0 +1,226 @@
+[
+  {
+    "slug": "oil-change",
+    "category": "maintenance",
+    "difficulty": 1,
+    "tools": [
+      { "name": "Oil filter wrench", "specialty": true },
+      { "name": "Socket/wrench for drain plug" },
+      { "name": "Drain pan" },
+      { "name": "Funnel" },
+      { "name": "Floor jack + stands or ramps", "optional": true }
+    ],
+    "typicalParts": ["Engine oil", "Oil filter", "Drain plug crush washer"],
+    "notes": ""
+  },
+  {
+    "slug": "cabin-air-filter",
+    "category": "hvac",
+    "difficulty": 1,
+    "tools": [
+      { "name": "Trim/panel tool", "optional": true },
+      { "name": "Phillips screwdriver", "optional": true }
+    ],
+    "typicalParts": ["Cabin air filter"],
+    "notes": "Usually behind the glovebox; often no tools needed."
+  },
+  {
+    "slug": "battery",
+    "category": "electrical",
+    "difficulty": 1,
+    "tools": [
+      { "name": "Socket/wrench set (terminal + hold-down)" },
+      { "name": "Battery terminal cleaner / wire brush" },
+      { "name": "Memory saver", "optional": true }
+    ],
+    "typicalParts": ["Battery", "Terminal protectant", "Hold-down bracket (if corroded)"],
+    "notes": "Note re-learn steps on some vehicles (idle/window relearn)."
+  },
+  {
+    "slug": "serpentine-belt",
+    "category": "engine",
+    "difficulty": 1,
+    "tools": [
+      { "name": "Serpentine belt tool / breaker bar + socket", "specialty": true },
+      { "name": "Belt routing diagram" }
+    ],
+    "typicalParts": ["Serpentine belt", "Belt tensioner (optional)", "Idler pulley (optional)"],
+    "notes": ""
+  },
+  {
+    "slug": "brake-pads-front",
+    "category": "brakes",
+    "difficulty": 2,
+    "tools": [
+      { "name": "Floor jack" },
+      { "name": "Jack stands" },
+      { "name": "Lug wrench / impact wrench" },
+      { "name": "Caliper piston compressor / C-clamp", "specialty": true },
+      { "name": "Socket set" },
+      { "name": "Torque wrench" },
+      { "name": "Brake cleaner" },
+      { "name": "Caliper hanger", "optional": true }
+    ],
+    "typicalParts": ["Front brake pads", "Caliper hardware/clip kit", "Brake grease"],
+    "notes": "Some EVs/late models need a scan tool to retract electronic parking brake (rear)."
+  },
+  {
+    "slug": "spark-plugs",
+    "category": "ignition",
+    "difficulty": 2,
+    "tools": [
+      { "name": "Spark plug socket", "specialty": true },
+      { "name": "Ratchet + extensions" },
+      { "name": "Torque wrench" },
+      { "name": "Gap gauge", "specialty": true },
+      { "name": "Anti-seize + dielectric grease" }
+    ],
+    "typicalParts": ["Spark plugs", "Ignition coil boots (optional)"],
+    "notes": "Coil-on-plug engines: remove coils first."
+  },
+  {
+    "slug": "radiator",
+    "category": "cooling",
+    "difficulty": 3,
+    "tools": [
+      { "name": "Drain pan" },
+      { "name": "Hose clamp pliers" },
+      { "name": "Socket/wrench set" },
+      { "name": "Screwdrivers" },
+      { "name": "Coolant fill funnel (spill-free)", "specialty": true }
+    ],
+    "typicalParts": ["Radiator", "Coolant", "Hose clamps", "Radiator hoses (optional)"],
+    "notes": "Bleed cooling system after refill."
+  },
+  {
+    "slug": "alternator",
+    "category": "electrical",
+    "difficulty": 3,
+    "tools": [
+      { "name": "Socket set + ratchet" },
+      { "name": "Serpentine belt tool / breaker bar", "specialty": true },
+      { "name": "Wrench set" },
+      { "name": "Multimeter", "optional": true },
+      { "name": "Memory saver", "optional": true }
+    ],
+    "typicalParts": ["Alternator", "Serpentine belt (often replaced together)"],
+    "notes": ""
+  },
+  {
+    "slug": "starter",
+    "category": "electrical",
+    "difficulty": 3,
+    "tools": [
+      { "name": "Socket set + extensions" },
+      { "name": "Wrench set" },
+      { "name": "Floor jack + stands" },
+      { "name": "Multimeter", "optional": true }
+    ],
+    "typicalParts": ["Starter motor"],
+    "notes": "Often accessed from below; disconnect battery first."
+  },
+  {
+    "slug": "strut-assembly-front",
+    "category": "suspension",
+    "difficulty": 3,
+    "tools": [
+      { "name": "Spring compressor (bare struts only)", "specialty": true },
+      { "name": "Floor jack + stands" },
+      { "name": "Socket/wrench set" },
+      { "name": "Torque wrench" },
+      { "name": "Ball joint / tie-rod separator", "optional": true }
+    ],
+    "typicalParts": ["Strut assembly (loaded)", "Strut mount", "Mount bearing"],
+    "notes": "Alignment required afterward."
+  },
+  {
+    "slug": "wheel-bearing-front",
+    "category": "drivetrain",
+    "difficulty": 3,
+    "tools": [
+      { "name": "Large axle nut socket", "specialty": true },
+      { "name": "Breaker bar" },
+      { "name": "Socket/wrench set" },
+      { "name": "Floor jack + stands" },
+      { "name": "Torque wrench" },
+      { "name": "Hub press / puller (pressed bearings)", "specialty": true }
+    ],
+    "typicalParts": ["Wheel bearing / hub assembly", "Axle nut"],
+    "notes": "Hub-style = bolt-on; pressed bearing = needs a press."
+  },
+  {
+    "slug": "ac-compressor",
+    "category": "hvac",
+    "difficulty": 4,
+    "tools": [
+      { "name": "AC recovery/recharge machine", "specialty": true },
+      { "name": "Manifold gauge set", "specialty": true },
+      { "name": "Vacuum pump", "specialty": true },
+      { "name": "Socket/wrench set" },
+      { "name": "Serpentine belt tool", "specialty": true }
+    ],
+    "typicalParts": [
+      "AC compressor",
+      "Receiver/drier or accumulator",
+      "O-ring kit",
+      "PAG oil",
+      "Refrigerant"
+    ],
+    "notes": "Requires EPA 609 certification + refrigerant recovery. Flush system if compressor failed."
+  },
+  {
+    "slug": "water-pump",
+    "category": "cooling",
+    "difficulty": 4,
+    "tools": [
+      { "name": "Socket/wrench set" },
+      { "name": "Drain pan" },
+      { "name": "Gasket scraper" },
+      { "name": "Torque wrench" },
+      { "name": "Serpentine belt tool", "specialty": true },
+      { "name": "Timing tools (timing-driven pumps)", "specialty": true, "optional": true }
+    ],
+    "typicalParts": ["Water pump", "Gasket / O-ring", "Coolant", "Timing belt (if timing-driven)"],
+    "notes": "If timing-belt-driven, do the timing belt at the same time."
+  },
+  {
+    "slug": "timing-belt",
+    "category": "engine",
+    "difficulty": 5,
+    "tools": [
+      { "name": "Harmonic balancer puller", "specialty": true },
+      { "name": "Camshaft locking / TDC tools", "specialty": true },
+      { "name": "Socket/wrench set" },
+      { "name": "Torque wrench" },
+      { "name": "Floor jack (engine support)" }
+    ],
+    "typicalParts": [
+      "Timing belt",
+      "Tensioner",
+      "Idler pulleys",
+      "Water pump (recommended)",
+      "Cam/crank seals"
+    ],
+    "notes": "Interference engines: mis-timing bends valves. Set to TDC and lock cams."
+  },
+  {
+    "slug": "timing-chain",
+    "category": "engine",
+    "difficulty": 5,
+    "tools": [
+      { "name": "Camshaft locking tools", "specialty": true },
+      { "name": "Torque-angle (TTY) gauge", "specialty": true },
+      { "name": "Harmonic balancer puller", "specialty": true },
+      { "name": "Socket/wrench set" },
+      { "name": "RTV sealant + scraper" },
+      { "name": "Engine support bar", "optional": true }
+    ],
+    "typicalParts": [
+      "Timing chain kit (chain, guides, tensioner, sprockets)",
+      "Cover gaskets",
+      "RTV",
+      "TTY bolts"
+    ],
+    "notes": "Major labor (seed avg ~8h). Many TTY fasteners are single-use."
+  }
+]

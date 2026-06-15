@@ -1,0 +1,435 @@
+{
+  "_baseToolsAssumed": [
+    "Floor jack",
+    "Jack stands",
+    "Socket & wrench set",
+    "Torque wrench",
+    "Breaker bar",
+    "Penetrating oil"
+  ],
+  "_note": "tools[] = notable/specialty only. Most steering/suspension R&R needs an alignment afterward (noted).",
+  "jobs": [
+    {
+      "slug": "shock-absorber-replacement",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Shock absorbers"],
+      "notes": "No alignment needed for shocks."
+    },
+    {
+      "slug": "rear-shock-single",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["1 rear shock"],
+      "notes": ""
+    },
+    {
+      "slug": "rear-shocks-pair",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Rear shocks (pair)"],
+      "notes": ""
+    },
+    {
+      "slug": "sway-bar-link-front",
+      "difficulty": 2,
+      "tools": [{ "name": "Hex/torx hold tool", "optional": true }],
+      "typicalParts": ["Front sway bar link"],
+      "notes": "Studs spin — hold with hex/torx."
+    },
+    {
+      "slug": "sway-bar-link-rear",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Rear sway bar link"],
+      "notes": ""
+    },
+    {
+      "slug": "sway-bar-links-front-pair",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Front sway bar links (pair)"],
+      "notes": ""
+    },
+    {
+      "slug": "sway-bar-bushing-front",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Front sway bar bushings", "Grease"],
+      "notes": ""
+    },
+    {
+      "slug": "sway-bar-bushing-rear",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Rear sway bar bushings"],
+      "notes": ""
+    },
+    {
+      "slug": "sway-bar-front",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["Front sway bar", "Bushings/links"],
+      "notes": "Subframe may need lowering."
+    },
+    {
+      "slug": "sway-bar-rear",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Rear sway bar", "Bushings"],
+      "notes": ""
+    },
+    {
+      "slug": "strut-assembly-front",
+      "difficulty": 3,
+      "tools": [{ "name": "Spring compressor (bare struts)", "specialty": true }],
+      "typicalParts": ["Loaded strut assembly", "Strut mount", "Bearing"],
+      "notes": "Alignment required after."
+    },
+    {
+      "slug": "strut-assembly-rear",
+      "difficulty": 3,
+      "tools": [{ "name": "Spring compressor (bare)", "specialty": true }],
+      "typicalParts": ["Rear strut assembly", "Mount"],
+      "notes": "Alignment if camber/toe affected."
+    },
+    {
+      "slug": "strut-replacement-front",
+      "difficulty": 3,
+      "tools": [{ "name": "Spring compressor", "specialty": true }],
+      "typicalParts": ["Front struts", "Mounts"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "strut-replacement-rear",
+      "difficulty": 3,
+      "tools": [{ "name": "Spring compressor", "specialty": true }],
+      "typicalParts": ["Rear struts", "Mounts"],
+      "notes": ""
+    },
+    {
+      "slug": "front-strut-single",
+      "difficulty": 3,
+      "tools": [{ "name": "Spring compressor", "specialty": true }],
+      "typicalParts": ["1 front strut", "Mount"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "front-struts-pair",
+      "difficulty": 3,
+      "tools": [{ "name": "Spring compressor", "specialty": true }],
+      "typicalParts": ["Front struts (pair)", "Mounts"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "strut-mount-front",
+      "difficulty": 3,
+      "tools": [{ "name": "Spring compressor", "specialty": true }],
+      "typicalParts": ["Front strut mount", "Bearing"],
+      "notes": "Strut out; alignment after."
+    },
+    {
+      "slug": "strut-mount-rear",
+      "difficulty": 2,
+      "tools": [{ "name": "Spring compressor", "specialty": true, "optional": true }],
+      "typicalParts": ["Rear strut mount"],
+      "notes": ""
+    },
+    {
+      "slug": "strut-bearing",
+      "difficulty": 3,
+      "tools": [{ "name": "Spring compressor", "specialty": true }],
+      "typicalParts": ["Strut bearing"],
+      "notes": "With strut mount."
+    },
+    {
+      "slug": "coil-spring-front",
+      "difficulty": 4,
+      "tools": [{ "name": "Spring compressor", "specialty": true }],
+      "typicalParts": ["Front coil spring", "Isolators"],
+      "notes": "Compressed-spring danger; alignment after."
+    },
+    {
+      "slug": "coil-spring-rear",
+      "difficulty": 3,
+      "tools": [{ "name": "Spring compressor", "specialty": true, "optional": true }],
+      "typicalParts": ["Rear coil spring", "Isolators"],
+      "notes": ""
+    },
+    {
+      "slug": "coil-springs-front-pair",
+      "difficulty": 4,
+      "tools": [{ "name": "Spring compressor", "specialty": true }],
+      "typicalParts": ["Front coil springs (pair)"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "coil-springs-rear-pair",
+      "difficulty": 3,
+      "tools": [{ "name": "Spring compressor", "specialty": true, "optional": true }],
+      "typicalParts": ["Rear coil springs (pair)"],
+      "notes": ""
+    },
+    {
+      "slug": "ball-joint-lower",
+      "difficulty": 3,
+      "tools": [{ "name": "Ball joint press / separator fork", "specialty": true }],
+      "typicalParts": ["Lower ball joint"],
+      "notes": "Pressed or bolt-in; alignment after."
+    },
+    {
+      "slug": "ball-joint-upper",
+      "difficulty": 3,
+      "tools": [{ "name": "Ball joint separator", "specialty": true }],
+      "typicalParts": ["Upper ball joint"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "ball-joints-both",
+      "difficulty": 3,
+      "tools": [{ "name": "Ball joint press", "specialty": true }],
+      "typicalParts": ["Upper & lower ball joints"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "ball-joint-replacement",
+      "difficulty": 3,
+      "tools": [{ "name": "Ball joint press / separator", "specialty": true }],
+      "typicalParts": ["Ball joint(s)"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "lower-control-arm",
+      "difficulty": 3,
+      "tools": [{ "name": "Ball joint separator", "specialty": true }],
+      "typicalParts": ["Lower control arm (often w/ ball joint & bushings)"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "lower-control-arm-front",
+      "difficulty": 3,
+      "tools": [{ "name": "Ball joint separator", "specialty": true }],
+      "typicalParts": ["Front lower control arm"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "lower-control-arm-rear",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["Rear lower control arm"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "upper-control-arm",
+      "difficulty": 3,
+      "tools": [{ "name": "Ball joint separator", "specialty": true }],
+      "typicalParts": ["Upper control arm"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "upper-control-arm-front",
+      "difficulty": 3,
+      "tools": [{ "name": "Ball joint separator", "specialty": true }],
+      "typicalParts": ["Front upper control arm"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "upper-control-arm-rear",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["Rear upper control arm"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "control-arm-bushing-front-lower",
+      "difficulty": 4,
+      "tools": [{ "name": "Bushing press / driver set", "specialty": true }],
+      "typicalParts": ["Lower control arm bushing"],
+      "notes": "Press work; alignment after."
+    },
+    {
+      "slug": "control-arm-bushing-front-upper",
+      "difficulty": 4,
+      "tools": [{ "name": "Bushing press", "specialty": true }],
+      "typicalParts": ["Upper control arm bushing"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "control-arm-bushing-rear",
+      "difficulty": 4,
+      "tools": [{ "name": "Bushing press", "specialty": true }],
+      "typicalParts": ["Rear control arm bushing"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "trailing-arm",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["Trailing arm", "Bushings"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "trailing-arm-bushing",
+      "difficulty": 4,
+      "tools": [{ "name": "Bushing press", "specialty": true }],
+      "typicalParts": ["Trailing arm bushing"],
+      "notes": ""
+    },
+    {
+      "slug": "lateral-arm",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["Lateral link/arm", "Bushings"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "radius-arm",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["Radius arm", "Bushings"],
+      "notes": ""
+    },
+    {
+      "slug": "radius-arm-bushing",
+      "difficulty": 4,
+      "tools": [{ "name": "Bushing press", "specialty": true }],
+      "typicalParts": ["Radius arm bushing"],
+      "notes": ""
+    },
+    {
+      "slug": "panhard-bar",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Panhard/track bar", "Bushings"],
+      "notes": ""
+    },
+    {
+      "slug": "knuckle-front",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Ball joint separator", "specialty": true },
+        { "name": "Axle nut socket", "specialty": true }
+      ],
+      "typicalParts": ["Front steering knuckle", "Axle nut"],
+      "notes": "Often w/ hub/bearing; alignment after."
+    },
+    {
+      "slug": "knuckle-rear",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["Rear knuckle/spindle"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "wheel-bearing-replacement-front",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Axle nut socket", "specialty": true },
+        { "name": "Hub press (pressed type)", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Front wheel bearing/hub", "Axle nut"],
+      "notes": ""
+    },
+    {
+      "slug": "wheel-bearing-replacement-rear",
+      "difficulty": 3,
+      "tools": [{ "name": "Hub press (pressed type)", "specialty": true, "optional": true }],
+      "typicalParts": ["Rear wheel bearing/hub"],
+      "notes": ""
+    },
+    {
+      "slug": "leaf-spring",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["Leaf spring", "Bushings", "U-bolts"],
+      "notes": "Support axle; rusted U-bolts often snap."
+    },
+    {
+      "slug": "leaf-spring-bushing",
+      "difficulty": 3,
+      "tools": [{ "name": "Bushing press/driver", "specialty": true }],
+      "typicalParts": ["Leaf spring bushings"],
+      "notes": ""
+    },
+    {
+      "slug": "leaf-spring-shackle",
+      "difficulty": 2,
+      "tools": [{ "name": "Penetrating oil" }],
+      "typicalParts": ["Spring shackle", "Bushings"],
+      "notes": "Rust-seized; may need to cut."
+    },
+    {
+      "slug": "leaf-spring-u-bolts",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["U-bolts", "Nuts"],
+      "notes": "Torque to spec; often replaced with springs."
+    },
+    {
+      "slug": "torsion-bar",
+      "difficulty": 3,
+      "tools": [{ "name": "Torsion bar unloading tool", "specialty": true }],
+      "typicalParts": ["Torsion bar"],
+      "notes": "Mark indexing; reset ride height + alignment."
+    },
+    {
+      "slug": "torsion-bar-adjustment",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": [],
+      "notes": "Set ride height; alignment after."
+    },
+    {
+      "slug": "subframe",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Transmission jack / subframe support", "specialty": true },
+        { "name": "Alignment equipment", "specialty": true }
+      ],
+      "typicalParts": ["Subframe/cradle", "Bushings", "Hardware (TTY)"],
+      "notes": "Major; mark position; alignment mandatory."
+    },
+    {
+      "slug": "subframe-bushing",
+      "difficulty": 4,
+      "tools": [{ "name": "Bushing press", "specialty": true }],
+      "typicalParts": ["Subframe bushings"],
+      "notes": "Subframe lowered; alignment after."
+    },
+    {
+      "slug": "air-spring",
+      "difficulty": 3,
+      "tools": [{ "name": "Scan tool (suspension)", "specialty": true, "optional": true }],
+      "typicalParts": ["Air spring/bag"],
+      "notes": "Depressurize; calibrate ride height."
+    },
+    {
+      "slug": "air-suspension-compressor",
+      "difficulty": 3,
+      "tools": [{ "name": "Scan tool", "specialty": true, "optional": true }],
+      "typicalParts": ["Air compressor", "Dryer"],
+      "notes": ""
+    },
+    {
+      "slug": "air-suspension-sensor",
+      "difficulty": 2,
+      "tools": [{ "name": "Scan tool", "specialty": true }],
+      "typicalParts": ["Ride height sensor"],
+      "notes": "Calibrate after."
+    },
+    {
+      "slug": "air-suspension-valve",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Air valve block/solenoid"],
+      "notes": ""
+    },
+    {
+      "slug": "air-line",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Air suspension line/fitting"],
+      "notes": "Depressurize first."
+    }
+  ]
+}

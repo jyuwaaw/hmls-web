@@ -1,0 +1,246 @@
+{
+  "_baseToolsAssumed": [
+    "Socket & wrench set",
+    "Torque wrench",
+    "Screwdrivers/pliers",
+    "Trim tools"
+  ],
+  "_note": "Most refrigerant-circuit jobs require EPA 609 cert + recover/evacuate/recharge. tools[] = notable/specialty only.",
+  "jobs": [
+    {
+      "slug": "ac-recharge",
+      "difficulty": 2,
+      "tools": [
+        { "name": "AC recovery/recharge machine", "specialty": true },
+        { "name": "Manifold gauges", "specialty": true }
+      ],
+      "typicalParts": ["Refrigerant", "PAG oil", "UV dye (optional)"],
+      "notes": "EPA 609 required. Diagnose leaks before recharging."
+    },
+    {
+      "slug": "ac-evacuate-recharge",
+      "difficulty": 2,
+      "tools": [
+        { "name": "AC recovery/recharge machine", "specialty": true },
+        { "name": "Vacuum pump", "specialty": true },
+        { "name": "Manifold gauges", "specialty": true }
+      ],
+      "typicalParts": ["Refrigerant", "PAG oil"],
+      "notes": "Vacuum ≥30 min to remove moisture; EPA 609."
+    },
+    {
+      "slug": "ac-compressor",
+      "difficulty": 4,
+      "tools": [
+        { "name": "AC recovery/recharge machine", "specialty": true },
+        { "name": "Vacuum pump", "specialty": true },
+        { "name": "Manifold gauges", "specialty": true },
+        { "name": "Serpentine belt tool", "specialty": true }
+      ],
+      "typicalParts": [
+        "AC compressor",
+        "Receiver-drier/accumulator",
+        "O-ring kit",
+        "PAG oil",
+        "Refrigerant"
+      ],
+      "notes": "Flush system if compressor failed (debris). EPA 609."
+    },
+    {
+      "slug": "ac-compressor-replacement",
+      "difficulty": 4,
+      "tools": [
+        { "name": "AC recover/recharge machine", "specialty": true },
+        { "name": "Vacuum pump", "specialty": true },
+        { "name": "Serpentine belt tool", "specialty": true }
+      ],
+      "typicalParts": ["AC compressor", "Drier", "O-rings", "PAG oil", "Refrigerant"],
+      "notes": "Alias of ac-compressor."
+    },
+    {
+      "slug": "ac-compressor-clutch",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Clutch puller/installer set", "specialty": true },
+        { "name": "Snap-ring pliers", "specialty": true },
+        { "name": "Serpentine belt tool", "specialty": true }
+      ],
+      "typicalParts": ["Compressor clutch assembly", "Shims"],
+      "notes": "Set air gap; may not need to open refrigerant circuit."
+    },
+    {
+      "slug": "ac-clutch-coil",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Clutch puller set", "specialty": true },
+        { "name": "Snap-ring pliers", "specialty": true }
+      ],
+      "typicalParts": ["Clutch field coil"],
+      "notes": "Often replaced with clutch assembly."
+    },
+    {
+      "slug": "ac-compressor-oil",
+      "difficulty": 2,
+      "tools": [{ "name": "AC recover/recharge machine", "specialty": true }],
+      "typicalParts": ["PAG oil (correct viscosity)"],
+      "notes": "Balance oil charge per system spec; EPA 609."
+    },
+    {
+      "slug": "ac-condenser",
+      "difficulty": 3,
+      "tools": [
+        { "name": "AC recover/recharge machine", "specialty": true },
+        { "name": "Vacuum pump", "specialty": true }
+      ],
+      "typicalParts": ["Condenser", "Drier (often integral)", "O-rings", "Refrigerant"],
+      "notes": "Front of vehicle, behind grille; EPA 609."
+    },
+    {
+      "slug": "ac-receiver-drier",
+      "difficulty": 2,
+      "tools": [
+        { "name": "AC recover/recharge machine", "specialty": true },
+        { "name": "Vacuum pump", "specialty": true }
+      ],
+      "typicalParts": ["Receiver-drier", "O-rings", "PAG oil", "Refrigerant"],
+      "notes": "Replace whenever system is opened; EPA 609."
+    },
+    {
+      "slug": "ac-accumulator",
+      "difficulty": 2,
+      "tools": [
+        { "name": "AC recover/recharge machine", "specialty": true },
+        { "name": "Vacuum pump", "specialty": true }
+      ],
+      "typicalParts": ["Accumulator", "O-rings", "PAG oil", "Refrigerant"],
+      "notes": "Orifice-tube systems; EPA 609."
+    },
+    {
+      "slug": "ac-expansion-valve",
+      "difficulty": 4,
+      "tools": [
+        { "name": "AC recover/recharge machine", "specialty": true },
+        { "name": "Vacuum pump", "specialty": true }
+      ],
+      "typicalParts": ["Expansion (TXV) valve", "O-rings", "Refrigerant"],
+      "notes": "Often at firewall/evaporator box — access can be deep. EPA 609."
+    },
+    {
+      "slug": "ac-orifice-tube",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Orifice tube puller", "specialty": true },
+        { "name": "AC recover/recharge machine", "specialty": true }
+      ],
+      "typicalParts": ["Orifice tube", "O-rings", "Refrigerant"],
+      "notes": "Can seize in line; EPA 609."
+    },
+    {
+      "slug": "ac-evaporator",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Full dash R&R tools", "specialty": true },
+        { "name": "AC recover/recharge machine", "specialty": true },
+        { "name": "Vacuum pump", "specialty": true }
+      ],
+      "typicalParts": ["Evaporator core", "Expansion valve/O-rings", "Drier", "Refrigerant"],
+      "notes": "Usually full dash removal — very high labor. EPA 609."
+    },
+    {
+      "slug": "ac-hose-high",
+      "difficulty": 2,
+      "tools": [
+        { "name": "AC recover/recharge machine", "specialty": true },
+        { "name": "Vacuum pump", "specialty": true }
+      ],
+      "typicalParts": ["High-side hose/line", "O-rings", "Refrigerant"],
+      "notes": "EPA 609."
+    },
+    {
+      "slug": "ac-hose-low",
+      "difficulty": 2,
+      "tools": [
+        { "name": "AC recover/recharge machine", "specialty": true },
+        { "name": "Vacuum pump", "specialty": true }
+      ],
+      "typicalParts": ["Low-side hose/line", "O-rings", "Refrigerant"],
+      "notes": "EPA 609."
+    },
+    {
+      "slug": "ac-hose-assembly",
+      "difficulty": 3,
+      "tools": [
+        { "name": "AC recover/recharge machine", "specialty": true },
+        { "name": "Spring-lock coupler tool", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["AC line assembly", "O-rings", "Refrigerant"],
+      "notes": "EPA 609."
+    },
+    {
+      "slug": "ac-high-pressure-switch",
+      "difficulty": 1,
+      "tools": [{ "name": "Manifold gauges", "optional": true }],
+      "typicalParts": ["High-pressure switch", "O-ring"],
+      "notes": "Many are Schrader-mounted — no need to discharge."
+    },
+    {
+      "slug": "ac-low-pressure-switch",
+      "difficulty": 1,
+      "tools": [{ "name": "Manifold gauges", "optional": true }],
+      "typicalParts": ["Low-pressure switch", "O-ring"],
+      "notes": "Usually Schrader-mounted — no discharge."
+    },
+    {
+      "slug": "ac-pressure-sensor",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["AC pressure transducer", "O-ring"],
+      "notes": "Usually Schrader-mounted."
+    },
+    {
+      "slug": "blend-door-actuator",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools", "specialty": true }],
+      "typicalParts": ["Blend door actuator"],
+      "notes": "Behind dash/console; recalibrate after (often auto)."
+    },
+    {
+      "slug": "mode-door-actuator",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools", "specialty": true }],
+      "typicalParts": ["Mode door actuator"],
+      "notes": "Behind dash; calibrate after."
+    },
+    {
+      "slug": "recirc-door-actuator",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools", "specialty": true }],
+      "typicalParts": ["Recirculation door actuator"],
+      "notes": "Near blower/intake box."
+    },
+    {
+      "slug": "cabin-air-filter",
+      "difficulty": 1,
+      "tools": [{ "name": "Trim tool", "optional": true }],
+      "typicalParts": ["Cabin air filter"],
+      "notes": "Behind glovebox usually."
+    },
+    {
+      "slug": "hvac-control-panel",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim/panel tools", "specialty": true }],
+      "typicalParts": ["HVAC control panel/head unit"],
+      "notes": "Dash bezel removal; some need programming."
+    },
+    {
+      "slug": "climate-control-module",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Trim tools", "specialty": true },
+        { "name": "Scan tool (programming)", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Climate control module"],
+      "notes": "May require programming/initialization."
+    }
+  ]
+}

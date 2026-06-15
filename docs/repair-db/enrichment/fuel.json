@@ -1,0 +1,192 @@
+{
+  "_baseToolsAssumed": [
+    "Floor jack",
+    "Jack stands",
+    "Socket & wrench set",
+    "Screwdrivers/pliers",
+    "Fire extinguisher"
+  ],
+  "_note": "tools[] = notable/specialty only. SAFETY: relieve fuel pressure + no ignition sources for all fuel-system work.",
+  "jobs": [
+    {
+      "slug": "fuel-cap",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Fuel cap"],
+      "notes": "Common EVAP leak / CEL cause."
+    },
+    {
+      "slug": "evap-purge-valve",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["EVAP purge valve/solenoid"],
+      "notes": "Usually engine-bay."
+    },
+    {
+      "slug": "evap-vent-valve",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["EVAP vent valve"],
+      "notes": "Often at charcoal canister (under vehicle)."
+    },
+    {
+      "slug": "evap-vent-solenoid",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["EVAP vent solenoid"],
+      "notes": "At canister."
+    },
+    {
+      "slug": "charcoal-canister",
+      "difficulty": 2,
+      "tools": [{ "name": "Quick-disconnect tools", "specialty": true, "optional": true }],
+      "typicalParts": ["Charcoal canister"],
+      "notes": "Usually under vehicle near tank."
+    },
+    {
+      "slug": "fuel-filter",
+      "difficulty": 2,
+      "tools": [{ "name": "Quick-disconnect tool set", "specialty": true }],
+      "typicalParts": ["Fuel filter"],
+      "notes": "Relieve fuel pressure first."
+    },
+    {
+      "slug": "fuel-filter-replacement",
+      "difficulty": 2,
+      "tools": [{ "name": "Quick-disconnect tools", "specialty": true }],
+      "typicalParts": ["Fuel filter"],
+      "notes": "Alias."
+    },
+    {
+      "slug": "fuel-filter-in-tank",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Fuel pump spanner", "specialty": true },
+        { "name": "Quick-disconnect tools", "specialty": true }
+      ],
+      "typicalParts": ["In-tank filter/strainer", "Lock ring seal"],
+      "notes": "Access panel or drop tank; relieve pressure."
+    },
+    {
+      "slug": "fuel-pressure-regulator",
+      "difficulty": 2,
+      "tools": [{ "name": "Fuel pressure gauge", "specialty": true, "optional": true }],
+      "typicalParts": ["Fuel pressure regulator", "O-ring"],
+      "notes": "Rail- or tank-mounted."
+    },
+    {
+      "slug": "fuel-rail",
+      "difficulty": 3,
+      "tools": [{ "name": "Fuel pressure gauge", "specialty": true, "optional": true }],
+      "typicalParts": ["Fuel rail", "Injector O-rings/seals"],
+      "notes": "Relieve pressure; inspect injector seals."
+    },
+    {
+      "slug": "fuel-injector-single",
+      "difficulty": 3,
+      "tools": [{ "name": "Injector puller", "specialty": true, "optional": true }],
+      "typicalParts": ["Fuel injector", "O-rings/seals"],
+      "notes": "GDI injectors need new seals + sometimes coding."
+    },
+    {
+      "slug": "fuel-injectors-all",
+      "difficulty": 4,
+      "tools": [{ "name": "Injector puller", "specialty": true, "optional": true }],
+      "typicalParts": ["Injector set", "Seal kit"],
+      "notes": "Rail off; GDI coding on some."
+    },
+    {
+      "slug": "fuel-injector-cleaning",
+      "difficulty": 2,
+      "tools": [{ "name": "Injection cleaning kit", "specialty": true }],
+      "typicalParts": ["Cleaning solvent"],
+      "notes": "On-car induction/rail cleaning."
+    },
+    {
+      "slug": "high-pressure-fuel-pump",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Cam locking (some)", "specialty": true, "optional": true },
+        { "name": "Fuel pressure scan data", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["HPFP", "Seals", "Follower/tappet (some)"],
+      "notes": "GDI; cam-lobe-driven. Relieve high-side pressure carefully."
+    },
+    {
+      "slug": "fuel-line-high-pressure",
+      "difficulty": 3,
+      "tools": [{ "name": "Line wrench", "specialty": true }],
+      "typicalParts": ["High-pressure fuel line (single-use on GDI)"],
+      "notes": "Many GDI lines are one-time-use."
+    },
+    {
+      "slug": "fuel-line-return",
+      "difficulty": 2,
+      "tools": [{ "name": "Quick-disconnect tools", "specialty": true }],
+      "typicalParts": ["Return line"],
+      "notes": ""
+    },
+    {
+      "slug": "fuel-pump",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Fuel pump spanner", "specialty": true },
+        { "name": "Quick-disconnect tools", "specialty": true }
+      ],
+      "typicalParts": ["Fuel pump", "Lock ring seal", "Strainer"],
+      "notes": "Access panel or drop tank; relieve pressure."
+    },
+    {
+      "slug": "fuel-pump-replacement",
+      "difficulty": 3,
+      "tools": [{ "name": "Fuel pump spanner", "specialty": true }],
+      "typicalParts": ["Fuel pump"],
+      "notes": "Alias."
+    },
+    {
+      "slug": "fuel-pump-module",
+      "difficulty": 3,
+      "tools": [{ "name": "Fuel pump spanner", "specialty": true }],
+      "typicalParts": ["Fuel pump module assembly", "Seal"],
+      "notes": "Full sender/pump module."
+    },
+    {
+      "slug": "fuel-level-sensor",
+      "difficulty": 3,
+      "tools": [{ "name": "Fuel pump spanner", "specialty": true }],
+      "typicalParts": ["Fuel level sensor/sender"],
+      "notes": "In tank with pump module."
+    },
+    {
+      "slug": "fuel-sending-unit",
+      "difficulty": 3,
+      "tools": [{ "name": "Fuel pump spanner", "specialty": true }],
+      "typicalParts": ["Sending unit", "Seal"],
+      "notes": ""
+    },
+    {
+      "slug": "fuel-filler-neck",
+      "difficulty": 2,
+      "tools": [{ "name": "Fender liner tools", "optional": true }],
+      "typicalParts": ["Filler neck", "Clamps/seals"],
+      "notes": "Rust-prone; near rear wheel well."
+    },
+    {
+      "slug": "fuel-tank-strap",
+      "difficulty": 3,
+      "tools": [{ "name": "Transmission jack (tank support)", "specialty": true }],
+      "typicalParts": ["Fuel tank straps"],
+      "notes": "Support tank; rusted strap bolts."
+    },
+    {
+      "slug": "fuel-tank",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Transmission jack (tank support)", "specialty": true },
+        { "name": "Quick-disconnect tools", "specialty": true }
+      ],
+      "typicalParts": ["Fuel tank", "Straps", "Seals/lines"],
+      "notes": "Drain/empty tank first; major fire-safety job."
+    }
+  ]
+}

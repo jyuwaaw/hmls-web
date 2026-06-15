@@ -1,0 +1,224 @@
+{
+  "_baseToolsAssumed": [
+    "Floor jack",
+    "Jack stands",
+    "Socket & wrench set",
+    "Torque wrench",
+    "Breaker bar",
+    "Penetrating oil"
+  ],
+  "_note": "tools[] = notable/specialty only. Steering-geometry R&R needs an alignment afterward (noted).",
+  "jobs": [
+    {
+      "slug": "ps-fluid-flush",
+      "difficulty": 1,
+      "tools": [{ "name": "Fluid extractor", "specialty": true, "optional": true }],
+      "typicalParts": ["Power steering fluid (correct spec)"],
+      "notes": ""
+    },
+    {
+      "slug": "power-steering-fluid-flush",
+      "difficulty": 1,
+      "tools": [{ "name": "Fluid extractor", "specialty": true, "optional": true }],
+      "typicalParts": ["PS fluid (correct spec)"],
+      "notes": "Alias."
+    },
+    {
+      "slug": "ps-reservoir",
+      "difficulty": 1,
+      "tools": [{ "name": "Hose clamp pliers", "optional": true }],
+      "typicalParts": ["PS reservoir", "Fluid"],
+      "notes": ""
+    },
+    {
+      "slug": "rack-boots",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Tie-rod / boot clamp tools", "specialty": true },
+        { "name": "Inner tie-rod tool", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Rack boots", "Clamps"],
+      "notes": "Mark inner tie-rod position; alignment after."
+    },
+    {
+      "slug": "tie-rod-end-replacement",
+      "difficulty": 2,
+      "tools": [{ "name": "Tie-rod separator", "specialty": true }],
+      "typicalParts": ["Outer tie-rod end"],
+      "notes": "Count threads / measure; alignment after."
+    },
+    {
+      "slug": "tie-rod-outer",
+      "difficulty": 2,
+      "tools": [{ "name": "Tie-rod separator", "specialty": true }],
+      "typicalParts": ["Outer tie-rod end"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "tie-rod-inner",
+      "difficulty": 3,
+      "tools": [{ "name": "Inner tie-rod tool", "specialty": true }],
+      "typicalParts": ["Inner tie-rod"],
+      "notes": "Rack boot off; alignment after."
+    },
+    {
+      "slug": "tie-rod-assembly",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Inner tie-rod tool", "specialty": true },
+        { "name": "Tie-rod separator", "specialty": true }
+      ],
+      "typicalParts": ["Inner + outer tie-rod"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "tie-rods-both",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Tie-rod separator", "specialty": true },
+        { "name": "Inner tie-rod tool", "specialty": true }
+      ],
+      "typicalParts": ["Both tie-rod assemblies"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "idler-arm",
+      "difficulty": 2,
+      "tools": [{ "name": "Tie-rod separator / puller", "specialty": true }],
+      "typicalParts": ["Idler arm"],
+      "notes": "Parallelogram steering; alignment after."
+    },
+    {
+      "slug": "pitman-arm",
+      "difficulty": 3,
+      "tools": [{ "name": "Pitman arm puller", "specialty": true }],
+      "typicalParts": ["Pitman arm"],
+      "notes": "Mark position; alignment after."
+    },
+    {
+      "slug": "center-link",
+      "difficulty": 3,
+      "tools": [{ "name": "Tie-rod separator", "specialty": true }],
+      "typicalParts": ["Center/drag link"],
+      "notes": "Alignment after."
+    },
+    {
+      "slug": "steering-damper",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Steering damper/stabilizer"],
+      "notes": "Common on trucks/solid axle."
+    },
+    {
+      "slug": "power-steering-pump",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Serpentine belt tool", "specialty": true },
+        { "name": "Pulley puller/installer", "specialty": true, "optional": true },
+        { "name": "Line wrench", "specialty": true }
+      ],
+      "typicalParts": ["PS pump", "Fluid", "O-rings"],
+      "notes": "Bleed/purge air after (turn lock-to-lock)."
+    },
+    {
+      "slug": "power-steering-pulley",
+      "difficulty": 2,
+      "tools": [{ "name": "PS pulley puller & installer", "specialty": true }],
+      "typicalParts": ["PS pump pulley"],
+      "notes": "Press-fit pulley."
+    },
+    {
+      "slug": "power-steering-rack",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Line wrench", "specialty": true },
+        { "name": "Tie-rod separator", "specialty": true }
+      ],
+      "typicalParts": ["Steering rack", "Fluid", "O-rings/seals"],
+      "notes": "Bleed after; alignment mandatory."
+    },
+    {
+      "slug": "power-steering-gear-box",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Pitman arm puller", "specialty": true },
+        { "name": "Line wrench", "specialty": true }
+      ],
+      "typicalParts": ["Steering gearbox", "Fluid"],
+      "notes": "RWD/truck recirculating-ball; alignment after."
+    },
+    {
+      "slug": "ps-hose-high-pressure",
+      "difficulty": 2,
+      "tools": [{ "name": "Line wrench", "specialty": true }],
+      "typicalParts": ["High-pressure PS hose", "Fluid", "O-rings"],
+      "notes": "Bleed after."
+    },
+    {
+      "slug": "ps-hose-return",
+      "difficulty": 1,
+      "tools": [{ "name": "Hose clamp pliers", "optional": true }],
+      "typicalParts": ["Return hose", "Fluid"],
+      "notes": ""
+    },
+    {
+      "slug": "eps-motor",
+      "difficulty": 3,
+      "tools": [{ "name": "Scan tool (calibration)", "specialty": true }],
+      "typicalParts": ["EPS assist motor"],
+      "notes": "Electric PS; calibrate/relearn after."
+    },
+    {
+      "slug": "eps-module",
+      "difficulty": 3,
+      "tools": [{ "name": "Scan tool (programming)", "specialty": true }],
+      "typicalParts": ["EPS control module"],
+      "notes": "Programming + calibration."
+    },
+    {
+      "slug": "steering-angle-sensor",
+      "difficulty": 2,
+      "tools": [{ "name": "Scan tool (calibration)", "specialty": true }],
+      "typicalParts": ["Steering angle sensor"],
+      "notes": "Calibrate (SAS reset) after; affects stability control."
+    },
+    {
+      "slug": "steering-coupler",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Steering coupler / rag joint"],
+      "notes": ""
+    },
+    {
+      "slug": "steering-shaft-intermediate",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Intermediate steering shaft"],
+      "notes": "Mark clocking before removal."
+    },
+    {
+      "slug": "steering-shaft-upper",
+      "difficulty": 3,
+      "tools": [{ "name": "Trim tools" }],
+      "typicalParts": ["Upper steering shaft"],
+      "notes": "Column work; SRS care."
+    },
+    {
+      "slug": "steering-column",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Trim tools" },
+        { "name": "Scan tool (SRS)", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Steering column", "Clockspring (often)"],
+      "notes": "Disable SRS; center clockspring; SAS calibrate after."
+    },
+    {
+      "slug": "steering-wheel",
+      "difficulty": 2,
+      "tools": [{ "name": "Steering wheel puller", "specialty": true, "optional": true }],
+      "typicalParts": ["Steering wheel"],
+      "notes": "Disable airbag; mark center."
+    }
+  ]
+}

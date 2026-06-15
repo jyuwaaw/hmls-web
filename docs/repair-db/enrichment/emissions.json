@@ -1,0 +1,17 @@
+{
+  "_baseToolsAssumed": ["Socket & wrench set", "Ratchet + extensions", "Penetrating oil"],
+  "_note": "tools[] = notable/specialty only.",
+  "jobs": [
+    {
+      "slug": "oxygen-sensor-replacement",
+      "difficulty": 2,
+      "tools": [
+        { "name": "O2 sensor socket", "specialty": true },
+        { "name": "Torch/heat", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["O2 sensor", "Anti-seize (sparingly)"],
+      "likelySizes": ["O2 socket 22mm (7/8\")"],
+      "notes": "Often seized in hot exhaust bung; heat to free. Don't get anti-seize on the tip."
+    }
+  ]
+}

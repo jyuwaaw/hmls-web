@@ -1,0 +1,5861 @@
+[
+  {
+    "slug": "bed-rail-cap",
+    "name": "Bed Rail Cap",
+    "category": "body",
+    "seedAvgHours": 1.08,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 5.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "bedside-panel",
+    "name": "Bedside Panel",
+    "category": "body",
+    "seedAvgHours": 5.02,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "bumper-cover-front",
+    "name": "Bumper Cover - Front",
+    "category": "body",
+    "seedAvgHours": 1.68,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "bumper-cover-rear",
+    "name": "Bumper Cover - Rear",
+    "category": "body",
+    "seedAvgHours": 1.68,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "bumper-reinforcement-front",
+    "name": "Bumper Reinforcement - Front",
+    "category": "body",
+    "seedAvgHours": 2.16,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "bumper-reinforcement-rear",
+    "name": "Bumper Reinforcement - Rear",
+    "category": "body",
+    "seedAvgHours": 2.16,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "door-check",
+    "name": "Door Check/Stop",
+    "category": "body",
+    "seedAvgHours": 0.7,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "door-glass",
+    "name": "Door Glass",
+    "category": "body",
+    "seedAvgHours": 1.68,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "door-handle-exterior",
+    "name": "Door Handle - Exterior",
+    "category": "body",
+    "seedAvgHours": 1.15,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 5.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "door-handle-interior",
+    "name": "Door Handle - Interior",
+    "category": "body",
+    "seedAvgHours": 0.91,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "door-hinge",
+    "name": "Door Hinge",
+    "category": "body",
+    "seedAvgHours": 1.69,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "door-shell",
+    "name": "Door Shell",
+    "category": "body",
+    "seedAvgHours": 3.12,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "door-skin",
+    "name": "Door Skin",
+    "category": "body",
+    "seedAvgHours": 4.06,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "door-weatherstrip",
+    "name": "Door Weatherstrip",
+    "category": "body",
+    "seedAvgHours": 1.22,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "fender",
+    "name": "Fender",
+    "category": "body",
+    "seedAvgHours": 2.16,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "fender-liner",
+    "name": "Fender Liner",
+    "category": "body",
+    "seedAvgHours": 0.74,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 5.8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "grille",
+    "name": "Grille",
+    "category": "body",
+    "seedAvgHours": 0.75,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "hood",
+    "name": "Hood",
+    "category": "body",
+    "seedAvgHours": 1.68,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5.8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "hood-hinge",
+    "name": "Hood Hinge",
+    "category": "body",
+    "seedAvgHours": 1.22,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5.8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "hood-latch",
+    "name": "Hood Latch",
+    "category": "body",
+    "seedAvgHours": 0.65,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "hood-release-cable",
+    "name": "Hood Release Cable",
+    "category": "body",
+    "seedAvgHours": 1.22,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "hood-strut",
+    "name": "Hood Strut",
+    "category": "body",
+    "seedAvgHours": 0.4,
+    "seedMinHours": 0.1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "liftgate",
+    "name": "Liftgate",
+    "category": "body",
+    "seedAvgHours": 2.17,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "liftgate-motor",
+    "name": "Liftgate Motor",
+    "category": "body",
+    "seedAvgHours": 1.68,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "liftgate-strut",
+    "name": "Liftgate Strut",
+    "category": "body",
+    "seedAvgHours": 0.75,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "mirror-glass",
+    "name": "Side Mirror Glass",
+    "category": "body",
+    "seedAvgHours": 0.61,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 5.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "quarter-glass",
+    "name": "Quarter Glass",
+    "category": "body",
+    "seedAvgHours": 1.68,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "quarter-panel",
+    "name": "Quarter Panel",
+    "category": "body",
+    "seedAvgHours": 5.95,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 9.6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "rear-window",
+    "name": "Rear Window",
+    "category": "body",
+    "seedAvgHours": 2.17,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "rocker-panel",
+    "name": "Rocker Panel",
+    "category": "body",
+    "seedAvgHours": 4.42,
+    "seedMinHours": 1.1,
+    "seedMaxHours": 6.8,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "tailgate",
+    "name": "Tailgate",
+    "category": "body",
+    "seedAvgHours": 1.7,
+    "seedMinHours": 1,
+    "seedMaxHours": 5.8,
+    "vehicleCoverage": 3936
+  },
+  {
+    "slug": "tailgate-cable",
+    "name": "Tailgate Cable",
+    "category": "body",
+    "seedAvgHours": 0.64,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 5.9,
+    "vehicleCoverage": 3936
+  },
+  {
+    "slug": "tailgate-handle",
+    "name": "Tailgate Handle",
+    "category": "body",
+    "seedAvgHours": 0.96,
+    "seedMinHours": 0.8,
+    "seedMaxHours": 5.9,
+    "vehicleCoverage": 3936
+  },
+  {
+    "slug": "tonneau-cover",
+    "name": "Tonneau Cover Install",
+    "category": "body",
+    "seedAvgHours": 1.19,
+    "seedMinHours": 1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 3936
+  },
+  {
+    "slug": "truck-bed-liner",
+    "name": "Truck Bed Liner",
+    "category": "body",
+    "seedAvgHours": 2.25,
+    "seedMinHours": 1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 3936
+  },
+  {
+    "slug": "trunk-hinge",
+    "name": "Trunk Hinge",
+    "category": "body",
+    "seedAvgHours": 1.23,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "trunk-latch",
+    "name": "Trunk Latch",
+    "category": "body",
+    "seedAvgHours": 1.03,
+    "seedMinHours": 0.8,
+    "seedMaxHours": 5.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "trunk-lid",
+    "name": "Trunk Lid",
+    "category": "body",
+    "seedAvgHours": 1.68,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "trunk-strut",
+    "name": "Trunk Strut",
+    "category": "body",
+    "seedAvgHours": 0.55,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "vent-glass",
+    "name": "Vent Glass",
+    "category": "body",
+    "seedAvgHours": 1.22,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "windshield",
+    "name": "Windshield",
+    "category": "body",
+    "seedAvgHours": 2.16,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5.8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "windshield-molding",
+    "name": "Windshield Molding",
+    "category": "body",
+    "seedAvgHours": 1.23,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "abs-module",
+    "name": "ABS Module",
+    "category": "brakes",
+    "seedAvgHours": 2.17,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.2,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "abs-pump",
+    "name": "ABS Pump",
+    "category": "brakes",
+    "seedAvgHours": 2.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "abs-sensor-front",
+    "name": "ABS Wheel Speed Sensor - Front",
+    "category": "brakes",
+    "seedAvgHours": 0.98,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "abs-sensor-rear",
+    "name": "ABS Wheel Speed Sensor - Rear",
+    "category": "brakes",
+    "seedAvgHours": 0.98,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "abs-tone-ring",
+    "name": "ABS Tone Ring",
+    "category": "brakes",
+    "seedAvgHours": 1.64,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-bleed-all",
+    "name": "Brake Bleed - All Four",
+    "category": "brakes",
+    "seedAvgHours": 1.18,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-booster",
+    "name": "Brake Booster",
+    "category": "brakes",
+    "seedAvgHours": 2.77,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.6,
+    "vehicleCoverage": 4434
+  },
+  {
+    "slug": "brake-booster-check-valve",
+    "name": "Brake Booster Check Valve",
+    "category": "brakes",
+    "seedAvgHours": 0.45,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4434
+  },
+  {
+    "slug": "brake-caliper-bracket",
+    "name": "Brake Caliper Bracket",
+    "category": "brakes",
+    "seedAvgHours": 1.36,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-caliper-front",
+    "name": "Brake Caliper - Front",
+    "category": "brakes",
+    "seedAvgHours": 1.13,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-caliper-rear",
+    "name": "Brake Caliper - Rear",
+    "category": "brakes",
+    "seedAvgHours": 1.14,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-drum-rear",
+    "name": "Brake Drum - Rear",
+    "category": "brakes",
+    "seedAvgHours": 0.7,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-fluid-flush",
+    "name": "Brake Fluid Flush",
+    "category": "brakes",
+    "seedAvgHours": 0.87,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-hose-front",
+    "name": "Brake Hose - Front",
+    "category": "brakes",
+    "seedAvgHours": 0.89,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-hose-rear",
+    "name": "Brake Hose - Rear",
+    "category": "brakes",
+    "seedAvgHours": 0.89,
+    "seedMinHours": 0.4,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-light-switch",
+    "name": "Brake Light Switch",
+    "category": "brakes",
+    "seedAvgHours": 0.7,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-line-single",
+    "name": "Brake Line - Single",
+    "category": "brakes",
+    "seedAvgHours": 1.17,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 2.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-lines-complete",
+    "name": "Brake Lines - Complete Set",
+    "category": "brakes",
+    "seedAvgHours": 4.01,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 6.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-master-cylinder",
+    "name": "Brake Master Cylinder",
+    "category": "brakes",
+    "seedAvgHours": 1.62,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-pad-replacement-front",
+    "name": "Brake Pad Replacement (Front)",
+    "category": "brakes",
+    "seedAvgHours": 1,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 1.5,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "brake-pad-replacement-rear",
+    "name": "Brake Pad Replacement (Rear)",
+    "category": "brakes",
+    "seedAvgHours": 1,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 1.5,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "brake-pads-front",
+    "name": "Brake Pads - Front",
+    "category": "brakes",
+    "seedAvgHours": 0.9,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-pads-rear",
+    "name": "Brake Pads - Rear",
+    "category": "brakes",
+    "seedAvgHours": 1,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-pads-rotors-front",
+    "name": "Brake Pads and Rotors - Front",
+    "category": "brakes",
+    "seedAvgHours": 1.31,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-pads-rotors-rear",
+    "name": "Brake Pads and Rotors - Rear",
+    "category": "brakes",
+    "seedAvgHours": 1.43,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-proportioning-valve",
+    "name": "Brake Proportioning Valve",
+    "category": "brakes",
+    "seedAvgHours": 1.36,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-rotor-front-single",
+    "name": "Brake Rotor - Front Single",
+    "category": "brakes",
+    "seedAvgHours": 0.98,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 2.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-rotor-rear-single",
+    "name": "Brake Rotor - Rear Single",
+    "category": "brakes",
+    "seedAvgHours": 0.98,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 2.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-rotor-replacement-front",
+    "name": "Brake Rotor Replacement (Front)",
+    "category": "brakes",
+    "seedAvgHours": 1.48,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 2.3,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "brake-rotor-replacement-rear",
+    "name": "Brake Rotor Replacement (Rear)",
+    "category": "brakes",
+    "seedAvgHours": 1.48,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 2.3,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "brake-rotors-front-pair",
+    "name": "Brake Rotors - Front Pair",
+    "category": "brakes",
+    "seedAvgHours": 1.18,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-rotors-rear-pair",
+    "name": "Brake Rotors - Rear Pair",
+    "category": "brakes",
+    "seedAvgHours": 1.18,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "caliper-rebuild-front",
+    "name": "Brake Caliper Rebuild - Front",
+    "category": "brakes",
+    "seedAvgHours": 1.66,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 7.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "caliper-rebuild-rear",
+    "name": "Brake Caliper Rebuild - Rear",
+    "category": "brakes",
+    "seedAvgHours": 1.66,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 7.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "caliper-slide-pins",
+    "name": "Brake Caliper Slide Pins",
+    "category": "brakes",
+    "seedAvgHours": 0.7,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "drum-brake-hardware",
+    "name": "Drum Brake Hardware Kit",
+    "category": "brakes",
+    "seedAvgHours": 1.18,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "drum-brake-shoes-rear",
+    "name": "Drum Brake Shoes - Rear",
+    "category": "brakes",
+    "seedAvgHours": 1.64,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "electronic-parking-brake",
+    "name": "Electronic Parking Brake Motor",
+    "category": "brakes",
+    "seedAvgHours": 2.12,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.2,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "parking-brake-actuator",
+    "name": "Parking Brake Actuator",
+    "category": "brakes",
+    "seedAvgHours": 2.11,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.2,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "parking-brake-cable",
+    "name": "Parking Brake Cable",
+    "category": "brakes",
+    "seedAvgHours": 1.59,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "parking-brake-shoes",
+    "name": "Parking Brake Shoes",
+    "category": "brakes",
+    "seedAvgHours": 1.64,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "wheel-cylinder",
+    "name": "Wheel Cylinder",
+    "category": "brakes",
+    "seedAvgHours": 1.18,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "coolant-bypass-pipe",
+    "name": "Coolant Bypass Pipe",
+    "category": "cooling",
+    "seedAvgHours": 1.64,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "coolant-flush",
+    "name": "Coolant Flush",
+    "category": "cooling",
+    "seedAvgHours": 1.1,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "coolant-overflow-tank",
+    "name": "Coolant Overflow Tank",
+    "category": "cooling",
+    "seedAvgHours": 0.71,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "coolant-reservoir",
+    "name": "Coolant Reservoir",
+    "category": "cooling",
+    "seedAvgHours": 0.71,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "coolant-temp-sensor",
+    "name": "Coolant Temperature Sensor",
+    "category": "cooling",
+    "seedAvgHours": 0.6,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "cooling-fan-assembly",
+    "name": "Cooling Fan Assembly",
+    "category": "cooling",
+    "seedAvgHours": 1.18,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "cooling-fan-clutch",
+    "name": "Cooling Fan Clutch",
+    "category": "cooling",
+    "seedAvgHours": 1.3,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 5.4,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "cooling-fan-motor",
+    "name": "Cooling Fan Motor",
+    "category": "cooling",
+    "seedAvgHours": 1.64,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "cooling-fan-relay",
+    "name": "Cooling Fan Relay",
+    "category": "cooling",
+    "seedAvgHours": 0.45,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "engine-oil-cooler",
+    "name": "Engine Oil Cooler",
+    "category": "cooling",
+    "seedAvgHours": 2.21,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 5.4,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "heater-control-valve",
+    "name": "Heater Control Valve",
+    "category": "cooling",
+    "seedAvgHours": 1.12,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 5.4,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "heater-core",
+    "name": "Heater Core",
+    "category": "cooling",
+    "seedAvgHours": 5.91,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 9.6,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "heater-hoses",
+    "name": "Heater Hoses",
+    "category": "cooling",
+    "seedAvgHours": 1.3,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 5.4,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "radiator",
+    "name": "Radiator",
+    "category": "cooling",
+    "seedAvgHours": 2.22,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 5.4,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "radiator-cap",
+    "name": "Radiator Cap",
+    "category": "cooling",
+    "seedAvgHours": 0.34,
+    "seedMinHours": 0.1,
+    "seedMaxHours": 5.4,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "radiator-hose-lower",
+    "name": "Radiator Hose - Lower",
+    "category": "cooling",
+    "seedAvgHours": 0.9,
+    "seedMinHours": 0.4,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "radiator-hose-upper",
+    "name": "Radiator Hose - Upper",
+    "category": "cooling",
+    "seedAvgHours": 0.61,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "radiator-hoses-both",
+    "name": "Radiator Hoses - Both",
+    "category": "cooling",
+    "seedAvgHours": 1.19,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 5.8,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "radiator-replacement",
+    "name": "Radiator Replacement",
+    "category": "cooling",
+    "seedAvgHours": 4.18,
+    "seedMinHours": 2,
+    "seedMaxHours": 6.8,
+    "vehicleCoverage": 498
+  },
+  {
+    "slug": "thermostat",
+    "name": "Thermostat",
+    "category": "cooling",
+    "seedAvgHours": 1.15,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "thermostat-housing",
+    "name": "Thermostat Housing",
+    "category": "cooling",
+    "seedAvgHours": 1.41,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 5.4,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "thermostat-replacement",
+    "name": "Thermostat Replacement",
+    "category": "cooling",
+    "seedAvgHours": 1.07,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 1.5,
+    "vehicleCoverage": 498
+  },
+  {
+    "slug": "trans-oil-cooler",
+    "name": "Transmission Oil Cooler",
+    "category": "cooling",
+    "seedAvgHours": 1.64,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4434
+  },
+  {
+    "slug": "water-outlet",
+    "name": "Water Outlet/Thermostat Housing",
+    "category": "cooling",
+    "seedAvgHours": 1.3,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 5.4,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "water-pump",
+    "name": "Water Pump",
+    "category": "cooling",
+    "seedAvgHours": 2.71,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 12.5,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "water-pump-replacement",
+    "name": "Water Pump Replacement",
+    "category": "cooling",
+    "seedAvgHours": 2.13,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 498
+  },
+  {
+    "slug": "4wd-actuator",
+    "name": "4WD Actuator",
+    "category": "drivetrain",
+    "seedAvgHours": 4.41,
+    "seedMinHours": 1,
+    "seedMaxHours": 7.2,
+    "vehicleCoverage": 398
+  },
+  {
+    "slug": "axle-seal-front",
+    "name": "Axle Seal - Front",
+    "category": "drivetrain",
+    "seedAvgHours": 2.33,
+    "seedMinHours": 1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "axle-seal-rear",
+    "name": "Axle Seal - Rear",
+    "category": "drivetrain",
+    "seedAvgHours": 4.44,
+    "seedMinHours": 1,
+    "seedMaxHours": 9.9,
+    "vehicleCoverage": 2942
+  },
+  {
+    "slug": "axle-shaft-rear",
+    "name": "Axle Shaft - Rear",
+    "category": "drivetrain",
+    "seedAvgHours": 3.27,
+    "seedMinHours": 1,
+    "seedMaxHours": 7.2,
+    "vehicleCoverage": 1069
+  },
+  {
+    "slug": "cv-axle-front",
+    "name": "CV Axle - Front",
+    "category": "drivetrain",
+    "seedAvgHours": 1.21,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4439
+  },
+  {
+    "slug": "cv-axle-rear",
+    "name": "CV Axle - Rear",
+    "category": "drivetrain",
+    "seedAvgHours": 1.44,
+    "seedMinHours": 1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4443
+  },
+  {
+    "slug": "cv-axle-replacement",
+    "name": "CV Axle Replacement",
+    "category": "drivetrain",
+    "seedAvgHours": 1.96,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "cv-axles-front-pair",
+    "name": "CV Axles - Front Pair",
+    "category": "drivetrain",
+    "seedAvgHours": 2.01,
+    "seedMinHours": 1,
+    "seedMaxHours": 7.8,
+    "vehicleCoverage": 4439
+  },
+  {
+    "slug": "cv-boot-inner",
+    "name": "CV Boot - Inner",
+    "category": "drivetrain",
+    "seedAvgHours": 1.67,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "cv-boot-outer",
+    "name": "CV Boot - Outer",
+    "category": "drivetrain",
+    "seedAvgHours": 1.67,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "diff-cover-gasket",
+    "name": "Differential Cover Gasket",
+    "category": "drivetrain",
+    "seedAvgHours": 1.01,
+    "seedMinHours": 0.8,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4444
+  },
+  {
+    "slug": "diff-fluid-front",
+    "name": "Differential Fluid Change - Front",
+    "category": "drivetrain",
+    "seedAvgHours": 0.72,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4444
+  },
+  {
+    "slug": "diff-fluid-rear",
+    "name": "Differential Fluid Change - Rear",
+    "category": "drivetrain",
+    "seedAvgHours": 0.73,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4444
+  },
+  {
+    "slug": "diff-pinion-seal",
+    "name": "Differential Pinion Seal",
+    "category": "drivetrain",
+    "seedAvgHours": 2.14,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4444
+  },
+  {
+    "slug": "differential-fluid-change",
+    "name": "Differential Fluid Change",
+    "category": "drivetrain",
+    "seedAvgHours": 0.9,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4429
+  },
+  {
+    "slug": "differential-rebuild-front",
+    "name": "Differential Rebuild - Front",
+    "category": "drivetrain",
+    "seedAvgHours": 6.14,
+    "seedMinHours": 1,
+    "seedMaxHours": 15,
+    "vehicleCoverage": 4444
+  },
+  {
+    "slug": "differential-rebuild-rear",
+    "name": "Differential Rebuild - Rear",
+    "category": "drivetrain",
+    "seedAvgHours": 6.14,
+    "seedMinHours": 1,
+    "seedMaxHours": 15,
+    "vehicleCoverage": 4444
+  },
+  {
+    "slug": "driveshaft",
+    "name": "Driveshaft",
+    "category": "drivetrain",
+    "seedAvgHours": 1.79,
+    "seedMinHours": 1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 3163
+  },
+  {
+    "slug": "driveshaft-center-bearing",
+    "name": "Driveshaft Center Support Bearing",
+    "category": "drivetrain",
+    "seedAvgHours": 1.78,
+    "seedMinHours": 1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 3163
+  },
+  {
+    "slug": "driveshaft-front",
+    "name": "Driveshaft - Front",
+    "category": "drivetrain",
+    "seedAvgHours": 3.9,
+    "seedMinHours": 1,
+    "seedMaxHours": 9.9,
+    "vehicleCoverage": 1765
+  },
+  {
+    "slug": "driveshaft-rear",
+    "name": "Driveshaft - Rear",
+    "category": "drivetrain",
+    "seedAvgHours": 1.79,
+    "seedMinHours": 1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 3163
+  },
+  {
+    "slug": "front-differential",
+    "name": "Front Differential",
+    "category": "drivetrain",
+    "seedAvgHours": 4.32,
+    "seedMinHours": 1.1,
+    "seedMaxHours": 6.4,
+    "vehicleCoverage": 3012
+  },
+  {
+    "slug": "locking-hub-auto",
+    "name": "Locking Hub - Auto",
+    "category": "drivetrain",
+    "seedAvgHours": 1.64,
+    "seedMinHours": 1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 3017
+  },
+  {
+    "slug": "locking-hub-manual",
+    "name": "Locking Hub - Manual",
+    "category": "drivetrain",
+    "seedAvgHours": 1.12,
+    "seedMinHours": 1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 3017
+  },
+  {
+    "slug": "lsd-clutch-pack",
+    "name": "Limited Slip Clutch Pack",
+    "category": "drivetrain",
+    "seedAvgHours": 4.04,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "rear-differential",
+    "name": "Rear Differential",
+    "category": "drivetrain",
+    "seedAvgHours": 4.47,
+    "seedMinHours": 1.1,
+    "seedMaxHours": 6.4,
+    "vehicleCoverage": 2658
+  },
+  {
+    "slug": "ring-and-pinion",
+    "name": "Ring and Pinion",
+    "category": "drivetrain",
+    "seedAvgHours": 5,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "transfer-case",
+    "name": "Transfer Case",
+    "category": "drivetrain",
+    "seedAvgHours": 4.72,
+    "seedMinHours": 1.1,
+    "seedMaxHours": 9.9,
+    "vehicleCoverage": 1165
+  },
+  {
+    "slug": "transfer-case-chain",
+    "name": "Transfer Case Chain",
+    "category": "drivetrain",
+    "seedAvgHours": 4.54,
+    "seedMinHours": 1,
+    "seedMaxHours": 7.2,
+    "vehicleCoverage": 383
+  },
+  {
+    "slug": "transfer-case-encoder",
+    "name": "Transfer Case Encoder Motor",
+    "category": "drivetrain",
+    "seedAvgHours": 4.52,
+    "seedMinHours": 1.1,
+    "seedMaxHours": 7.2,
+    "vehicleCoverage": 383
+  },
+  {
+    "slug": "transfer-case-fluid",
+    "name": "Transfer Case Fluid Change",
+    "category": "drivetrain",
+    "seedAvgHours": 4.71,
+    "seedMinHours": 1.3,
+    "seedMaxHours": 9.9,
+    "vehicleCoverage": 1165
+  },
+  {
+    "slug": "transfer-case-motor",
+    "name": "Transfer Case Motor/Actuator",
+    "category": "drivetrain",
+    "seedAvgHours": 4.52,
+    "seedMinHours": 1,
+    "seedMaxHours": 7.2,
+    "vehicleCoverage": 383
+  },
+  {
+    "slug": "u-joint",
+    "name": "U-Joint",
+    "category": "drivetrain",
+    "seedAvgHours": 1.26,
+    "seedMinHours": 1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4444
+  },
+  {
+    "slug": "wheel-bearing-front",
+    "name": "Wheel Bearing Hub - Front",
+    "category": "drivetrain",
+    "seedAvgHours": 1.68,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "wheel-bearing-press-front",
+    "name": "Wheel Bearing - Press-In Front",
+    "category": "drivetrain",
+    "seedAvgHours": 2.21,
+    "seedMinHours": 1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "wheel-bearing-press-rear",
+    "name": "Wheel Bearing - Press-In Rear",
+    "category": "drivetrain",
+    "seedAvgHours": 2.21,
+    "seedMinHours": 1.1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "wheel-bearing-rear",
+    "name": "Wheel Bearing Hub - Rear",
+    "category": "drivetrain",
+    "seedAvgHours": 1.37,
+    "seedMinHours": 0.8,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "wheel-hub-front",
+    "name": "Wheel Hub - Front",
+    "category": "drivetrain",
+    "seedAvgHours": 1.67,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "wheel-hub-rear",
+    "name": "Wheel Hub - Rear",
+    "category": "drivetrain",
+    "seedAvgHours": 1.38,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "wheel-studs",
+    "name": "Wheel Studs",
+    "category": "drivetrain",
+    "seedAvgHours": 1.01,
+    "seedMinHours": 0.8,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "airbag-driver",
+    "name": "Airbag - Driver",
+    "category": "electrical",
+    "seedAvgHours": 1.19,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "airbag-module",
+    "name": "Airbag Module/Computer",
+    "category": "electrical",
+    "seedAvgHours": 1.19,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "airbag-passenger",
+    "name": "Airbag - Passenger",
+    "category": "electrical",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.7,
+    "seedMaxHours": 3.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "airbag-side",
+    "name": "Airbag - Side",
+    "category": "electrical",
+    "seedAvgHours": 2.13,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "alternator",
+    "name": "Alternator",
+    "category": "electrical",
+    "seedAvgHours": 1.66,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "alternator-belt",
+    "name": "Alternator Belt",
+    "category": "electrical",
+    "seedAvgHours": 0.72,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "alternator-replacement",
+    "name": "Alternator Replacement",
+    "category": "electrical",
+    "seedAvgHours": 1.96,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 498
+  },
+  {
+    "slug": "amplifier",
+    "name": "Amplifier",
+    "category": "electrical",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "antenna",
+    "name": "Antenna",
+    "category": "electrical",
+    "seedAvgHours": 0.59,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "backup-camera",
+    "name": "Backup Camera",
+    "category": "electrical",
+    "seedAvgHours": 1.19,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "battery",
+    "name": "Battery",
+    "category": "electrical",
+    "seedAvgHours": 0.39,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "battery-cable-negative",
+    "name": "Battery Cable - Negative",
+    "category": "electrical",
+    "seedAvgHours": 0.71,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "battery-cable-positive",
+    "name": "Battery Cable - Positive",
+    "category": "electrical",
+    "seedAvgHours": 0.71,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "battery-cables-both",
+    "name": "Battery Cables - Both",
+    "category": "electrical",
+    "seedAvgHours": 1,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "battery-replacement",
+    "name": "Battery Replacement",
+    "category": "electrical",
+    "seedAvgHours": 1.35,
+    "seedMinHours": 0.4,
+    "seedMaxHours": 2.3,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "battery-terminal",
+    "name": "Battery Terminal",
+    "category": "electrical",
+    "seedAvgHours": 0.37,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "blower-motor",
+    "name": "Blower Motor",
+    "category": "electrical",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "blower-motor-module",
+    "name": "Blower Motor Control Module",
+    "category": "electrical",
+    "seedAvgHours": 1.19,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "blower-motor-resistor",
+    "name": "Blower Motor Resistor",
+    "category": "electrical",
+    "seedAvgHours": 0.99,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "clock-spring",
+    "name": "Clock Spring",
+    "category": "electrical",
+    "seedAvgHours": 2.13,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "combination-switch",
+    "name": "Combination Switch",
+    "category": "electrical",
+    "seedAvgHours": 2.13,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "dimmer-switch",
+    "name": "Dimmer Switch",
+    "category": "electrical",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "door-lock-actuator-front",
+    "name": "Door Lock Actuator - Front",
+    "category": "electrical",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "door-lock-actuator-rear",
+    "name": "Door Lock Actuator - Rear",
+    "category": "electrical",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "fog-light-assembly",
+    "name": "Fog Light Assembly",
+    "category": "electrical",
+    "seedAvgHours": 0.99,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "fog-light-bulb",
+    "name": "Fog Light Bulb",
+    "category": "electrical",
+    "seedAvgHours": 0.37,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 3.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "fuel-pump-relay",
+    "name": "Fuel Pump Relay",
+    "category": "electrical",
+    "seedAvgHours": 0.47,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3.4,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "fuse-box-engine",
+    "name": "Fuse Box - Engine Bay",
+    "category": "electrical",
+    "seedAvgHours": 1.98,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "fuse-box-interior",
+    "name": "Fuse Box - Interior",
+    "category": "electrical",
+    "seedAvgHours": 1.5,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "headlight-assembly",
+    "name": "Headlight Assembly",
+    "category": "electrical",
+    "seedAvgHours": 1.12,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "headlight-assembly-pair",
+    "name": "Headlight Assembly - Pair",
+    "category": "electrical",
+    "seedAvgHours": 1.93,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "headlight-bulb",
+    "name": "Headlight Bulb - Single",
+    "category": "electrical",
+    "seedAvgHours": 0.38,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "headlight-bulb-replacement",
+    "name": "Headlight Bulb Replacement",
+    "category": "electrical",
+    "seedAvgHours": 0.3,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 0.5,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "headlight-bulbs-pair",
+    "name": "Headlight Bulbs - Pair",
+    "category": "electrical",
+    "seedAvgHours": 0.57,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "headlight-switch",
+    "name": "Headlight Switch",
+    "category": "electrical",
+    "seedAvgHours": 1.19,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "heated-seat-module",
+    "name": "Heated Seat Module",
+    "category": "electrical",
+    "seedAvgHours": 1.19,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "hid-ballast",
+    "name": "HID Ballast",
+    "category": "electrical",
+    "seedAvgHours": 1.19,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "horn",
+    "name": "Horn",
+    "category": "electrical",
+    "seedAvgHours": 0.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "horn-relay",
+    "name": "Horn Relay",
+    "category": "electrical",
+    "seedAvgHours": 0.36,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 3.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "instrument-cluster",
+    "name": "Instrument Cluster",
+    "category": "electrical",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "led-headlight-module",
+    "name": "LED Headlight Module",
+    "category": "electrical",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "main-relay",
+    "name": "Main Relay",
+    "category": "electrical",
+    "seedAvgHours": 0.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "mirror-assembly",
+    "name": "Side Mirror Assembly",
+    "category": "electrical",
+    "seedAvgHours": 0.99,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "mirror-motor",
+    "name": "Power Mirror Motor",
+    "category": "electrical",
+    "seedAvgHours": 1.19,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "power-antenna-motor",
+    "name": "Power Antenna Motor",
+    "category": "electrical",
+    "seedAvgHours": 1.07,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "power-seat-motor",
+    "name": "Power Seat Motor",
+    "category": "electrical",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "radio",
+    "name": "Radio/Head Unit",
+    "category": "electrical",
+    "seedAvgHours": 1.19,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "relay-generic",
+    "name": "Relay - Generic",
+    "category": "electrical",
+    "seedAvgHours": 0.37,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "seat-heater-element",
+    "name": "Seat Heater Element",
+    "category": "electrical",
+    "seedAvgHours": 2.12,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "speaker-dash",
+    "name": "Speaker - Dash",
+    "category": "electrical",
+    "seedAvgHours": 0.71,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "speaker-door",
+    "name": "Speaker - Door",
+    "category": "electrical",
+    "seedAvgHours": 1,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "speedometer",
+    "name": "Speedometer",
+    "category": "electrical",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "speedometer-cable",
+    "name": "Speedometer Cable",
+    "category": "electrical",
+    "seedAvgHours": 1.19,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "starter",
+    "name": "Starter",
+    "category": "electrical",
+    "seedAvgHours": 1.99,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4163
+  },
+  {
+    "slug": "starter-motor-replacement",
+    "name": "Starter Motor Replacement",
+    "category": "electrical",
+    "seedAvgHours": 1.96,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 498
+  },
+  {
+    "slug": "starter-solenoid",
+    "name": "Starter Solenoid",
+    "category": "electrical",
+    "seedAvgHours": 2.18,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3.6,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "subwoofer",
+    "name": "Subwoofer",
+    "category": "electrical",
+    "seedAvgHours": 1.19,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "sunroof-motor",
+    "name": "Sunroof Motor",
+    "category": "electrical",
+    "seedAvgHours": 2.18,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "sunroof-switch",
+    "name": "Sunroof Switch",
+    "category": "electrical",
+    "seedAvgHours": 0.77,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "tail-light-assembly",
+    "name": "Tail Light Assembly",
+    "category": "electrical",
+    "seedAvgHours": 0.6,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "tail-light-bulb",
+    "name": "Tail Light Bulb",
+    "category": "electrical",
+    "seedAvgHours": 0.28,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "tail-light-bulb-replacement",
+    "name": "Tail Light Bulb Replacement",
+    "category": "electrical",
+    "seedAvgHours": 0.29,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 0.5,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "third-brake-light",
+    "name": "Third Brake Light",
+    "category": "electrical",
+    "seedAvgHours": 0.71,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "trunk-actuator",
+    "name": "Trunk/Liftgate Actuator",
+    "category": "electrical",
+    "seedAvgHours": 1.18,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "turn-signal-bulb-front",
+    "name": "Turn Signal Bulb - Front",
+    "category": "electrical",
+    "seedAvgHours": 0.28,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "turn-signal-bulb-rear",
+    "name": "Turn Signal Bulb - Rear",
+    "category": "electrical",
+    "seedAvgHours": 0.28,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "turn-signal-switch",
+    "name": "Turn Signal Switch",
+    "category": "electrical",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "voltage-regulator",
+    "name": "Voltage Regulator",
+    "category": "electrical",
+    "seedAvgHours": 1.19,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "washer-pump",
+    "name": "Washer Pump",
+    "category": "electrical",
+    "seedAvgHours": 0.59,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "washer-reservoir",
+    "name": "Washer Reservoir",
+    "category": "electrical",
+    "seedAvgHours": 0.87,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "window-motor-front",
+    "name": "Power Window Motor - Front",
+    "category": "electrical",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "window-motor-rear",
+    "name": "Power Window Motor - Rear",
+    "category": "electrical",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "window-motor-regulator-front",
+    "name": "Window Motor and Regulator - Front",
+    "category": "electrical",
+    "seedAvgHours": 1.93,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "window-motor-regulator-rear",
+    "name": "Window Motor and Regulator - Rear",
+    "category": "electrical",
+    "seedAvgHours": 1.93,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "window-regulator-front",
+    "name": "Power Window Regulator - Front",
+    "category": "electrical",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "window-regulator-rear",
+    "name": "Power Window Regulator - Rear",
+    "category": "electrical",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "wiper-linkage",
+    "name": "Wiper Linkage",
+    "category": "electrical",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "wiper-motor-front",
+    "name": "Wiper Motor - Front",
+    "category": "electrical",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "wiper-motor-rear",
+    "name": "Wiper Motor - Rear",
+    "category": "electrical",
+    "seedAvgHours": 1.19,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "wiper-switch",
+    "name": "Wiper Switch",
+    "category": "electrical",
+    "seedAvgHours": 1.19,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "wiper-transmission",
+    "name": "Wiper Transmission",
+    "category": "electrical",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "oxygen-sensor-replacement",
+    "name": "Oxygen Sensor Replacement",
+    "category": "emissions",
+    "seedAvgHours": 1,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 1.5,
+    "vehicleCoverage": 498
+  },
+  {
+    "slug": "boost-sensor",
+    "name": "Boost Pressure Sensor",
+    "category": "engine",
+    "seedAvgHours": 1.1,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 1304
+  },
+  {
+    "slug": "cam-position-sensor",
+    "name": "Camshaft Position Sensor",
+    "category": "engine",
+    "seedAvgHours": 1.73,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "camshaft-rr",
+    "name": "Camshaft R&R",
+    "category": "engine",
+    "seedAvgHours": 8.32,
+    "seedMinHours": 2.7,
+    "seedMaxHours": 17.9,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "crank-position-sensor",
+    "name": "Crankshaft Position Sensor",
+    "category": "engine",
+    "seedAvgHours": 1.74,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "crankshaft-rr",
+    "name": "Crankshaft R&R",
+    "category": "engine",
+    "seedAvgHours": 19.25,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 32,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "cylinder-head-resurface",
+    "name": "Cylinder Head Resurface",
+    "category": "engine",
+    "seedAvgHours": 8.31,
+    "seedMinHours": 2.7,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "cylinder-head-rr",
+    "name": "Cylinder Head R&R",
+    "category": "engine",
+    "seedAvgHours": 6.79,
+    "seedMinHours": 2.7,
+    "seedMaxHours": 21.6,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "engine-mount-front",
+    "name": "Engine Mount - Front",
+    "category": "engine",
+    "seedAvgHours": 1.99,
+    "seedMinHours": 1.5,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "engine-mount-rear",
+    "name": "Engine Mount - Rear",
+    "category": "engine",
+    "seedAvgHours": 1.99,
+    "seedMinHours": 1.5,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "engine-mounts-all",
+    "name": "Engine Mounts - All",
+    "category": "engine",
+    "seedAvgHours": 4.36,
+    "seedMinHours": 1.8,
+    "seedMaxHours": 15.5,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "engine-rebuild",
+    "name": "Engine Rebuild",
+    "category": "engine",
+    "seedAvgHours": 24.81,
+    "seedMinHours": 3.2,
+    "seedMaxHours": 40,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "engine-rr",
+    "name": "Engine R&R",
+    "category": "engine",
+    "seedAvgHours": 9.97,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 21.6,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "exhaust-manifold",
+    "name": "Exhaust Manifold",
+    "category": "engine",
+    "seedAvgHours": 3.29,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "exhaust-manifold-gasket",
+    "name": "Exhaust Manifold Gasket",
+    "category": "engine",
+    "seedAvgHours": 2.81,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "flexplate",
+    "name": "Flexplate",
+    "category": "engine",
+    "seedAvgHours": 5.49,
+    "seedMinHours": 2.7,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "flywheel",
+    "name": "Flywheel",
+    "category": "engine",
+    "seedAvgHours": 5.95,
+    "seedMinHours": 2.7,
+    "seedMaxHours": 12.5,
+    "vehicleCoverage": 738
+  },
+  {
+    "slug": "freeze-plug",
+    "name": "Freeze Plug - Single",
+    "category": "engine",
+    "seedAvgHours": 3.52,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "freeze-plugs-all",
+    "name": "Freeze Plugs - All",
+    "category": "engine",
+    "seedAvgHours": 8.1,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 18.7,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "front-main-seal",
+    "name": "Front Main Seal",
+    "category": "engine",
+    "seedAvgHours": 4.57,
+    "seedMinHours": 1.8,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "harmonic-balancer",
+    "name": "Harmonic Balancer",
+    "category": "engine",
+    "seedAvgHours": 2.99,
+    "seedMinHours": 2,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "head-gasket",
+    "name": "Head Gasket - Single",
+    "category": "engine",
+    "seedAvgHours": 12.06,
+    "seedMinHours": 2.7,
+    "seedMaxHours": 19.2,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "head-gaskets-both",
+    "name": "Head Gaskets - Both",
+    "category": "engine",
+    "seedAvgHours": 17.72,
+    "seedMinHours": 2.7,
+    "seedMaxHours": 28.8,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "iac-valve",
+    "name": "Idle Air Control Valve",
+    "category": "engine",
+    "seedAvgHours": 1.56,
+    "seedMinHours": 0.8,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "idler-pulley",
+    "name": "Idler Pulley",
+    "category": "engine",
+    "seedAvgHours": 1.5,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "intake-manifold",
+    "name": "Intake Manifold",
+    "category": "engine",
+    "seedAvgHours": 3.28,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "intake-manifold-gasket",
+    "name": "Intake Manifold Gasket",
+    "category": "engine",
+    "seedAvgHours": 3.34,
+    "seedMinHours": 1.5,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "intercooler",
+    "name": "Intercooler",
+    "category": "engine",
+    "seedAvgHours": 1.66,
+    "seedMinHours": 1,
+    "seedMaxHours": 2.3,
+    "vehicleCoverage": 173
+  },
+  {
+    "slug": "knock-sensor",
+    "name": "Knock Sensor",
+    "category": "engine",
+    "seedAvgHours": 2.57,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "lifter-single",
+    "name": "Lifter - Single",
+    "category": "engine",
+    "seedAvgHours": 4.52,
+    "seedMinHours": 2.7,
+    "seedMaxHours": 10.9,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "lifters-all",
+    "name": "Lifters/Tappets - All",
+    "category": "engine",
+    "seedAvgHours": 6.42,
+    "seedMinHours": 2.7,
+    "seedMaxHours": 15.5,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "long-block",
+    "name": "Long Block Replacement",
+    "category": "engine",
+    "seedAvgHours": 11.49,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 19.2,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "maf-sensor",
+    "name": "Mass Air Flow Sensor",
+    "category": "engine",
+    "seedAvgHours": 0.62,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "main-bearings",
+    "name": "Main Bearings",
+    "category": "engine",
+    "seedAvgHours": 16.81,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 28.8,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "map-sensor",
+    "name": "Manifold Absolute Pressure Sensor",
+    "category": "engine",
+    "seedAvgHours": 0.81,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "oil-level-sensor",
+    "name": "Oil Level Sensor",
+    "category": "engine",
+    "seedAvgHours": 1.56,
+    "seedMinHours": 0.8,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "oil-pan",
+    "name": "Oil Pan Replacement",
+    "category": "engine",
+    "seedAvgHours": 5.03,
+    "seedMinHours": 1.8,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "oil-pan-gasket",
+    "name": "Oil Pan Gasket",
+    "category": "engine",
+    "seedAvgHours": 4.35,
+    "seedMinHours": 1.8,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "oil-pressure-sensor",
+    "name": "Oil Pressure Sensor",
+    "category": "engine",
+    "seedAvgHours": 1.24,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "oil-pump",
+    "name": "Oil Pump",
+    "category": "engine",
+    "seedAvgHours": 6.18,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "oil-separatorpcv",
+    "name": "Oil Separator/PCV",
+    "category": "engine",
+    "seedAvgHours": 1.55,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 2.3,
+    "vehicleCoverage": 498
+  },
+  {
+    "slug": "pcv-valve",
+    "name": "PCV Valve",
+    "category": "engine",
+    "seedAvgHours": 0.53,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "piston-rings",
+    "name": "Piston Rings - All",
+    "category": "engine",
+    "seedAvgHours": 19.15,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 32,
+    "vehicleCoverage": 4163
+  },
+  {
+    "slug": "piston-single",
+    "name": "Piston - Single",
+    "category": "engine",
+    "seedAvgHours": 16.6,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 28.8,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "pistons-all",
+    "name": "Pistons - All",
+    "category": "engine",
+    "seedAvgHours": 20.51,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 35.2,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "rear-main-seal",
+    "name": "Rear Main Seal",
+    "category": "engine",
+    "seedAvgHours": 5.48,
+    "seedMinHours": 1.8,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "rocker-arms",
+    "name": "Rocker Arms - All",
+    "category": "engine",
+    "seedAvgHours": 3.6,
+    "seedMinHours": 2.7,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "rod-bearings",
+    "name": "Connecting Rod Bearings",
+    "category": "engine",
+    "seedAvgHours": 14.13,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 24,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "serpentine-belt",
+    "name": "Serpentine Belt",
+    "category": "engine",
+    "seedAvgHours": 0.76,
+    "seedMinHours": 0.4,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "serpentine-belt-replacement",
+    "name": "Serpentine Belt Replacement",
+    "category": "engine",
+    "seedAvgHours": 0.95,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 1.5,
+    "vehicleCoverage": 498
+  },
+  {
+    "slug": "serpentine-belt-tensioner",
+    "name": "Serpentine Belt Tensioner",
+    "category": "engine",
+    "seedAvgHours": 1.27,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "short-block",
+    "name": "Short Block Replacement",
+    "category": "engine",
+    "seedAvgHours": 14.13,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 24,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "spark-plug-replacement",
+    "name": "Spark Plug Replacement",
+    "category": "engine",
+    "seedAvgHours": 1.03,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 1.5,
+    "vehicleCoverage": 498
+  },
+  {
+    "slug": "supercharger",
+    "name": "Supercharger",
+    "category": "engine",
+    "seedAvgHours": 4.57,
+    "seedMinHours": 1.8,
+    "seedMaxHours": 10.8,
+    "vehicleCoverage": 695
+  },
+  {
+    "slug": "throttle-body",
+    "name": "Throttle Body",
+    "category": "engine",
+    "seedAvgHours": 1.53,
+    "seedMinHours": 1,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "timing-belt",
+    "name": "Timing Belt",
+    "category": "engine",
+    "seedAvgHours": 4.07,
+    "seedMinHours": 1.8,
+    "seedMaxHours": 11,
+    "vehicleCoverage": 1147
+  },
+  {
+    "slug": "timing-belt-kit",
+    "name": "Timing Belt Kit",
+    "category": "engine",
+    "seedAvgHours": 4.6,
+    "seedMinHours": 1.8,
+    "seedMaxHours": 11,
+    "vehicleCoverage": 1147
+  },
+  {
+    "slug": "timing-belt-replacement",
+    "name": "Timing Belt Replacement",
+    "category": "engine",
+    "seedAvgHours": 3.25,
+    "seedMinHours": 1.8,
+    "seedMaxHours": 4.6,
+    "vehicleCoverage": 498
+  },
+  {
+    "slug": "timing-belt-tensioner",
+    "name": "Timing Belt Tensioner",
+    "category": "engine",
+    "seedAvgHours": 4.04,
+    "seedMinHours": 1.8,
+    "seedMaxHours": 11,
+    "vehicleCoverage": 1147
+  },
+  {
+    "slug": "timing-chain",
+    "name": "Timing Chain",
+    "category": "engine",
+    "seedAvgHours": 8.27,
+    "seedMinHours": 2.7,
+    "seedMaxHours": 12.8,
+    "vehicleCoverage": 3592
+  },
+  {
+    "slug": "timing-chain-guide",
+    "name": "Timing Chain Guide",
+    "category": "engine",
+    "seedAvgHours": 6.89,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 3591
+  },
+  {
+    "slug": "timing-chain-kit",
+    "name": "Timing Chain Kit",
+    "category": "engine",
+    "seedAvgHours": 8.72,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 3591
+  },
+  {
+    "slug": "timing-chain-tensioner",
+    "name": "Timing Chain Tensioner",
+    "category": "engine",
+    "seedAvgHours": 6.19,
+    "seedMinHours": 1.8,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 3591
+  },
+  {
+    "slug": "tps",
+    "name": "Throttle Position Sensor",
+    "category": "engine",
+    "seedAvgHours": 1.24,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "transmission-mount",
+    "name": "Transmission Mount",
+    "category": "engine",
+    "seedAvgHours": 1.51,
+    "seedMinHours": 1,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "turbo-wastegate",
+    "name": "Turbo Wastegate Actuator",
+    "category": "engine",
+    "seedAvgHours": 2.6,
+    "seedMinHours": 2,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 1304
+  },
+  {
+    "slug": "turbocharger",
+    "name": "Turbocharger",
+    "category": "engine",
+    "seedAvgHours": 6.8,
+    "seedMinHours": 3.1,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 1304
+  },
+  {
+    "slug": "valve-adjustment",
+    "name": "Valve Adjustment",
+    "category": "engine",
+    "seedAvgHours": 2.66,
+    "seedMinHours": 2,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 4148
+  },
+  {
+    "slug": "valve-cover-gasket",
+    "name": "Valve Cover Gasket - Single",
+    "category": "engine",
+    "seedAvgHours": 1.81,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 12,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "valve-cover-gaskets-both",
+    "name": "Valve Cover Gaskets - Both",
+    "category": "engine",
+    "seedAvgHours": 2.82,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 15.5,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "valve-job",
+    "name": "Valve Job - Complete",
+    "category": "engine",
+    "seedAvgHours": 10.09,
+    "seedMinHours": 2.7,
+    "seedMaxHours": 16,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "valve-seals",
+    "name": "Valve Seals",
+    "category": "engine",
+    "seedAvgHours": 7.94,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "valve-spring-single",
+    "name": "Valve Spring - Single",
+    "category": "engine",
+    "seedAvgHours": 3.31,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 11,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "valve-springs",
+    "name": "Valve Springs - All",
+    "category": "engine",
+    "seedAvgHours": 6.17,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "vvt-actuator",
+    "name": "Variable Valve Timing Actuator",
+    "category": "engine",
+    "seedAvgHours": 3.52,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "vvt-solenoid",
+    "name": "VVT Solenoid - Single",
+    "category": "engine",
+    "seedAvgHours": 1.74,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14.4,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "vvt-solenoids-all",
+    "name": "VVT Solenoids - All",
+    "category": "engine",
+    "seedAvgHours": 2.77,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 18.7,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "12v-aux-battery",
+    "name": "12V Auxiliary Battery",
+    "category": "ev-battery",
+    "seedAvgHours": 2.65,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 12.4,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "battery-bms",
+    "name": "Battery Management System (BMS)",
+    "category": "ev-battery",
+    "seedAvgHours": 2.94,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 12.4,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "battery-coolant-flush",
+    "name": "Battery Coolant Flush",
+    "category": "ev-battery",
+    "seedAvgHours": 2.42,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 12.4,
+    "vehicleCoverage": 893
+  },
+  {
+    "slug": "battery-cooling-service",
+    "name": "Battery Cooling System Service",
+    "category": "ev-battery",
+    "seedAvgHours": 2.95,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 12.4,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "battery-disconnect-service",
+    "name": "Battery Disconnect Service",
+    "category": "ev-battery",
+    "seedAvgHours": 2.95,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 12.4,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "battery-junction-box",
+    "name": "Battery Junction Box",
+    "category": "ev-battery",
+    "seedAvgHours": 2.94,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 12.4,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "battery-thermal-module",
+    "name": "Battery Thermal Management Module",
+    "category": "ev-battery",
+    "seedAvgHours": 2.95,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 12.4,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "dc-dc-converter",
+    "name": "DC-DC Converter",
+    "category": "ev-battery",
+    "seedAvgHours": 2.94,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 12.4,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "hv-battery-module-rr",
+    "name": "High Voltage Battery Module R&R",
+    "category": "ev-battery",
+    "seedAvgHours": 3.87,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 18.6,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "hv-battery-pack-rr",
+    "name": "High Voltage Battery Pack R&R",
+    "category": "ev-battery",
+    "seedAvgHours": 3.85,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 18.6,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "one-pedal-calibration",
+    "name": "One-Pedal Driving Calibration",
+    "category": "ev-brakes",
+    "seedAvgHours": 1.68,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "regen-brake-calibration",
+    "name": "Regenerative Braking Calibration",
+    "category": "ev-brakes",
+    "seedAvgHours": 1.68,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "charge-port-assembly",
+    "name": "Charge Port Assembly",
+    "category": "ev-charging",
+    "seedAvgHours": 1.84,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "charge-port-door-actuator",
+    "name": "Charge Port Door Actuator",
+    "category": "ev-charging",
+    "seedAvgHours": 1.85,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "charge-port-latch",
+    "name": "Charge Port Latch",
+    "category": "ev-charging",
+    "seedAvgHours": 1.85,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "charge-port-seal",
+    "name": "Charge Port Seal",
+    "category": "ev-charging",
+    "seedAvgHours": 1.85,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "charging-cable-l1",
+    "name": "Charging Cable - Level 1",
+    "category": "ev-charging",
+    "seedAvgHours": 1.87,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "charging-cable-l2",
+    "name": "Charging Cable - Level 2",
+    "category": "ev-charging",
+    "seedAvgHours": 1.87,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "dc-fast-charge-port",
+    "name": "DC Fast Charge Port",
+    "category": "ev-charging",
+    "seedAvgHours": 1.86,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "onboard-charger-rr",
+    "name": "Onboard Charger R&R",
+    "category": "ev-charging",
+    "seedAvgHours": 2.25,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 7.5,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "ev-chiller",
+    "name": "EV Chiller Unit",
+    "category": "ev-cooling",
+    "seedAvgHours": 2.95,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 7.5,
+    "vehicleCoverage": 371
+  },
+  {
+    "slug": "ev-coolant-lines",
+    "name": "EV Coolant Lines",
+    "category": "ev-cooling",
+    "seedAvgHours": 3.02,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 7.5,
+    "vehicleCoverage": 356
+  },
+  {
+    "slug": "ev-coolant-pump",
+    "name": "EV Coolant Pump",
+    "category": "ev-cooling",
+    "seedAvgHours": 3.01,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 7.5,
+    "vehicleCoverage": 356
+  },
+  {
+    "slug": "ev-radiator",
+    "name": "EV Radiator",
+    "category": "ev-cooling",
+    "seedAvgHours": 3.09,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 7.5,
+    "vehicleCoverage": 356
+  },
+  {
+    "slug": "ev-thermal-management",
+    "name": "EV Thermal Management System",
+    "category": "ev-cooling",
+    "seedAvgHours": 2.96,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 7.5,
+    "vehicleCoverage": 371
+  },
+  {
+    "slug": "heat-pump-system",
+    "name": "Heat Pump System",
+    "category": "ev-cooling",
+    "seedAvgHours": 2.24,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 7.5,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "ptc-cabin-heater",
+    "name": "Cabin Heater - PTC",
+    "category": "ev-cooling",
+    "seedAvgHours": 2.22,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 7.5,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "ev-diagnostic-scan",
+    "name": "EV Diagnostic Scan",
+    "category": "ev-electrical",
+    "seedAvgHours": 2.43,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 6.2,
+    "vehicleCoverage": 371
+  },
+  {
+    "slug": "ev-system-reset",
+    "name": "EV System Reset/Calibration",
+    "category": "ev-electrical",
+    "seedAvgHours": 2.51,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6.2,
+    "vehicleCoverage": 371
+  },
+  {
+    "slug": "hv-cable-inspection",
+    "name": "High Voltage Cable Inspection",
+    "category": "ev-electrical",
+    "seedAvgHours": 1.76,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 6.2,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "hv-interlock-service",
+    "name": "High Voltage Interlock Service",
+    "category": "ev-electrical",
+    "seedAvgHours": 2.06,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6.2,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "hv-service-disconnect",
+    "name": "High Voltage Service Disconnect",
+    "category": "ev-electrical",
+    "seedAvgHours": 2.04,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6.2,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "hv-wiring-harness",
+    "name": "High Voltage Wiring Harness",
+    "category": "ev-electrical",
+    "seedAvgHours": 2.04,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6.2,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "pyro-fuse-inspection",
+    "name": "Pyrotechnic Fuse Inspection",
+    "category": "ev-electrical",
+    "seedAvgHours": 1.75,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 6.2,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "drive-unit-fluid",
+    "name": "Drive Unit Fluid Change",
+    "category": "ev-motor",
+    "seedAvgHours": 3.31,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14.9,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "ev-motor-inspection",
+    "name": "Electric Motor Inspection",
+    "category": "ev-motor",
+    "seedAvgHours": 5.54,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 14.9,
+    "vehicleCoverage": 371
+  },
+  {
+    "slug": "ev-motor-mount",
+    "name": "Motor Mount - Electric",
+    "category": "ev-motor",
+    "seedAvgHours": 6.03,
+    "seedMinHours": 1.8,
+    "seedMaxHours": 14.9,
+    "vehicleCoverage": 356
+  },
+  {
+    "slug": "ev-motor-rr",
+    "name": "Electric Drive Motor R&R",
+    "category": "ev-motor",
+    "seedAvgHours": 8.3,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 22.4,
+    "vehicleCoverage": 371
+  },
+  {
+    "slug": "inverter-coolant",
+    "name": "Inverter Coolant Service",
+    "category": "ev-motor",
+    "seedAvgHours": 3.36,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14.9,
+    "vehicleCoverage": 893
+  },
+  {
+    "slug": "inverter-rr",
+    "name": "Inverter R&R",
+    "category": "ev-motor",
+    "seedAvgHours": 4.41,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 22.4,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "power-electronics-module",
+    "name": "Power Electronics Module",
+    "category": "ev-motor",
+    "seedAvgHours": 3.32,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14.9,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "reduction-gear-service",
+    "name": "Reduction Gear Service",
+    "category": "ev-motor",
+    "seedAvgHours": 3.31,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14.9,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "ev-annual-inspection",
+    "name": "EV Annual Inspection",
+    "category": "ev-service",
+    "seedAvgHours": 1.08,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 2.6,
+    "vehicleCoverage": 371
+  },
+  {
+    "slug": "ev-cabin-filter-hepa",
+    "name": "EV Cabin Filter (HEPA)",
+    "category": "ev-service",
+    "seedAvgHours": 1.09,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3.3,
+    "vehicleCoverage": 371
+  },
+  {
+    "slug": "ev-software-update",
+    "name": "EV Software Update",
+    "category": "ev-service",
+    "seedAvgHours": 1.17,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 3.1,
+    "vehicleCoverage": 371
+  },
+  {
+    "slug": "range-optimization",
+    "name": "Range Optimization Service",
+    "category": "ev-service",
+    "seedAvgHours": 1.5,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 908
+  },
+  {
+    "slug": "air-injection-pump",
+    "name": "Secondary Air Injection Pump",
+    "category": "exhaust",
+    "seedAvgHours": 1.67,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.6,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "air-injection-valve",
+    "name": "Air Injection Check Valve",
+    "category": "exhaust",
+    "seedAvgHours": 1.05,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.6,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "catalytic-converter-carb",
+    "name": "Catalytic Converter - California",
+    "category": "exhaust",
+    "seedAvgHours": 1.7,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "catalytic-converter-direct",
+    "name": "Catalytic Converter - Direct Fit",
+    "category": "exhaust",
+    "seedAvgHours": 1.7,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "catalytic-converter-replacement",
+    "name": "Catalytic Converter Replacement",
+    "category": "exhaust",
+    "seedAvgHours": 2.04,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 498
+  },
+  {
+    "slug": "catalytic-converter-universal",
+    "name": "Catalytic Converter - Universal",
+    "category": "exhaust",
+    "seedAvgHours": 2.18,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.2,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "def-injector",
+    "name": "DEF Injector",
+    "category": "exhaust",
+    "seedAvgHours": 2.4,
+    "seedMinHours": 1,
+    "seedMaxHours": 4.6,
+    "vehicleCoverage": 155
+  },
+  {
+    "slug": "def-tank",
+    "name": "DEF Tank",
+    "category": "exhaust",
+    "seedAvgHours": 2.52,
+    "seedMinHours": 0.8,
+    "seedMaxHours": 3.2,
+    "vehicleCoverage": 155
+  },
+  {
+    "slug": "downpipe",
+    "name": "Downpipe",
+    "category": "exhaust",
+    "seedAvgHours": 2.17,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.6,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "dpf",
+    "name": "Diesel Particulate Filter",
+    "category": "exhaust",
+    "seedAvgHours": 3.58,
+    "seedMinHours": 0.8,
+    "seedMaxHours": 4.8,
+    "vehicleCoverage": 155
+  },
+  {
+    "slug": "dpf-delete",
+    "name": "DPF Delete Pipe",
+    "category": "exhaust",
+    "seedAvgHours": 2.53,
+    "seedMinHours": 1.9,
+    "seedMaxHours": 3.2,
+    "vehicleCoverage": 155
+  },
+  {
+    "slug": "egr-cooler",
+    "name": "EGR Cooler",
+    "category": "exhaust",
+    "seedAvgHours": 3.07,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.8,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "egr-tube",
+    "name": "EGR Tube",
+    "category": "exhaust",
+    "seedAvgHours": 1.64,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "egr-valve",
+    "name": "EGR Valve",
+    "category": "exhaust",
+    "seedAvgHours": 1.18,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "exhaust-clamp",
+    "name": "Exhaust Clamp",
+    "category": "exhaust",
+    "seedAvgHours": 0.52,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "exhaust-gasket-front",
+    "name": "Exhaust Gasket - Front",
+    "category": "exhaust",
+    "seedAvgHours": 1.24,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "exhaust-gasket-rear",
+    "name": "Exhaust Gasket - Rear",
+    "category": "exhaust",
+    "seedAvgHours": 1.05,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "exhaust-hangers",
+    "name": "Exhaust Hangers",
+    "category": "exhaust",
+    "seedAvgHours": 0.71,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "exhaust-manifold-gasket-only",
+    "name": "Exhaust Manifold Gasket",
+    "category": "exhaust",
+    "seedAvgHours": 2.18,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.2,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "exhaust-manifold-studs",
+    "name": "Exhaust Manifold Studs",
+    "category": "exhaust",
+    "seedAvgHours": 3.13,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.8,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "exhaust-pipe-front",
+    "name": "Exhaust Pipe - Front Section",
+    "category": "exhaust",
+    "seedAvgHours": 1.7,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "exhaust-pipe-rear",
+    "name": "Exhaust Pipe - Rear Section",
+    "category": "exhaust",
+    "seedAvgHours": 1.24,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "exhaust-tip",
+    "name": "Exhaust Tip",
+    "category": "exhaust",
+    "seedAvgHours": 0.52,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "flex-pipe",
+    "name": "Flex Pipe",
+    "category": "exhaust",
+    "seedAvgHours": 1.73,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.6,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "front-pipe",
+    "name": "Front Pipe",
+    "category": "exhaust",
+    "seedAvgHours": 1.67,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.6,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "intermediate-pipe",
+    "name": "Intermediate Pipe",
+    "category": "exhaust",
+    "seedAvgHours": 1.24,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.6,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "muffler",
+    "name": "Muffler",
+    "category": "exhaust",
+    "seedAvgHours": 1.14,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "o2-sensor-downstream",
+    "name": "O2 Sensor - Downstream",
+    "category": "exhaust",
+    "seedAvgHours": 0.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "o2-sensor-upstream",
+    "name": "O2 Sensor - Upstream",
+    "category": "exhaust",
+    "seedAvgHours": 0.65,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "o2-sensors-all",
+    "name": "O2 Sensors - All",
+    "category": "exhaust",
+    "seedAvgHours": 1.58,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "resonator",
+    "name": "Resonator",
+    "category": "exhaust",
+    "seedAvgHours": 1.24,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "scr-catalyst",
+    "name": "SCR Catalyst",
+    "category": "exhaust",
+    "seedAvgHours": 1.95,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.8,
+    "vehicleCoverage": 726
+  },
+  {
+    "slug": "tail-pipe",
+    "name": "Tail Pipe",
+    "category": "exhaust",
+    "seedAvgHours": 0.79,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.6,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "charcoal-canister",
+    "name": "Charcoal Canister",
+    "category": "fuel",
+    "seedAvgHours": 1.28,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "evap-purge-valve",
+    "name": "EVAP Purge Valve",
+    "category": "fuel",
+    "seedAvgHours": 1.1,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "evap-vent-solenoid",
+    "name": "EVAP Canister Vent Solenoid",
+    "category": "fuel",
+    "seedAvgHours": 1.1,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "evap-vent-valve",
+    "name": "EVAP Vent Valve",
+    "category": "fuel",
+    "seedAvgHours": 1.1,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "fuel-cap",
+    "name": "Fuel Cap",
+    "category": "fuel",
+    "seedAvgHours": 0.32,
+    "seedMinHours": 0.1,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "fuel-filler-neck",
+    "name": "Fuel Filler Neck",
+    "category": "fuel",
+    "seedAvgHours": 1.89,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.6,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "fuel-filter",
+    "name": "Fuel Filter",
+    "category": "fuel",
+    "seedAvgHours": 0.61,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3.7,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "fuel-filter-in-tank",
+    "name": "Fuel Filter - In-Tank",
+    "category": "fuel",
+    "seedAvgHours": 2.07,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.7,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "fuel-filter-replacement",
+    "name": "Fuel Filter Replacement",
+    "category": "fuel",
+    "seedAvgHours": 0.98,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 1.5,
+    "vehicleCoverage": 498
+  },
+  {
+    "slug": "fuel-injector-cleaning",
+    "name": "Fuel Injector Cleaning",
+    "category": "fuel",
+    "seedAvgHours": 1.39,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 4.6,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "fuel-injector-single",
+    "name": "Fuel Injector - Single",
+    "category": "fuel",
+    "seedAvgHours": 1.38,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.6,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "fuel-injectors-all",
+    "name": "Fuel Injectors - All",
+    "category": "fuel",
+    "seedAvgHours": 2.8,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "fuel-level-sensor",
+    "name": "Fuel Level Sensor",
+    "category": "fuel",
+    "seedAvgHours": 2.16,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "fuel-line-high-pressure",
+    "name": "Fuel Line - High Pressure",
+    "category": "fuel",
+    "seedAvgHours": 1.89,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.6,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "fuel-line-return",
+    "name": "Fuel Line - Return",
+    "category": "fuel",
+    "seedAvgHours": 1.46,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.6,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "fuel-pressure-regulator",
+    "name": "Fuel Pressure Regulator",
+    "category": "fuel",
+    "seedAvgHours": 1.28,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "fuel-pump",
+    "name": "Fuel Pump",
+    "category": "fuel",
+    "seedAvgHours": 2.14,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.7,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "fuel-pump-module",
+    "name": "Fuel Pump Module",
+    "category": "fuel",
+    "seedAvgHours": 2.19,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.7,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "fuel-pump-replacement",
+    "name": "Fuel Pump Replacement",
+    "category": "fuel",
+    "seedAvgHours": 2.13,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 498
+  },
+  {
+    "slug": "fuel-rail",
+    "name": "Fuel Rail",
+    "category": "fuel",
+    "seedAvgHours": 1.84,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.6,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "fuel-sending-unit",
+    "name": "Fuel Sending Unit",
+    "category": "fuel",
+    "seedAvgHours": 2.16,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.5,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "fuel-tank",
+    "name": "Fuel Tank",
+    "category": "fuel",
+    "seedAvgHours": 3.24,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.8,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "fuel-tank-strap",
+    "name": "Fuel Tank Strap",
+    "category": "fuel",
+    "seedAvgHours": 2.79,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.6,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "high-pressure-fuel-pump",
+    "name": "High Pressure Fuel Pump",
+    "category": "fuel",
+    "seedAvgHours": 3.14,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 4.8,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "ac-accumulator",
+    "name": "AC Accumulator",
+    "category": "hvac",
+    "seedAvgHours": 1.75,
+    "seedMinHours": 1.1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ac-clutch-coil",
+    "name": "AC Clutch Coil",
+    "category": "hvac",
+    "seedAvgHours": 1.69,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ac-compressor",
+    "name": "AC Compressor",
+    "category": "hvac",
+    "seedAvgHours": 2.71,
+    "seedMinHours": 1.1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ac-compressor-clutch",
+    "name": "AC Compressor Clutch",
+    "category": "hvac",
+    "seedAvgHours": 2.23,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ac-compressor-oil",
+    "name": "AC Compressor Oil Add",
+    "category": "hvac",
+    "seedAvgHours": 0.81,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ac-compressor-replacement",
+    "name": "AC Compressor Replacement",
+    "category": "hvac",
+    "seedAvgHours": 2.21,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "ac-condenser",
+    "name": "AC Condenser",
+    "category": "hvac",
+    "seedAvgHours": 2.7,
+    "seedMinHours": 1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ac-evacuate-recharge",
+    "name": "AC System Evacuate and Recharge",
+    "category": "hvac",
+    "seedAvgHours": 1.69,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ac-evaporator",
+    "name": "AC Evaporator",
+    "category": "hvac",
+    "seedAvgHours": 6.03,
+    "seedMinHours": 1,
+    "seedMaxHours": 9.6,
+    "vehicleCoverage": 4434
+  },
+  {
+    "slug": "ac-expansion-valve",
+    "name": "AC Expansion Valve (TXV)",
+    "category": "hvac",
+    "seedAvgHours": 4.12,
+    "seedMinHours": 1,
+    "seedMaxHours": 6.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ac-high-pressure-switch",
+    "name": "AC High Pressure Switch",
+    "category": "hvac",
+    "seedAvgHours": 0.75,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ac-hose-assembly",
+    "name": "AC Hose Assembly",
+    "category": "hvac",
+    "seedAvgHours": 2.24,
+    "seedMinHours": 1.1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ac-hose-high",
+    "name": "AC Hose - High Side",
+    "category": "hvac",
+    "seedAvgHours": 1.75,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ac-hose-low",
+    "name": "AC Hose - Low Side",
+    "category": "hvac",
+    "seedAvgHours": 1.75,
+    "seedMinHours": 1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ac-low-pressure-switch",
+    "name": "AC Low Pressure Switch",
+    "category": "hvac",
+    "seedAvgHours": 0.76,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ac-orifice-tube",
+    "name": "AC Orifice Tube",
+    "category": "hvac",
+    "seedAvgHours": 1.7,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ac-pressure-sensor",
+    "name": "AC Pressure Sensor",
+    "category": "hvac",
+    "seedAvgHours": 0.76,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ac-receiver-drier",
+    "name": "AC Receiver/Drier",
+    "category": "hvac",
+    "seedAvgHours": 1.76,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ac-recharge",
+    "name": "AC Recharge",
+    "category": "hvac",
+    "seedAvgHours": 0.73,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "blend-door-actuator",
+    "name": "Blend Door Actuator",
+    "category": "hvac",
+    "seedAvgHours": 2.23,
+    "seedMinHours": 1,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "cabin-air-filter",
+    "name": "Cabin Air Filter",
+    "category": "hvac",
+    "seedAvgHours": 0.33,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 0.5,
+    "vehicleCoverage": 4324
+  },
+  {
+    "slug": "climate-control-module",
+    "name": "Climate Control Module",
+    "category": "hvac",
+    "seedAvgHours": 1.23,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "hvac-control-panel",
+    "name": "HVAC Control Panel",
+    "category": "hvac",
+    "seedAvgHours": 1.23,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "mode-door-actuator",
+    "name": "Mode Door Actuator",
+    "category": "hvac",
+    "seedAvgHours": 2.17,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "recirc-door-actuator",
+    "name": "Recirculation Door Actuator",
+    "category": "hvac",
+    "seedAvgHours": 1.69,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "coil-pack",
+    "name": "Coil Pack",
+    "category": "ignition",
+    "seedAvgHours": 1.06,
+    "seedMinHours": 0.8,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4361
+  },
+  {
+    "slug": "distributor",
+    "name": "Distributor",
+    "category": "ignition",
+    "seedAvgHours": 1.67,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 1079
+  },
+  {
+    "slug": "distributor-cap",
+    "name": "Distributor Cap",
+    "category": "ignition",
+    "seedAvgHours": 0.64,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 1079
+  },
+  {
+    "slug": "distributor-cap-rotor",
+    "name": "Distributor Cap and Rotor",
+    "category": "ignition",
+    "seedAvgHours": 0.65,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 1079
+  },
+  {
+    "slug": "distributor-rotor",
+    "name": "Distributor Rotor",
+    "category": "ignition",
+    "seedAvgHours": 0.64,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 1079
+  },
+  {
+    "slug": "ignition-coil-single",
+    "name": "Ignition Coil - Single",
+    "category": "ignition",
+    "seedAvgHours": 0.67,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4107
+  },
+  {
+    "slug": "ignition-coils-all",
+    "name": "Ignition Coils - All",
+    "category": "ignition",
+    "seedAvgHours": 1.61,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4107
+  },
+  {
+    "slug": "ignition-lock-cylinder",
+    "name": "Ignition Lock Cylinder",
+    "category": "ignition",
+    "seedAvgHours": 2.13,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ignition-module",
+    "name": "Ignition Control Module",
+    "category": "ignition",
+    "seedAvgHours": 1.23,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "ignition-switch",
+    "name": "Ignition Switch",
+    "category": "ignition",
+    "seedAvgHours": 1.66,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "spark-plug-wires",
+    "name": "Spark Plug Wires",
+    "category": "ignition",
+    "seedAvgHours": 0.96,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4107
+  },
+  {
+    "slug": "spark-plugs",
+    "name": "Spark Plugs",
+    "category": "ignition",
+    "seedAvgHours": 1.13,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4107
+  },
+  {
+    "slug": "spark-plugs-v6",
+    "name": "Spark Plugs - V6",
+    "category": "ignition",
+    "seedAvgHours": 2.52,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4107
+  },
+  {
+    "slug": "spark-plugs-v8",
+    "name": "Spark Plugs - V8",
+    "category": "ignition",
+    "seedAvgHours": 2.05,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4107
+  },
+  {
+    "slug": "armrest",
+    "name": "Armrest",
+    "category": "interior",
+    "seedAvgHours": 0.7,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "carpet",
+    "name": "Carpet",
+    "category": "interior",
+    "seedAvgHours": 4.01,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 6.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "center-console",
+    "name": "Center Console",
+    "category": "interior",
+    "seedAvgHours": 1.64,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "dash-pad",
+    "name": "Dash Pad",
+    "category": "interior",
+    "seedAvgHours": 3.07,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "dashboard",
+    "name": "Dashboard",
+    "category": "interior",
+    "seedAvgHours": 5.91,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 9.6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "door-armrest",
+    "name": "Door Armrest",
+    "category": "interior",
+    "seedAvgHours": 0.7,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "door-panel",
+    "name": "Door Panel",
+    "category": "interior",
+    "seedAvgHours": 1.18,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "floor-mat-hooks",
+    "name": "Floor Mat Hooks",
+    "category": "interior",
+    "seedAvgHours": 0.5,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "glove-box",
+    "name": "Glove Box",
+    "category": "interior",
+    "seedAvgHours": 0.7,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "glove-box-latch",
+    "name": "Glove Box Latch",
+    "category": "interior",
+    "seedAvgHours": 0.5,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "headliner",
+    "name": "Headliner",
+    "category": "interior",
+    "seedAvgHours": 4.01,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 6.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "pedal-pads",
+    "name": "Pedal Pads",
+    "category": "interior",
+    "seedAvgHours": 0.5,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "rearview-mirror",
+    "name": "Rearview Mirror",
+    "category": "interior",
+    "seedAvgHours": 0.5,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "seat-belt",
+    "name": "Seat Belt",
+    "category": "interior",
+    "seedAvgHours": 1.18,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "seat-belt-buckle",
+    "name": "Seat Belt Buckle",
+    "category": "interior",
+    "seedAvgHours": 0.98,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "seat-belt-pretensioner",
+    "name": "Seat Belt Pretensioner",
+    "category": "interior",
+    "seedAvgHours": 1.64,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4434
+  },
+  {
+    "slug": "seat-cover",
+    "name": "Seat Cover",
+    "category": "interior",
+    "seedAvgHours": 2.59,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "seat-foam",
+    "name": "Seat Foam",
+    "category": "interior",
+    "seedAvgHours": 2.12,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.2,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "seat-front",
+    "name": "Seat - Front",
+    "category": "interior",
+    "seedAvgHours": 1.64,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "seat-rear",
+    "name": "Seat - Rear",
+    "category": "interior",
+    "seedAvgHours": 1.18,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "seat-track",
+    "name": "Seat Track",
+    "category": "interior",
+    "seedAvgHours": 1.64,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "shifter-boot",
+    "name": "Shifter Boot",
+    "category": "interior",
+    "seedAvgHours": 0.7,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "shifter-knob",
+    "name": "Shifter Knob",
+    "category": "interior",
+    "seedAvgHours": 0.42,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "steering-wheel-cover",
+    "name": "Steering Wheel Cover",
+    "category": "interior",
+    "seedAvgHours": 0.51,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "sun-visor",
+    "name": "Sun Visor",
+    "category": "interior",
+    "seedAvgHours": 0.5,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "100k-service",
+    "name": "100K Service",
+    "category": "maintenance",
+    "seedAvgHours": 4.81,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 8,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "30k-service",
+    "name": "30K Service",
+    "category": "maintenance",
+    "seedAvgHours": 2.14,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "60k-service",
+    "name": "60K Service",
+    "category": "maintenance",
+    "seedAvgHours": 3.04,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.8,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "90k-service",
+    "name": "90K Service",
+    "category": "maintenance",
+    "seedAvgHours": 3.92,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 6.4,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "ac-diagnosis",
+    "name": "AC System Diagnosis",
+    "category": "maintenance",
+    "seedAvgHours": 1.14,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "air-filter",
+    "name": "Air Filter",
+    "category": "maintenance",
+    "seedAvgHours": 0.28,
+    "seedMinHours": 0.1,
+    "seedMaxHours": 3.8,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "air-filter-replacement",
+    "name": "Air Filter Replacement",
+    "category": "maintenance",
+    "seedAvgHours": 0.29,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 0.5,
+    "vehicleCoverage": 498
+  },
+  {
+    "slug": "battery-test",
+    "name": "Battery Test",
+    "category": "maintenance",
+    "seedAvgHours": 0.44,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "brake-fluid-service",
+    "name": "Brake Fluid Service",
+    "category": "maintenance",
+    "seedAvgHours": 0.89,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "cabin-air-filter-replacement",
+    "name": "Cabin Air Filter Replacement",
+    "category": "maintenance",
+    "seedAvgHours": 0.3,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 0.5,
+    "vehicleCoverage": 498
+  },
+  {
+    "slug": "cabin-filter",
+    "name": "Cabin Air Filter",
+    "category": "maintenance",
+    "seedAvgHours": 0.46,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "charging-system-test",
+    "name": "Charging System Test",
+    "category": "maintenance",
+    "seedAvgHours": 0.52,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "check-engine-diagnosis",
+    "name": "Check Engine Light Diagnosis",
+    "category": "maintenance",
+    "seedAvgHours": 1.14,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "compression-test",
+    "name": "Compression Test",
+    "category": "maintenance",
+    "seedAvgHours": 1.4,
+    "seedMinHours": 1,
+    "seedMaxHours": 4.6,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "coolant-service",
+    "name": "Coolant Service",
+    "category": "maintenance",
+    "seedAvgHours": 1.21,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "cooling-pressure-test",
+    "name": "Cooling System Pressure Test",
+    "category": "maintenance",
+    "seedAvgHours": 0.72,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "diagnostic-scan",
+    "name": "Diagnostic Scan",
+    "category": "maintenance",
+    "seedAvgHours": 0.66,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "differential-service",
+    "name": "Differential Service",
+    "category": "maintenance",
+    "seedAvgHours": 0.9,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.6,
+    "vehicleCoverage": 4444
+  },
+  {
+    "slug": "drivability-diagnosis",
+    "name": "Drivability Diagnosis",
+    "category": "maintenance",
+    "seedAvgHours": 1.6,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "electrical-diagnosis",
+    "name": "Electrical Diagnosis",
+    "category": "maintenance",
+    "seedAvgHours": 1.6,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "emissions-inspection",
+    "name": "Emissions Inspection",
+    "category": "maintenance",
+    "seedAvgHours": 0.66,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4434
+  },
+  {
+    "slug": "fluid-leak-diagnosis",
+    "name": "Fluid Leak Diagnosis",
+    "category": "maintenance",
+    "seedAvgHours": 0.66,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "fuel-filter-service",
+    "name": "Fuel Filter",
+    "category": "maintenance",
+    "seedAvgHours": 0.67,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "leak-down-test",
+    "name": "Leak-Down Test",
+    "category": "maintenance",
+    "seedAvgHours": 1.85,
+    "seedMinHours": 1.1,
+    "seedMaxHours": 4.6,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "noise-diagnosis",
+    "name": "Noise Diagnosis",
+    "category": "maintenance",
+    "seedAvgHours": 1.14,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "oil-change",
+    "name": "Oil Change",
+    "category": "maintenance",
+    "seedAvgHours": 0.39,
+    "seedMinHours": 0.2,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "oil-change-diesel",
+    "name": "Oil Change - Diesel",
+    "category": "maintenance",
+    "seedAvgHours": 0.7,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.5,
+    "vehicleCoverage": 155
+  },
+  {
+    "slug": "oil-change-synthetic",
+    "name": "Oil Change - Synthetic",
+    "category": "maintenance",
+    "seedAvgHours": 0.41,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "power-steering-service",
+    "name": "Power Steering Service",
+    "category": "maintenance",
+    "seedAvgHours": 0.78,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "pre-purchase-inspection",
+    "name": "Pre-Purchase Inspection",
+    "category": "maintenance",
+    "seedAvgHours": 1.14,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "spark-plug-service",
+    "name": "Spark Plug Service",
+    "category": "maintenance",
+    "seedAvgHours": 1.17,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4107
+  },
+  {
+    "slug": "state-inspection",
+    "name": "State Inspection",
+    "category": "maintenance",
+    "seedAvgHours": 0.67,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "synthetic-oil-change",
+    "name": "Synthetic Oil Change",
+    "category": "maintenance",
+    "seedAvgHours": 0.52,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 0.8,
+    "vehicleCoverage": 498
+  },
+  {
+    "slug": "tire-balance",
+    "name": "Tire Balance",
+    "category": "maintenance",
+    "seedAvgHours": 0.72,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "tire-mount-balance",
+    "name": "Tire Mount and Balance",
+    "category": "maintenance",
+    "seedAvgHours": 1.2,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "tire-rotation",
+    "name": "Tire Rotation",
+    "category": "maintenance",
+    "seedAvgHours": 0.45,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "tpms-relearn",
+    "name": "TPMS Relearn",
+    "category": "maintenance",
+    "seedAvgHours": 0.5,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 2846
+  },
+  {
+    "slug": "tpms-sensor",
+    "name": "TPMS Sensor",
+    "category": "maintenance",
+    "seedAvgHours": 0.7,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3.4,
+    "vehicleCoverage": 2846
+  },
+  {
+    "slug": "transfer-case-service",
+    "name": "Transfer Case Service",
+    "category": "maintenance",
+    "seedAvgHours": 2.39,
+    "seedMinHours": 1.1,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 1165
+  },
+  {
+    "slug": "transmission-service",
+    "name": "Transmission Service",
+    "category": "maintenance",
+    "seedAvgHours": 1.2,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 3.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "tune-up-major",
+    "name": "Tune-Up - Major",
+    "category": "maintenance",
+    "seedAvgHours": 3.03,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.8,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "tune-up-minor",
+    "name": "Tune-Up - Minor",
+    "category": "maintenance",
+    "seedAvgHours": 1.69,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "wheel-alignment",
+    "name": "Wheel Alignment",
+    "category": "maintenance",
+    "seedAvgHours": 1.19,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "wheel-alignment-4-wheel",
+    "name": "Wheel Alignment - 4 Wheel",
+    "category": "maintenance",
+    "seedAvgHours": 1.66,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "wiper-blade-replacement",
+    "name": "Wiper Blade Replacement",
+    "category": "maintenance",
+    "seedAvgHours": 0.27,
+    "seedMinHours": 0.1,
+    "seedMaxHours": 0.5,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "center-link",
+    "name": "Center Link/Drag Link",
+    "category": "steering",
+    "seedAvgHours": 1.66,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "eps-module",
+    "name": "Electric Power Steering Module",
+    "category": "steering",
+    "seedAvgHours": 1.68,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "eps-motor",
+    "name": "Electric Power Steering Motor",
+    "category": "steering",
+    "seedAvgHours": 2.63,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "idler-arm",
+    "name": "Idler Arm",
+    "category": "steering",
+    "seedAvgHours": 1.16,
+    "seedMinHours": 0.6,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "pitman-arm",
+    "name": "Pitman Arm",
+    "category": "steering",
+    "seedAvgHours": 1.39,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "power-steering-fluid-flush",
+    "name": "Power Steering Fluid Flush",
+    "category": "steering",
+    "seedAvgHours": 1.79,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "power-steering-gear-box",
+    "name": "Power Steering Gear Box",
+    "category": "steering",
+    "seedAvgHours": 3.62,
+    "seedMinHours": 1,
+    "seedMaxHours": 5.6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "power-steering-pulley",
+    "name": "Power Steering Pump Pulley",
+    "category": "steering",
+    "seedAvgHours": 1.08,
+    "seedMinHours": 0.8,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "power-steering-pump",
+    "name": "Power Steering Pump",
+    "category": "steering",
+    "seedAvgHours": 1.68,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "power-steering-rack",
+    "name": "Power Steering Rack",
+    "category": "steering",
+    "seedAvgHours": 4.1,
+    "seedMinHours": 1,
+    "seedMaxHours": 6.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ps-fluid-flush",
+    "name": "Power Steering Fluid Flush",
+    "category": "steering",
+    "seedAvgHours": 0.73,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ps-hose-high-pressure",
+    "name": "Power Steering Hose - High Pressure",
+    "category": "steering",
+    "seedAvgHours": 1.22,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ps-hose-return",
+    "name": "Power Steering Hose - Return",
+    "category": "steering",
+    "seedAvgHours": 1.01,
+    "seedMinHours": 0.8,
+    "seedMaxHours": 4.8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ps-reservoir",
+    "name": "Power Steering Reservoir",
+    "category": "steering",
+    "seedAvgHours": 0.73,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "rack-boots",
+    "name": "Rack and Pinion Boots",
+    "category": "steering",
+    "seedAvgHours": 2.15,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "steering-angle-sensor",
+    "name": "Steering Angle Sensor",
+    "category": "steering",
+    "seedAvgHours": 1.22,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "steering-column",
+    "name": "Steering Column",
+    "category": "steering",
+    "seedAvgHours": 3.17,
+    "seedMinHours": 1,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "steering-coupler",
+    "name": "Steering Coupler",
+    "category": "steering",
+    "seedAvgHours": 1.21,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "steering-damper",
+    "name": "Steering Damper",
+    "category": "steering",
+    "seedAvgHours": 0.73,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "steering-shaft-intermediate",
+    "name": "Steering Shaft - Intermediate",
+    "category": "steering",
+    "seedAvgHours": 1.73,
+    "seedMinHours": 1,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "steering-shaft-upper",
+    "name": "Steering Shaft - Upper",
+    "category": "steering",
+    "seedAvgHours": 1.74,
+    "seedMinHours": 1,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "steering-wheel",
+    "name": "Steering Wheel",
+    "category": "steering",
+    "seedAvgHours": 1.21,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "tie-rod-assembly",
+    "name": "Tie Rod Assembly",
+    "category": "steering",
+    "seedAvgHours": 1.67,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "tie-rod-end-replacement",
+    "name": "Tie Rod End Replacement",
+    "category": "steering",
+    "seedAvgHours": 1.45,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 2.3,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "tie-rod-inner",
+    "name": "Tie Rod End - Inner",
+    "category": "steering",
+    "seedAvgHours": 1.39,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "tie-rod-outer",
+    "name": "Tie Rod End - Outer",
+    "category": "steering",
+    "seedAvgHours": 1.02,
+    "seedMinHours": 0.8,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "tie-rods-both",
+    "name": "Tie Rods - Both Sides",
+    "category": "steering",
+    "seedAvgHours": 2.15,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "air-line",
+    "name": "Air Line",
+    "category": "suspension",
+    "seedAvgHours": 1.22,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "air-spring",
+    "name": "Air Spring/Air Bag",
+    "category": "suspension",
+    "seedAvgHours": 1.67,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "air-suspension-compressor",
+    "name": "Air Suspension Compressor",
+    "category": "suspension",
+    "seedAvgHours": 1.67,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "air-suspension-sensor",
+    "name": "Air Suspension Height Sensor",
+    "category": "suspension",
+    "seedAvgHours": 1.21,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "air-suspension-valve",
+    "name": "Air Suspension Valve Block",
+    "category": "suspension",
+    "seedAvgHours": 2.15,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ball-joint-lower",
+    "name": "Ball Joint - Lower",
+    "category": "suspension",
+    "seedAvgHours": 1.97,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5.8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ball-joint-replacement",
+    "name": "Ball Joint Replacement",
+    "category": "suspension",
+    "seedAvgHours": 1.96,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "ball-joint-upper",
+    "name": "Ball Joint - Upper",
+    "category": "suspension",
+    "seedAvgHours": 1.74,
+    "seedMinHours": 1,
+    "seedMaxHours": 5.8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "ball-joints-both",
+    "name": "Ball Joints - Upper and Lower",
+    "category": "suspension",
+    "seedAvgHours": 3.17,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 5.8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "coil-spring-front",
+    "name": "Coil Spring - Front",
+    "category": "suspension",
+    "seedAvgHours": 2.15,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "coil-spring-rear",
+    "name": "Coil Spring - Rear",
+    "category": "suspension",
+    "seedAvgHours": 1.68,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "coil-springs-front-pair",
+    "name": "Coil Springs - Front Pair",
+    "category": "suspension",
+    "seedAvgHours": 2.64,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5.8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "coil-springs-rear-pair",
+    "name": "Coil Springs - Rear Pair",
+    "category": "suspension",
+    "seedAvgHours": 2.15,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5.8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "control-arm-bushing-front-lower",
+    "name": "Control Arm Bushing - Front Lower",
+    "category": "suspension",
+    "seedAvgHours": 2.69,
+    "seedMinHours": 1,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "control-arm-bushing-front-upper",
+    "name": "Control Arm Bushing - Front Upper",
+    "category": "suspension",
+    "seedAvgHours": 2.22,
+    "seedMinHours": 1,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "control-arm-bushing-rear",
+    "name": "Control Arm Bushing - Rear",
+    "category": "suspension",
+    "seedAvgHours": 2.21,
+    "seedMinHours": 1,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "front-strut-single",
+    "name": "Front Strut - Single",
+    "category": "suspension",
+    "seedAvgHours": 1.67,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "front-struts-pair",
+    "name": "Front Struts - Pair",
+    "category": "suspension",
+    "seedAvgHours": 2.64,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5.8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "knuckle-front",
+    "name": "Knuckle/Spindle - Front",
+    "category": "suspension",
+    "seedAvgHours": 2.81,
+    "seedMinHours": 1,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "knuckle-rear",
+    "name": "Knuckle/Spindle - Rear",
+    "category": "suspension",
+    "seedAvgHours": 2.33,
+    "seedMinHours": 1,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "lateral-arm",
+    "name": "Lateral Arm",
+    "category": "suspension",
+    "seedAvgHours": 1.68,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "leaf-spring",
+    "name": "Leaf Spring",
+    "category": "suspension",
+    "seedAvgHours": 2.15,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "leaf-spring-bushing",
+    "name": "Leaf Spring Bushing",
+    "category": "suspension",
+    "seedAvgHours": 2.15,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "leaf-spring-shackle",
+    "name": "Leaf Spring Shackle",
+    "category": "suspension",
+    "seedAvgHours": 1.21,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "leaf-spring-u-bolts",
+    "name": "Leaf Spring U-Bolt Kit",
+    "category": "suspension",
+    "seedAvgHours": 1.68,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "lower-control-arm",
+    "name": "Lower Control Arm",
+    "category": "suspension",
+    "seedAvgHours": 2.21,
+    "seedMinHours": 1.1,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "lower-control-arm-front",
+    "name": "Lower Control Arm - Front",
+    "category": "suspension",
+    "seedAvgHours": 2.22,
+    "seedMinHours": 1,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "lower-control-arm-rear",
+    "name": "Lower Control Arm - Rear",
+    "category": "suspension",
+    "seedAvgHours": 2.21,
+    "seedMinHours": 1,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "panhard-bar",
+    "name": "Panhard Bar/Track Bar",
+    "category": "suspension",
+    "seedAvgHours": 1.67,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "radius-arm",
+    "name": "Radius Arm",
+    "category": "suspension",
+    "seedAvgHours": 2.15,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "radius-arm-bushing",
+    "name": "Radius Arm Bushing",
+    "category": "suspension",
+    "seedAvgHours": 2.63,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "rear-shock-single",
+    "name": "Rear Shock - Single",
+    "category": "suspension",
+    "seedAvgHours": 1.21,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "rear-shocks-pair",
+    "name": "Rear Shocks - Pair",
+    "category": "suspension",
+    "seedAvgHours": 1.68,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5.8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "shock-absorber-replacement",
+    "name": "Shock Absorber Replacement",
+    "category": "suspension",
+    "seedAvgHours": 1.48,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 2.3,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "strut-assembly-front",
+    "name": "Strut Assembly - Front",
+    "category": "suspension",
+    "seedAvgHours": 2.16,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "strut-assembly-rear",
+    "name": "Strut Assembly - Rear",
+    "category": "suspension",
+    "seedAvgHours": 1.67,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "strut-bearing",
+    "name": "Strut Bearing",
+    "category": "suspension",
+    "seedAvgHours": 2.63,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "strut-mount-front",
+    "name": "Strut Mount - Front",
+    "category": "suspension",
+    "seedAvgHours": 2.63,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "strut-mount-rear",
+    "name": "Strut Mount - Rear",
+    "category": "suspension",
+    "seedAvgHours": 2.15,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "strut-replacement-front",
+    "name": "Strut Replacement (Front)",
+    "category": "suspension",
+    "seedAvgHours": 1.61,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 2.3,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "strut-replacement-rear",
+    "name": "Strut Replacement (Rear)",
+    "category": "suspension",
+    "seedAvgHours": 1.53,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 2.3,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "subframe",
+    "name": "Subframe",
+    "category": "suspension",
+    "seedAvgHours": 6.12,
+    "seedMinHours": 1,
+    "seedMaxHours": 9.6,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "subframe-bushing",
+    "name": "Subframe Bushing",
+    "category": "suspension",
+    "seedAvgHours": 4.22,
+    "seedMinHours": 1,
+    "seedMaxHours": 6.4,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "sway-bar-bushing-front",
+    "name": "Sway Bar Bushing - Front",
+    "category": "suspension",
+    "seedAvgHours": 0.74,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "sway-bar-bushing-rear",
+    "name": "Sway Bar Bushing - Rear",
+    "category": "suspension",
+    "seedAvgHours": 0.74,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "sway-bar-front",
+    "name": "Sway Bar - Front",
+    "category": "suspension",
+    "seedAvgHours": 1.21,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "sway-bar-link-front",
+    "name": "Sway Bar Link - Front",
+    "category": "suspension",
+    "seedAvgHours": 0.64,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "sway-bar-link-rear",
+    "name": "Sway Bar Link - Rear",
+    "category": "suspension",
+    "seedAvgHours": 0.74,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "sway-bar-links-front-pair",
+    "name": "Sway Bar Links - Front Pair",
+    "category": "suspension",
+    "seedAvgHours": 1.03,
+    "seedMinHours": 0.8,
+    "seedMaxHours": 5.8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "sway-bar-rear",
+    "name": "Sway Bar - Rear",
+    "category": "suspension",
+    "seedAvgHours": 1.22,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "torsion-bar",
+    "name": "Torsion Bar",
+    "category": "suspension",
+    "seedAvgHours": 2.15,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "torsion-bar-adjustment",
+    "name": "Torsion Bar Adjustment",
+    "category": "suspension",
+    "seedAvgHours": 0.74,
+    "seedMinHours": 0.5,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "trailing-arm",
+    "name": "Trailing Arm",
+    "category": "suspension",
+    "seedAvgHours": 2.33,
+    "seedMinHours": 1.1,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "trailing-arm-bushing",
+    "name": "Trailing Arm Bushing",
+    "category": "suspension",
+    "seedAvgHours": 2.81,
+    "seedMinHours": 1,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "upper-control-arm",
+    "name": "Upper Control Arm",
+    "category": "suspension",
+    "seedAvgHours": 1.74,
+    "seedMinHours": 1.1,
+    "seedMaxHours": 4.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "upper-control-arm-front",
+    "name": "Upper Control Arm - Front",
+    "category": "suspension",
+    "seedAvgHours": 1.73,
+    "seedMinHours": 1,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "upper-control-arm-rear",
+    "name": "Upper Control Arm - Rear",
+    "category": "suspension",
+    "seedAvgHours": 1.74,
+    "seedMinHours": 1,
+    "seedMaxHours": 5,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "wheel-bearing-replacement-front",
+    "name": "Wheel Bearing Replacement (Front)",
+    "category": "suspension",
+    "seedAvgHours": 1.96,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "wheel-bearing-replacement-rear",
+    "name": "Wheel Bearing Replacement (Rear)",
+    "category": "suspension",
+    "seedAvgHours": 1.96,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "auto-trans-rebuild",
+    "name": "Transmission Rebuild - Automatic",
+    "category": "transmission",
+    "seedAvgHours": 14.62,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 27,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "auto-trans-rr",
+    "name": "Transmission R&R - Automatic",
+    "category": "transmission",
+    "seedAvgHours": 6.27,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 16.2,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "clutch-cable",
+    "name": "Clutch Cable",
+    "category": "transmission",
+    "seedAvgHours": 1.55,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 2.3,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "clutch-disc",
+    "name": "Clutch Disc",
+    "category": "transmission",
+    "seedAvgHours": 3.69,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 13.9,
+    "vehicleCoverage": 764
+  },
+  {
+    "slug": "clutch-hydraulic-line",
+    "name": "Clutch Hydraulic Line",
+    "category": "transmission",
+    "seedAvgHours": 2.09,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 13.4,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "clutch-kit",
+    "name": "Clutch Kit",
+    "category": "transmission",
+    "seedAvgHours": 5.09,
+    "seedMinHours": 3,
+    "seedMaxHours": 7.6,
+    "vehicleCoverage": 499
+  },
+  {
+    "slug": "clutch-master-cylinder",
+    "name": "Clutch Master Cylinder",
+    "category": "transmission",
+    "seedAvgHours": 2.06,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "clutch-slave-cylinder",
+    "name": "Clutch Slave Cylinder",
+    "category": "transmission",
+    "seedAvgHours": 2.06,
+    "seedMinHours": 1.2,
+    "seedMaxHours": 3,
+    "vehicleCoverage": 513
+  },
+  {
+    "slug": "dual-mass-flywheel",
+    "name": "Dual Mass Flywheel",
+    "category": "transmission",
+    "seedAvgHours": 6.01,
+    "seedMinHours": 2.7,
+    "seedMaxHours": 14,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "flywheel-replacement",
+    "name": "Flywheel Replacement",
+    "category": "transmission",
+    "seedAvgHours": 5.53,
+    "seedMinHours": 2.7,
+    "seedMaxHours": 14,
+    "vehicleCoverage": 4147
+  },
+  {
+    "slug": "flywheel-resurface",
+    "name": "Flywheel Resurface",
+    "category": "transmission",
+    "seedAvgHours": 4.65,
+    "seedMinHours": 2.7,
+    "seedMaxHours": 6.8,
+    "vehicleCoverage": 498
+  },
+  {
+    "slug": "kickdown-cable",
+    "name": "Kickdown Cable",
+    "category": "transmission",
+    "seedAvgHours": 1.47,
+    "seedMinHours": 0.8,
+    "seedMaxHours": 13.9,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "manual-trans-fluid",
+    "name": "Manual Trans Fluid Change",
+    "category": "transmission",
+    "seedAvgHours": 1.08,
+    "seedMinHours": 0.3,
+    "seedMaxHours": 13.9,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "manual-trans-rebuild",
+    "name": "Transmission Rebuild - Manual",
+    "category": "transmission",
+    "seedAvgHours": 11.97,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 27,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "manual-trans-rr",
+    "name": "Transmission R&R - Manual",
+    "category": "transmission",
+    "seedAvgHours": 5.4,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 16.2,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "neutral-safety-switch",
+    "name": "Neutral Safety Switch",
+    "category": "transmission",
+    "seedAvgHours": 1.64,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 13.8,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "overdrive-solenoid",
+    "name": "Overdrive Solenoid",
+    "category": "transmission",
+    "seedAvgHours": 2.54,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 13.9,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "pilot-bearing",
+    "name": "Pilot Bearing",
+    "category": "transmission",
+    "seedAvgHours": 3.62,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 13.9,
+    "vehicleCoverage": 764
+  },
+  {
+    "slug": "pressure-plate",
+    "name": "Pressure Plate",
+    "category": "transmission",
+    "seedAvgHours": 5.19,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "shift-cable",
+    "name": "Shift Cable",
+    "category": "transmission",
+    "seedAvgHours": 1.82,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 13.8,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "shift-fork",
+    "name": "Shift Fork",
+    "category": "transmission",
+    "seedAvgHours": 7.85,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 13.9,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "shift-linkage",
+    "name": "Shift Linkage",
+    "category": "transmission",
+    "seedAvgHours": 1.36,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 13.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "shift-solenoid-single",
+    "name": "Shift Solenoid - Single",
+    "category": "transmission",
+    "seedAvgHours": 3.99,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14,
+    "vehicleCoverage": 2800
+  },
+  {
+    "slug": "shift-solenoids-all",
+    "name": "Shift Solenoids - All",
+    "category": "transmission",
+    "seedAvgHours": 7.99,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 19.4,
+    "vehicleCoverage": 2800
+  },
+  {
+    "slug": "synchro-single",
+    "name": "Synchros - Single Gear",
+    "category": "transmission",
+    "seedAvgHours": 9.47,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 16,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "synchros-all",
+    "name": "Synchros - All",
+    "category": "transmission",
+    "seedAvgHours": 11.51,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 19.2,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "tcc-solenoid",
+    "name": "Torque Converter Clutch Solenoid",
+    "category": "transmission",
+    "seedAvgHours": 6.24,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14.9,
+    "vehicleCoverage": 2784
+  },
+  {
+    "slug": "tcm",
+    "name": "Transmission Control Module",
+    "category": "transmission",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "throw-out-bearing",
+    "name": "Throw-Out Bearing",
+    "category": "transmission",
+    "seedAvgHours": 3.59,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14,
+    "vehicleCoverage": 764
+  },
+  {
+    "slug": "torque-converter",
+    "name": "Torque Converter",
+    "category": "transmission",
+    "seedAvgHours": 6.83,
+    "seedMinHours": 2.7,
+    "seedMaxHours": 14.9,
+    "vehicleCoverage": 2769
+  },
+  {
+    "slug": "trans-cooler",
+    "name": "Transmission Oil Cooler",
+    "category": "transmission",
+    "seedAvgHours": 2.18,
+    "seedMinHours": 1.5,
+    "seedMaxHours": 14,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "trans-cooler-lines",
+    "name": "Transmission Cooler Lines",
+    "category": "transmission",
+    "seedAvgHours": 1.72,
+    "seedMinHours": 1,
+    "seedMaxHours": 13.9,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "trans-filter",
+    "name": "Transmission Filter",
+    "category": "transmission",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "trans-filter-fluid",
+    "name": "Transmission Filter and Fluid",
+    "category": "transmission",
+    "seedAvgHours": 1.81,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "trans-fluid-change",
+    "name": "Transmission Fluid Change",
+    "category": "transmission",
+    "seedAvgHours": 1.38,
+    "seedMinHours": 0.4,
+    "seedMaxHours": 13.9,
+    "vehicleCoverage": 4386
+  },
+  {
+    "slug": "trans-flush",
+    "name": "Transmission Flush",
+    "category": "transmission",
+    "seedAvgHours": 2.08,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 13.7,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "trans-input-bearing",
+    "name": "Transmission Input Shaft Bearing",
+    "category": "transmission",
+    "seedAvgHours": 7.86,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "trans-mount",
+    "name": "Transmission Mount",
+    "category": "transmission",
+    "seedAvgHours": 1.35,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 13.7,
+    "vehicleCoverage": 4449
+  },
+  {
+    "slug": "trans-output-bearing",
+    "name": "Transmission Output Shaft Bearing",
+    "category": "transmission",
+    "seedAvgHours": 7.86,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 13.9,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "trans-pan-gasket",
+    "name": "Transmission Pan Gasket",
+    "category": "transmission",
+    "seedAvgHours": 1.64,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 13.9,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "trans-range-sensor",
+    "name": "Transmission Range Sensor",
+    "category": "transmission",
+    "seedAvgHours": 1.64,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 13.7,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "trans-speed-sensor-input",
+    "name": "Transmission Speed Sensor - Input",
+    "category": "transmission",
+    "seedAvgHours": 1.65,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "trans-speed-sensor-output",
+    "name": "Transmission Speed Sensor - Output",
+    "category": "transmission",
+    "seedAvgHours": 1.66,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 13.7,
+    "vehicleCoverage": 4401
+  },
+  {
+    "slug": "transmission-fluid-change",
+    "name": "Transmission Fluid Change",
+    "category": "transmission",
+    "seedAvgHours": 1.45,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 2.3,
+    "vehicleCoverage": 498
+  },
+  {
+    "slug": "valve-body",
+    "name": "Valve Body",
+    "category": "transmission",
+    "seedAvgHours": 6.29,
+    "seedMinHours": 0.9,
+    "seedMaxHours": 14.9,
+    "vehicleCoverage": 2800
+  }
+]

@@ -1,0 +1,402 @@
+{
+  "_baseToolsAssumed": ["Socket & wrench set", "Torque wrench", "Scan tool", "Trim tools"],
+  "_note": "tools[] = notable/specialty only. hvSafety:true jobs require an HV-certified tech, Class-0 insulated gloves + insulated tools, and HV service-disconnect/lockout before work.",
+  "jobs": [
+    {
+      "slug": "12v-aux-battery",
+      "difficulty": 1,
+      "tools": [{ "name": "Memory saver", "optional": true }],
+      "typicalParts": ["12V auxiliary battery"],
+      "notes": "Low-voltage; some need battery registration."
+    },
+    {
+      "slug": "ev-software-update",
+      "difficulty": 1,
+      "tools": [{ "name": "OEM scan/flash tool", "specialty": true }],
+      "typicalParts": [],
+      "notes": "OTA or tool-based; ensure stable power."
+    },
+    {
+      "slug": "ev-diagnostic-scan",
+      "difficulty": 1,
+      "tools": [{ "name": "EV-capable scan tool", "specialty": true }],
+      "typicalParts": [],
+      "notes": "HV system + isolation diagnostics."
+    },
+    {
+      "slug": "ev-system-reset",
+      "difficulty": 1,
+      "tools": [{ "name": "Scan tool", "specialty": true }],
+      "typicalParts": [],
+      "notes": ""
+    },
+    {
+      "slug": "range-optimization",
+      "difficulty": 1,
+      "tools": [{ "name": "Scan tool", "specialty": true }],
+      "typicalParts": [],
+      "notes": "Settings/charge-limit + battery health review."
+    },
+    {
+      "slug": "ev-annual-inspection",
+      "difficulty": 2,
+      "tools": [
+        { "name": "EV scan tool", "specialty": true },
+        { "name": "Insulation/megohmmeter", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Cabin filter (if due)"],
+      "notes": "Includes HV isolation + coolant + brake checks."
+    },
+    {
+      "slug": "ev-cabin-filter-hepa",
+      "difficulty": 1,
+      "tools": [{ "name": "Trim tool", "optional": true }],
+      "typicalParts": ["HEPA cabin filter"],
+      "notes": "Low-voltage; behind glovebox/frunk."
+    },
+    {
+      "slug": "one-pedal-calibration",
+      "difficulty": 1,
+      "tools": [{ "name": "Scan tool", "specialty": true }],
+      "typicalParts": [],
+      "notes": "Regen/one-pedal behavior calibration."
+    },
+    {
+      "slug": "regen-brake-calibration",
+      "difficulty": 1,
+      "tools": [{ "name": "Scan tool", "specialty": true }],
+      "typicalParts": [],
+      "notes": "Blended regen/friction brake calibration."
+    },
+    {
+      "slug": "charge-port-door-actuator",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools" }],
+      "typicalParts": ["Charge port door actuator"],
+      "notes": "Low-voltage."
+    },
+    {
+      "slug": "charge-port-latch",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools" }],
+      "typicalParts": ["Charge port latch"],
+      "notes": ""
+    },
+    {
+      "slug": "charge-port-seal",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Charge port seal/gasket"],
+      "notes": ""
+    },
+    {
+      "slug": "charging-cable-l1",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Level 1 charge cable (EVSE)"],
+      "notes": "Portable accessory."
+    },
+    {
+      "slug": "charging-cable-l2",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Level 2 charge cable/connector"],
+      "notes": ""
+    },
+    {
+      "slug": "charge-port-assembly",
+      "difficulty": 3,
+      "tools": [{ "name": "Trim tools" }, { "name": "Scan tool", "specialty": true }],
+      "typicalParts": ["Charge port assembly"],
+      "hvSafety": true,
+      "notes": "DC contacts can be HV-connected; de-energize per OEM."
+    },
+    {
+      "slug": "dc-fast-charge-port",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Insulated tools", "specialty": true },
+        { "name": "Scan tool", "specialty": true }
+      ],
+      "typicalParts": ["DC fast-charge port/contactor"],
+      "hvSafety": true,
+      "notes": "HV DC; service-disconnect + verify zero volts."
+    },
+    {
+      "slug": "onboard-charger-rr",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Insulated tools", "specialty": true },
+        { "name": "Scan tool", "specialty": true }
+      ],
+      "typicalParts": ["Onboard charger (OBC)", "HV connectors/seals"],
+      "hvSafety": true,
+      "notes": "HV component; lockout + verify de-energized."
+    },
+    {
+      "slug": "dc-dc-converter",
+      "difficulty": 4,
+      "tools": [{ "name": "Insulated tools", "specialty": true }],
+      "typicalParts": ["DC-DC converter", "Coolant (if cooled)"],
+      "hvSafety": true,
+      "notes": "HV-to-12V converter; HV safety + coolant service."
+    },
+    {
+      "slug": "battery-bms",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Scan tool (programming)", "specialty": true },
+        { "name": "Insulated tools", "specialty": true }
+      ],
+      "typicalParts": ["Battery management module"],
+      "hvSafety": true,
+      "notes": "Programming + HV pack access."
+    },
+    {
+      "slug": "battery-junction-box",
+      "difficulty": 4,
+      "tools": [{ "name": "Insulated tools", "specialty": true }],
+      "typicalParts": ["HV junction box / contactors", "Pyro fuse (some)"],
+      "hvSafety": true,
+      "notes": "Main HV distribution; lockout mandatory."
+    },
+    {
+      "slug": "battery-thermal-module",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Insulated tools", "specialty": true },
+        { "name": "Coolant fill tools", "specialty": true }
+      ],
+      "typicalParts": ["Battery thermal module", "Coolant"],
+      "hvSafety": true,
+      "notes": "Pack thermal; HV + coolant service."
+    },
+    {
+      "slug": "battery-disconnect-service",
+      "difficulty": 2,
+      "tools": [{ "name": "Insulated gloves/tools", "specialty": true }],
+      "typicalParts": ["(Service)"],
+      "hvSafety": true,
+      "notes": "Remove HV service disconnect + verify zero volts (prereq for most HV work)."
+    },
+    {
+      "slug": "battery-coolant-flush",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Coolant fill/vacuum tool", "specialty": true },
+        { "name": "Scan tool", "specialty": true }
+      ],
+      "typicalParts": ["Battery coolant (correct spec)"],
+      "hvSafety": true,
+      "notes": "Pack thermal loop; bleed per OEM."
+    },
+    {
+      "slug": "battery-cooling-service",
+      "difficulty": 3,
+      "tools": [{ "name": "Coolant fill/vacuum tool", "specialty": true }],
+      "typicalParts": ["Battery coolant", "O-rings"],
+      "hvSafety": true,
+      "notes": ""
+    },
+    {
+      "slug": "hv-battery-module-rr",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Insulated tools", "specialty": true },
+        { "name": "Battery lift table", "specialty": true },
+        { "name": "Scan tool", "specialty": true }
+      ],
+      "typicalParts": ["HV battery module(s)", "Seals/hardware"],
+      "hvSafety": true,
+      "notes": "Specialist HV work; pack opened. Cell balancing/coding after."
+    },
+    {
+      "slug": "hv-battery-pack-rr",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Battery lift table/hoist", "specialty": true },
+        { "name": "Insulated tools", "specialty": true },
+        { "name": "Scan tool", "specialty": true }
+      ],
+      "typicalParts": ["HV battery pack", "Seals", "Coolant"],
+      "hvSafety": true,
+      "notes": "Heavy + dangerous; specialist/dealer-level. Full lockout + verify zero volts."
+    },
+    {
+      "slug": "hv-service-disconnect",
+      "difficulty": 2,
+      "tools": [{ "name": "Insulated gloves/tools", "specialty": true }],
+      "typicalParts": ["HV service disconnect/plug"],
+      "hvSafety": true,
+      "notes": "Removal de-energizes pack; verify with meter."
+    },
+    {
+      "slug": "hv-cable-inspection",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Insulated tools", "specialty": true },
+        { "name": "Megohmmeter", "specialty": true, "optional": true }
+      ],
+      "typicalParts": [],
+      "hvSafety": true,
+      "notes": "Inspect orange HV cabling/insulation."
+    },
+    {
+      "slug": "hv-wiring-harness",
+      "difficulty": 5,
+      "tools": [{ "name": "Insulated tools", "specialty": true }],
+      "typicalParts": ["HV harness/cables", "Connectors/seals"],
+      "hvSafety": true,
+      "notes": "Extensive HV routing; lockout mandatory."
+    },
+    {
+      "slug": "hv-interlock-service",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Scan tool", "specialty": true },
+        { "name": "Insulated tools", "specialty": true }
+      ],
+      "typicalParts": ["HVIL connectors/components"],
+      "hvSafety": true,
+      "notes": "High-voltage interlock loop diagnosis/repair."
+    },
+    {
+      "slug": "pyro-fuse-inspection",
+      "difficulty": 2,
+      "tools": [{ "name": "Scan tool", "specialty": true }],
+      "typicalParts": ["Pyro fuse (if deployed)"],
+      "hvSafety": true,
+      "notes": "Pyrotechnic HV disconnect; replace if triggered."
+    },
+    {
+      "slug": "ev-coolant-pump",
+      "difficulty": 2,
+      "tools": [{ "name": "Coolant fill/vacuum tool", "specialty": true }],
+      "typicalParts": ["Electric coolant pump", "Coolant"],
+      "notes": "Low-voltage pump; bleed loop after."
+    },
+    {
+      "slug": "ev-coolant-lines",
+      "difficulty": 2,
+      "tools": [{ "name": "Coolant fill tool", "specialty": true }],
+      "typicalParts": ["Coolant lines/fittings", "Coolant"],
+      "notes": "Multiple thermal loops."
+    },
+    {
+      "slug": "ev-radiator",
+      "difficulty": 3,
+      "tools": [{ "name": "Coolant fill/vacuum tool", "specialty": true }],
+      "typicalParts": ["EV radiator", "Coolant"],
+      "notes": "Thermal management radiator."
+    },
+    {
+      "slug": "ev-chiller",
+      "difficulty": 3,
+      "tools": [
+        { "name": "AC recover/recharge machine", "specialty": true },
+        { "name": "Coolant fill tool", "specialty": true }
+      ],
+      "typicalParts": ["Battery chiller", "Coolant", "Refrigerant"],
+      "notes": "Refrigerant-to-coolant chiller; EPA 609 + coolant bleed."
+    },
+    {
+      "slug": "ev-thermal-management",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Scan tool", "specialty": true },
+        { "name": "Coolant fill/vacuum tool", "specialty": true }
+      ],
+      "typicalParts": ["Coolant valves/pumps as needed", "Coolant"],
+      "notes": "Multi-loop thermal system service."
+    },
+    {
+      "slug": "heat-pump-system",
+      "difficulty": 4,
+      "tools": [
+        { "name": "AC recover/recharge machine", "specialty": true },
+        { "name": "Scan tool", "specialty": true }
+      ],
+      "typicalParts": ["Heat-pump components", "Refrigerant", "Coolant"],
+      "notes": "Complex refrigerant/heat-pump; EPA 609."
+    },
+    {
+      "slug": "ptc-cabin-heater",
+      "difficulty": 3,
+      "tools": [{ "name": "Insulated tools", "specialty": true, "optional": true }],
+      "typicalParts": ["PTC cabin heater", "Coolant (if coolant-PTC)"],
+      "hvSafety": true,
+      "notes": "Some PTC heaters are HV-powered."
+    },
+    {
+      "slug": "inverter-coolant",
+      "difficulty": 2,
+      "tools": [{ "name": "Coolant fill/vacuum tool", "specialty": true }],
+      "typicalParts": ["Inverter coolant"],
+      "notes": "Power-electronics cooling loop."
+    },
+    {
+      "slug": "inverter-rr",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Insulated tools", "specialty": true },
+        { "name": "Scan tool", "specialty": true }
+      ],
+      "typicalParts": ["Inverter", "HV connectors/seals", "Coolant"],
+      "hvSafety": true,
+      "notes": "HV power electronics; lockout + verify de-energized."
+    },
+    {
+      "slug": "power-electronics-module",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Insulated tools", "specialty": true },
+        { "name": "Scan tool", "specialty": true }
+      ],
+      "typicalParts": ["Power electronics module", "Coolant/seals"],
+      "hvSafety": true,
+      "notes": "HV; specialist work + coding."
+    },
+    {
+      "slug": "ev-motor-rr",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Insulated tools", "specialty": true },
+        { "name": "Transmission jack/hoist", "specialty": true }
+      ],
+      "typicalParts": ["Drive motor/unit", "Seals", "Reduction-gear fluid"],
+      "hvSafety": true,
+      "notes": "HV 3-phase; de-energize. Heavy assembly."
+    },
+    {
+      "slug": "ev-motor-inspection",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Scan tool", "specialty": true },
+        { "name": "Megohmmeter", "specialty": true, "optional": true }
+      ],
+      "typicalParts": [],
+      "notes": "Bearing noise / resolver / insulation check."
+    },
+    {
+      "slug": "ev-motor-mount",
+      "difficulty": 3,
+      "tools": [{ "name": "Transmission jack", "specialty": true, "optional": true }],
+      "typicalParts": ["Motor/drive-unit mount"],
+      "notes": "Support drive unit."
+    },
+    {
+      "slug": "reduction-gear-service",
+      "difficulty": 2,
+      "tools": [{ "name": "Fluid pump", "specialty": true }],
+      "typicalParts": ["Reduction-gear fluid (correct spec)"],
+      "notes": "EV single-speed gearbox fluid."
+    },
+    {
+      "slug": "drive-unit-fluid",
+      "difficulty": 2,
+      "tools": [{ "name": "Fluid pump", "specialty": true }],
+      "typicalParts": ["Drive-unit/gearbox fluid"],
+      "notes": ""
+    }
+  ]
+}

@@ -1,0 +1,253 @@
+{
+  "_baseToolsAssumed": [
+    "Floor jack",
+    "Jack stands",
+    "Socket & wrench set",
+    "Penetrating oil",
+    "Safety glasses"
+  ],
+  "_note": "tools[] = notable/specialty only. Rust-seized hardware is the norm — plan for cutting/penetrant.",
+  "jobs": [
+    {
+      "slug": "exhaust-tip",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Exhaust tip", "Clamp"],
+      "notes": ""
+    },
+    {
+      "slug": "exhaust-clamp",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Exhaust clamp"],
+      "notes": ""
+    },
+    {
+      "slug": "exhaust-hangers",
+      "difficulty": 1,
+      "tools": [{ "name": "Hanger removal tool / spray lube", "optional": true }],
+      "typicalParts": ["Exhaust hangers/isolators"],
+      "notes": ""
+    },
+    {
+      "slug": "tail-pipe",
+      "difficulty": 2,
+      "tools": [{ "name": "Sawzall (welded systems)", "specialty": true, "optional": true }],
+      "typicalParts": ["Tail pipe", "Clamps/gaskets"],
+      "notes": "Cut if rust-welded."
+    },
+    {
+      "slug": "resonator",
+      "difficulty": 2,
+      "tools": [{ "name": "Sawzall / welder", "specialty": true, "optional": true }],
+      "typicalParts": ["Resonator", "Clamps"],
+      "notes": "Welded vs clamped."
+    },
+    {
+      "slug": "muffler",
+      "difficulty": 2,
+      "tools": [{ "name": "Sawzall / welder", "specialty": true, "optional": true }],
+      "typicalParts": ["Muffler", "Clamps/gaskets/hangers"],
+      "notes": "Weld-in vs bolt/clamp."
+    },
+    {
+      "slug": "exhaust-pipe-rear",
+      "difficulty": 2,
+      "tools": [{ "name": "Sawzall / welder", "specialty": true, "optional": true }],
+      "typicalParts": ["Rear exhaust pipe", "Clamps/gaskets"],
+      "notes": ""
+    },
+    {
+      "slug": "exhaust-pipe-front",
+      "difficulty": 2,
+      "tools": [{ "name": "Sawzall / welder", "specialty": true, "optional": true }],
+      "typicalParts": ["Front exhaust pipe", "Gaskets/hardware"],
+      "notes": ""
+    },
+    {
+      "slug": "intermediate-pipe",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Intermediate pipe", "Gaskets/clamps"],
+      "notes": ""
+    },
+    {
+      "slug": "front-pipe",
+      "difficulty": 3,
+      "tools": [{ "name": "Penetrating oil" }],
+      "typicalParts": ["Front pipe", "Gaskets", "Hardware"],
+      "notes": "Flange bolts at manifold often seized."
+    },
+    {
+      "slug": "downpipe",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Penetrating oil" },
+        { "name": "O2 socket", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Downpipe", "Gaskets", "Hardware"],
+      "notes": "Turbo downpipes: tight access + heat-seized."
+    },
+    {
+      "slug": "flex-pipe",
+      "difficulty": 3,
+      "tools": [{ "name": "Welder", "specialty": true, "optional": true }],
+      "typicalParts": ["Flex pipe section", "Clamps"],
+      "notes": "Often welded repair."
+    },
+    {
+      "slug": "exhaust-gasket-front",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Front exhaust gasket", "Hardware"],
+      "notes": ""
+    },
+    {
+      "slug": "exhaust-gasket-rear",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Rear exhaust gasket", "Hardware"],
+      "notes": ""
+    },
+    {
+      "slug": "exhaust-manifold-gasket-only",
+      "difficulty": 3,
+      "tools": [{ "name": "Penetrating oil" }],
+      "typicalParts": ["Manifold gasket", "Hardware"],
+      "notes": "Studs may snap."
+    },
+    {
+      "slug": "exhaust-manifold-studs",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Stud extractor / drill & tap set", "specialty": true },
+        { "name": "Penetrating oil / heat", "specialty": true }
+      ],
+      "typicalParts": ["Manifold studs/nuts"],
+      "notes": "Broken-stud extraction; sometimes head removal."
+    },
+    {
+      "slug": "catalytic-converter-direct",
+      "difficulty": 2,
+      "tools": [{ "name": "O2 socket", "specialty": true, "optional": true }],
+      "typicalParts": ["Direct-fit catalytic converter", "Gaskets/hardware"],
+      "notes": "Use CARB/EPA-compliant cat."
+    },
+    {
+      "slug": "catalytic-converter-carb",
+      "difficulty": 2,
+      "tools": [{ "name": "O2 socket", "specialty": true, "optional": true }],
+      "typicalParts": ["CARB-compliant catalytic converter", "Gaskets"],
+      "notes": "CARB-legal cat (required in CA and CARB states)."
+    },
+    {
+      "slug": "catalytic-converter-universal",
+      "difficulty": 3,
+      "tools": [{ "name": "Welder", "specialty": true }],
+      "typicalParts": ["Universal catalytic converter", "Pipe/clamps"],
+      "notes": "Weld-in; must be emissions-compliant for the vehicle."
+    },
+    {
+      "slug": "catalytic-converter-replacement",
+      "difficulty": 2,
+      "tools": [{ "name": "O2 socket", "specialty": true, "optional": true }],
+      "typicalParts": ["Catalytic converter (compliant)", "Gaskets"],
+      "notes": "Always fit an emissions-legal cat."
+    },
+    {
+      "slug": "o2-sensor-upstream",
+      "difficulty": 2,
+      "tools": [{ "name": "O2 sensor socket", "specialty": true }],
+      "typicalParts": ["Upstream O2/AFR sensor"],
+      "likelySizes": ["O2 socket 22mm (7/8\")"],
+      "notes": "Seized bung common; heat to free."
+    },
+    {
+      "slug": "o2-sensor-downstream",
+      "difficulty": 2,
+      "tools": [{ "name": "O2 sensor socket", "specialty": true }],
+      "typicalParts": ["Downstream O2 sensor"],
+      "likelySizes": ["O2 socket 22mm (7/8\")"],
+      "notes": ""
+    },
+    {
+      "slug": "o2-sensors-all",
+      "difficulty": 3,
+      "tools": [{ "name": "O2 sensor socket", "specialty": true }],
+      "typicalParts": ["All O2 sensors"],
+      "notes": ""
+    },
+    {
+      "slug": "egr-valve",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["EGR valve", "Gasket"],
+      "notes": "Clean passages; clear codes."
+    },
+    {
+      "slug": "egr-tube",
+      "difficulty": 2,
+      "tools": [{ "name": "Line wrench", "specialty": true, "optional": true }],
+      "typicalParts": ["EGR tube", "Gaskets"],
+      "notes": "Often carbon-seized."
+    },
+    {
+      "slug": "egr-cooler",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["EGR cooler", "Gaskets", "Coolant"],
+      "notes": "Diesel/some gas; coolant service after."
+    },
+    {
+      "slug": "air-injection-pump",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Secondary air injection pump"],
+      "notes": ""
+    },
+    {
+      "slug": "air-injection-valve",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Air injection/combination valve", "Gasket"],
+      "notes": ""
+    },
+    {
+      "slug": "def-tank",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["DEF tank", "Heater/sensors"],
+      "notes": "Diesel SCR; handle DEF cleanly."
+    },
+    {
+      "slug": "def-injector",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["DEF dosing injector", "Gasket"],
+      "notes": "Diesel SCR."
+    },
+    {
+      "slug": "scr-catalyst",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["SCR catalyst", "Gaskets/sensors"],
+      "notes": "Diesel emissions; relearn/regen after."
+    },
+    {
+      "slug": "dpf",
+      "difficulty": 3,
+      "tools": [{ "name": "Scan tool (forced regen)", "specialty": true }],
+      "typicalParts": ["Diesel particulate filter", "Gaskets", "Sensors"],
+      "notes": "Clean/replace + forced regen. Must remain emissions-compliant."
+    },
+    {
+      "slug": "dpf-delete",
+      "difficulty": 0,
+      "tools": [],
+      "typicalParts": [],
+      "compliance": "ILLEGAL",
+      "excluded": true,
+      "notes": "EXCLUDED — removing/defeating a diesel particulate filter on an on-road vehicle violates the Clean Air Act (and CARB). HMLS should not quote or perform this. Flagged so it never enters customer-facing estimates."
+    }
+  ]
+}

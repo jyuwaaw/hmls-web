@@ -1,0 +1,327 @@
+{
+  "_baseToolsAssumed": [
+    "Floor jack",
+    "Jack stands",
+    "Socket & wrench set",
+    "Torque wrench",
+    "Breaker bar",
+    "Drain pan",
+    "Penetrating oil"
+  ],
+  "_note": "tools[] = notable/specialty only.",
+  "jobs": [
+    {
+      "slug": "differential-fluid-change",
+      "difficulty": 1,
+      "tools": [
+        { "name": "Fluid pump", "specialty": true },
+        { "name": "Fill/drain plug socket", "specialty": true }
+      ],
+      "typicalParts": ["Gear oil (correct spec)", "Friction modifier (LSD)"],
+      "likelySizes": ["Fill/drain plug 3/8\"-1/2\" square or hex"],
+      "notes": ""
+    },
+    {
+      "slug": "diff-fluid-front",
+      "difficulty": 1,
+      "tools": [{ "name": "Fluid pump", "specialty": true }],
+      "typicalParts": ["Front diff gear oil"],
+      "notes": ""
+    },
+    {
+      "slug": "diff-fluid-rear",
+      "difficulty": 1,
+      "tools": [{ "name": "Fluid pump", "specialty": true }],
+      "typicalParts": ["Rear diff gear oil", "Friction modifier (LSD)"],
+      "notes": ""
+    },
+    {
+      "slug": "transfer-case-fluid",
+      "difficulty": 1,
+      "tools": [{ "name": "Fluid pump", "specialty": true }],
+      "typicalParts": ["Transfer case fluid (correct spec)"],
+      "notes": ""
+    },
+    {
+      "slug": "diff-cover-gasket",
+      "difficulty": 2,
+      "tools": [{ "name": "RTV / gasket", "optional": true }],
+      "typicalParts": ["Diff cover gasket/RTV", "Gear oil"],
+      "notes": "Clean mating surface; refill to spec."
+    },
+    {
+      "slug": "wheel-studs",
+      "difficulty": 2,
+      "tools": [{ "name": "Stud installer / press", "specialty": true, "optional": true }],
+      "typicalParts": ["Wheel studs", "Lug nuts"],
+      "likelySizes": ["Lugs 19/21/22mm"],
+      "notes": "Pull through hub or press."
+    },
+    {
+      "slug": "u-joint",
+      "difficulty": 3,
+      "tools": [
+        { "name": "U-joint press", "specialty": true },
+        { "name": "Snap-ring pliers", "specialty": true }
+      ],
+      "typicalParts": ["U-joint", "Snap rings"],
+      "notes": "Press in/out; grease if serviceable."
+    },
+    {
+      "slug": "cv-boot-outer",
+      "difficulty": 3,
+      "tools": [
+        { "name": "CV boot clamp pliers", "specialty": true },
+        { "name": "Axle nut socket", "specialty": true }
+      ],
+      "typicalParts": ["Outer CV boot kit", "CV grease", "Clamps"],
+      "notes": "Often easier/cheaper to replace whole axle."
+    },
+    {
+      "slug": "cv-boot-inner",
+      "difficulty": 3,
+      "tools": [{ "name": "CV boot clamp pliers", "specialty": true }],
+      "typicalParts": ["Inner CV boot kit", "CV grease", "Clamps"],
+      "notes": ""
+    },
+    {
+      "slug": "cv-axle-front",
+      "difficulty": 2,
+      "tools": [{ "name": "Axle nut socket", "specialty": true }, { "name": "Pry bar" }],
+      "typicalParts": ["Front CV axle", "Axle nut"],
+      "notes": "Some require lower ball joint/knuckle separation."
+    },
+    {
+      "slug": "cv-axle-rear",
+      "difficulty": 2,
+      "tools": [{ "name": "Axle nut socket", "specialty": true }],
+      "typicalParts": ["Rear CV axle (IRS)", "Axle nut"],
+      "notes": ""
+    },
+    {
+      "slug": "cv-axle-replacement",
+      "difficulty": 2,
+      "tools": [{ "name": "Axle nut socket", "specialty": true }],
+      "typicalParts": ["CV axle", "Axle nut"],
+      "notes": "Alias."
+    },
+    {
+      "slug": "cv-axles-front-pair",
+      "difficulty": 3,
+      "tools": [{ "name": "Axle nut socket", "specialty": true }],
+      "typicalParts": ["Front CV axles (pair)", "Axle nuts"],
+      "notes": ""
+    },
+    {
+      "slug": "axle-shaft-rear",
+      "difficulty": 3,
+      "tools": [{ "name": "Slide hammer", "specialty": true, "optional": true }],
+      "typicalParts": ["Rear axle shaft", "Axle bearing/seal (some)"],
+      "notes": "C-clip vs bearing-retained styles differ."
+    },
+    {
+      "slug": "axle-seal-front",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Seal puller & installer", "specialty": true },
+        { "name": "Fluid pump", "specialty": true }
+      ],
+      "typicalParts": ["Front axle/output seal", "Gear oil"],
+      "notes": "Often w/ CV axle removal."
+    },
+    {
+      "slug": "axle-seal-rear",
+      "difficulty": 3,
+      "tools": [{ "name": "Seal puller & installer", "specialty": true }],
+      "typicalParts": ["Rear axle seal", "Gear oil"],
+      "notes": ""
+    },
+    {
+      "slug": "diff-pinion-seal",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Pinion flange holder", "specialty": true },
+        { "name": "Inch-lb torque wrench", "specialty": true }
+      ],
+      "typicalParts": ["Pinion seal", "Crush sleeve (some)", "Gear oil"],
+      "notes": "Mark flange/nut position; preload critical."
+    },
+    {
+      "slug": "driveshaft",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Driveshaft", "Flange bolts/straps"],
+      "notes": "Mark orientation for balance."
+    },
+    {
+      "slug": "driveshaft-front",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Front driveshaft"],
+      "notes": "Mark orientation."
+    },
+    {
+      "slug": "driveshaft-rear",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Rear driveshaft"],
+      "notes": "Mark orientation."
+    },
+    {
+      "slug": "driveshaft-center-bearing",
+      "difficulty": 3,
+      "tools": [{ "name": "Press / puller", "specialty": true }],
+      "typicalParts": ["Center support bearing"],
+      "notes": "Mark shaft halves for phasing."
+    },
+    {
+      "slug": "wheel-bearing-front",
+      "difficulty": 3,
+      "tools": [{ "name": "Axle nut socket", "specialty": true }],
+      "typicalParts": ["Front hub/bearing assembly", "Axle nut"],
+      "notes": "Bolt-on hub style."
+    },
+    {
+      "slug": "wheel-bearing-rear",
+      "difficulty": 3,
+      "tools": [{ "name": "Axle nut socket", "specialty": true, "optional": true }],
+      "typicalParts": ["Rear hub/bearing assembly"],
+      "notes": ""
+    },
+    {
+      "slug": "wheel-bearing-press-front",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Hydraulic press", "specialty": true },
+        { "name": "Bearing race set", "specialty": true }
+      ],
+      "typicalParts": ["Front wheel bearing", "Snap rings/seals"],
+      "notes": "Pressed into knuckle."
+    },
+    {
+      "slug": "wheel-bearing-press-rear",
+      "difficulty": 4,
+      "tools": [{ "name": "Hydraulic press", "specialty": true }],
+      "typicalParts": ["Rear wheel bearing"],
+      "notes": "Pressed type."
+    },
+    {
+      "slug": "wheel-hub-front",
+      "difficulty": 3,
+      "tools": [{ "name": "Axle nut socket", "specialty": true }],
+      "typicalParts": ["Front wheel hub"],
+      "notes": ""
+    },
+    {
+      "slug": "wheel-hub-rear",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["Rear wheel hub"],
+      "notes": ""
+    },
+    {
+      "slug": "locking-hub-manual",
+      "difficulty": 2,
+      "tools": [{ "name": "Snap-ring pliers", "specialty": true }],
+      "typicalParts": ["Manual locking hub", "Gaskets"],
+      "notes": "4x4 front hubs."
+    },
+    {
+      "slug": "locking-hub-auto",
+      "difficulty": 2,
+      "tools": [{ "name": "Snap-ring pliers", "specialty": true }],
+      "typicalParts": ["Auto locking hub", "Gaskets"],
+      "notes": ""
+    },
+    {
+      "slug": "4wd-actuator",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["4WD/diff actuator"],
+      "notes": "Front axle engagement actuator."
+    },
+    {
+      "slug": "transfer-case-encoder",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Encoder motor sensor"],
+      "notes": "Calibrate after on some."
+    },
+    {
+      "slug": "transfer-case-motor",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["Transfer case shift motor"],
+      "notes": "Electronic 4WD shift motor."
+    },
+    {
+      "slug": "transfer-case",
+      "difficulty": 4,
+      "tools": [{ "name": "Transmission jack", "specialty": true }],
+      "typicalParts": ["Transfer case", "Gaskets/seals", "Fluid"],
+      "notes": "Heavy; support on jack."
+    },
+    {
+      "slug": "transfer-case-chain",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Snap-ring pliers", "specialty": true },
+        { "name": "Press", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Transfer case chain", "Gasket/seal kit", "Fluid"],
+      "notes": "Case split/teardown."
+    },
+    {
+      "slug": "front-differential",
+      "difficulty": 5,
+      "tools": [{ "name": "Transmission jack", "specialty": true }],
+      "typicalParts": ["Front diff/carrier", "Seals", "Gear oil"],
+      "notes": "Heavy; setup if internals serviced."
+    },
+    {
+      "slug": "rear-differential",
+      "difficulty": 5,
+      "tools": [{ "name": "Transmission jack", "specialty": true }],
+      "typicalParts": ["Rear diff/carrier", "Seals", "Gear oil"],
+      "notes": "Heavy."
+    },
+    {
+      "slug": "ring-and-pinion",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Dial indicator + setup tools", "specialty": true },
+        { "name": "Bearing press", "specialty": true },
+        { "name": "Inch-lb torque wrench", "specialty": true }
+      ],
+      "typicalParts": ["Ring & pinion set", "Bearing/shim kit", "Crush sleeve", "Gear oil"],
+      "notes": "Specialist: set backlash + pinion depth + pattern."
+    },
+    {
+      "slug": "differential-rebuild-front",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Diff setup tooling", "specialty": true },
+        { "name": "Press", "specialty": true }
+      ],
+      "typicalParts": ["Master bearing/shim kit", "Gears as needed", "Gear oil"],
+      "notes": "Specialist setup."
+    },
+    {
+      "slug": "differential-rebuild-rear",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Diff setup tooling", "specialty": true },
+        { "name": "Press", "specialty": true }
+      ],
+      "typicalParts": ["Master rebuild kit", "Gear oil"],
+      "notes": "Specialist setup."
+    },
+    {
+      "slug": "lsd-clutch-pack",
+      "difficulty": 5,
+      "tools": [{ "name": "Diff setup tooling", "specialty": true }],
+      "typicalParts": ["LSD clutch pack", "Shims", "Friction-modified gear oil"],
+      "notes": "Carrier teardown; reset preload."
+    }
+  ]
+}

@@ -1,0 +1,370 @@
+{
+  "_baseToolsAssumed": [
+    "Floor jack",
+    "Jack stands",
+    "Socket & wrench set",
+    "Torque wrench",
+    "Drain pan",
+    "Screwdrivers/pliers"
+  ],
+  "_note": "tools[] = notable/specialty only. Clutch/converter/rebuild jobs assume transmission jack + trans removal.",
+  "jobs": [
+    {
+      "slug": "trans-fluid-change",
+      "difficulty": 1,
+      "tools": [{ "name": "Fluid pump/funnel", "specialty": true }],
+      "typicalParts": ["ATF (correct spec)", "Pan gasket (if dropped)"],
+      "notes": "Many sealed units set fill level at temp."
+    },
+    {
+      "slug": "transmission-fluid-change",
+      "difficulty": 1,
+      "tools": [{ "name": "Fluid pump", "specialty": true }],
+      "typicalParts": ["ATF (correct spec)"],
+      "notes": "Alias."
+    },
+    {
+      "slug": "trans-flush",
+      "difficulty": 2,
+      "tools": [{ "name": "Trans flush machine", "specialty": true }],
+      "typicalParts": ["ATF (large qty)"],
+      "notes": "Machine exchange; avoid on high-mileage neglected units."
+    },
+    {
+      "slug": "trans-filter",
+      "difficulty": 2,
+      "tools": [{ "name": "Fluid pump", "specialty": true }],
+      "typicalParts": ["Trans filter", "Pan gasket", "ATF"],
+      "notes": "Pan drop; messy."
+    },
+    {
+      "slug": "trans-filter-fluid",
+      "difficulty": 2,
+      "tools": [{ "name": "Fluid pump", "specialty": true }],
+      "typicalParts": ["Filter", "Pan gasket", "ATF"],
+      "notes": "Filter + fluid service."
+    },
+    {
+      "slug": "trans-pan-gasket",
+      "difficulty": 2,
+      "tools": [{ "name": "Fluid pump", "specialty": true }],
+      "typicalParts": ["Pan gasket/RTV", "ATF"],
+      "likelySizes": ["Pan bolts 10-13mm"],
+      "notes": ""
+    },
+    {
+      "slug": "manual-trans-fluid",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Fluid pump", "specialty": true },
+        { "name": "Fill plug socket", "specialty": true }
+      ],
+      "typicalParts": ["Manual trans fluid (correct spec)"],
+      "likelySizes": ["Fill/drain plug 3/8\"-1/2\" square or hex"],
+      "notes": ""
+    },
+    {
+      "slug": "trans-mount",
+      "difficulty": 2,
+      "tools": [{ "name": "Transmission jack", "specialty": true, "optional": true }],
+      "typicalParts": ["Transmission mount"],
+      "notes": "Support trans."
+    },
+    {
+      "slug": "trans-cooler",
+      "difficulty": 3,
+      "tools": [{ "name": "Line/flare wrench", "specialty": true }],
+      "typicalParts": ["Trans cooler", "Lines/fittings", "ATF"],
+      "notes": "Flush lines if trans failed."
+    },
+    {
+      "slug": "trans-cooler-lines",
+      "difficulty": 2,
+      "tools": [{ "name": "Line wrench / quick-disconnect", "specialty": true }],
+      "typicalParts": ["Cooler lines", "ATF"],
+      "notes": ""
+    },
+    {
+      "slug": "trans-range-sensor",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Range/neutral sensor (PRNDL)"],
+      "notes": "Adjust/align to neutral."
+    },
+    {
+      "slug": "neutral-safety-switch",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Neutral safety switch"],
+      "notes": "Adjust so it starts only in P/N."
+    },
+    {
+      "slug": "trans-speed-sensor-input",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Input speed sensor", "O-ring"],
+      "notes": ""
+    },
+    {
+      "slug": "trans-speed-sensor-output",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Output speed sensor", "O-ring"],
+      "notes": ""
+    },
+    {
+      "slug": "overdrive-solenoid",
+      "difficulty": 3,
+      "tools": [{ "name": "Fluid pump", "specialty": true }],
+      "typicalParts": ["OD solenoid", "Pan gasket", "ATF"],
+      "notes": "Usually inside pan/valve body."
+    },
+    {
+      "slug": "tcc-solenoid",
+      "difficulty": 3,
+      "tools": [{ "name": "Fluid pump", "specialty": true }],
+      "typicalParts": ["TCC solenoid", "Pan gasket", "ATF"],
+      "notes": "Torque-converter clutch lockup; inside pan."
+    },
+    {
+      "slug": "shift-solenoid-single",
+      "difficulty": 3,
+      "tools": [{ "name": "Fluid pump", "specialty": true }],
+      "typicalParts": ["Shift solenoid", "Pan gasket", "ATF"],
+      "notes": "Inside pan/valve body."
+    },
+    {
+      "slug": "shift-solenoids-all",
+      "difficulty": 3,
+      "tools": [{ "name": "Fluid pump", "specialty": true }],
+      "typicalParts": ["Solenoid pack", "Pan gasket", "ATF"],
+      "notes": "Often sold as a pack."
+    },
+    {
+      "slug": "valve-body",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Fluid pump", "specialty": true },
+        { "name": "Scan tool (relearn)", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Valve body", "Pan gasket", "ATF"],
+      "notes": "Keep bolts organized; adaptive relearn after."
+    },
+    {
+      "slug": "tcm",
+      "difficulty": 3,
+      "tools": [{ "name": "Scan tool (programming)", "specialty": true }],
+      "typicalParts": ["Transmission control module"],
+      "notes": "Programming + adaptive relearn required."
+    },
+    {
+      "slug": "kickdown-cable",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Kickdown/TV cable"],
+      "notes": "Adjust per spec (older autos)."
+    },
+    {
+      "slug": "shift-cable",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Shift cable", "Bushings"],
+      "notes": "Adjust after."
+    },
+    {
+      "slug": "shift-linkage",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Shift linkage/bushings"],
+      "notes": "Adjust after."
+    },
+    {
+      "slug": "clutch-master-cylinder",
+      "difficulty": 3,
+      "tools": [{ "name": "Bleeder kit", "specialty": true }],
+      "typicalParts": ["Clutch master cylinder", "Brake/clutch fluid"],
+      "notes": "Bleed hydraulics after."
+    },
+    {
+      "slug": "clutch-slave-cylinder",
+      "difficulty": 3,
+      "tools": [{ "name": "Bleeder kit", "specialty": true }],
+      "typicalParts": ["Clutch slave cylinder", "Fluid"],
+      "notes": "Internal slaves require trans removal."
+    },
+    {
+      "slug": "clutch-hydraulic-line",
+      "difficulty": 2,
+      "tools": [{ "name": "Bleeder kit", "specialty": true }],
+      "typicalParts": ["Clutch line", "Fluid"],
+      "notes": "Bleed after."
+    },
+    {
+      "slug": "clutch-cable",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Clutch cable"],
+      "notes": "Adjust free play (older vehicles)."
+    },
+    {
+      "slug": "clutch-kit",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Transmission jack", "specialty": true },
+        { "name": "Clutch alignment tool", "specialty": true }
+      ],
+      "typicalParts": ["Clutch disc", "Pressure plate", "Throw-out & pilot bearing"],
+      "notes": "Trans out; resurface/replace flywheel."
+    },
+    {
+      "slug": "clutch-disc",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Transmission jack", "specialty": true },
+        { "name": "Clutch alignment tool", "specialty": true }
+      ],
+      "typicalParts": ["Clutch disc"],
+      "notes": "Trans out — do full kit."
+    },
+    {
+      "slug": "pressure-plate",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Transmission jack", "specialty": true },
+        { "name": "Clutch alignment tool", "specialty": true }
+      ],
+      "typicalParts": ["Pressure plate"],
+      "notes": "Trans out — do full kit."
+    },
+    {
+      "slug": "throw-out-bearing",
+      "difficulty": 4,
+      "tools": [{ "name": "Transmission jack", "specialty": true }],
+      "typicalParts": ["Throw-out/release bearing"],
+      "notes": "Trans out — replace with clutch."
+    },
+    {
+      "slug": "pilot-bearing",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Pilot bearing puller", "specialty": true },
+        { "name": "Transmission jack", "specialty": true }
+      ],
+      "typicalParts": ["Pilot bearing/bushing"],
+      "notes": "Trans + flywheel access."
+    },
+    {
+      "slug": "flywheel-replacement",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Flywheel lock", "specialty": true },
+        { "name": "Transmission jack", "specialty": true }
+      ],
+      "typicalParts": ["Flywheel", "Bolts (TTY)"],
+      "notes": "Trans/clutch out."
+    },
+    {
+      "slug": "flywheel-resurface",
+      "difficulty": 4,
+      "tools": [{ "name": "Machine shop (resurface)", "specialty": true }],
+      "typicalParts": ["(Resurface)"],
+      "notes": "Removed flywheel to machine shop."
+    },
+    {
+      "slug": "dual-mass-flywheel",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Flywheel lock", "specialty": true },
+        { "name": "Transmission jack", "specialty": true }
+      ],
+      "typicalParts": ["Dual-mass flywheel", "Bolts (TTY)"],
+      "notes": "DMF not resurfaceable — replace."
+    },
+    {
+      "slug": "torque-converter",
+      "difficulty": 4,
+      "tools": [{ "name": "Transmission jack", "specialty": true }],
+      "typicalParts": ["Torque converter", "ATF", "Front pump seal"],
+      "notes": "Trans out; fully seat converter on pump."
+    },
+    {
+      "slug": "shift-fork",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Transmission jack", "specialty": true },
+        { "name": "Snap-ring pliers", "specialty": true }
+      ],
+      "typicalParts": ["Shift fork", "Trans gasket/seal kit"],
+      "notes": "Manual trans teardown."
+    },
+    {
+      "slug": "synchro-single",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Press", "specialty": true },
+        { "name": "Snap-ring pliers", "specialty": true }
+      ],
+      "typicalParts": ["Synchro ring/hub", "Gasket/seal kit"],
+      "notes": "Manual trans teardown."
+    },
+    {
+      "slug": "synchros-all",
+      "difficulty": 5,
+      "tools": [{ "name": "Press", "specialty": true }],
+      "typicalParts": ["Synchro set", "Bearings/seals"],
+      "notes": "Full manual trans rebuild."
+    },
+    {
+      "slug": "trans-input-bearing",
+      "difficulty": 5,
+      "tools": [{ "name": "Press", "specialty": true }],
+      "typicalParts": ["Input shaft bearing", "Seals"],
+      "notes": "Trans teardown."
+    },
+    {
+      "slug": "trans-output-bearing",
+      "difficulty": 5,
+      "tools": [{ "name": "Press", "specialty": true }],
+      "typicalParts": ["Output shaft bearing", "Seals"],
+      "notes": "Trans teardown."
+    },
+    {
+      "slug": "auto-trans-rr",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Transmission jack", "specialty": true },
+        { "name": "Engine support", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Gaskets/seals", "ATF", "Converter (inspect)"],
+      "notes": "R&R for rebuild/replace."
+    },
+    {
+      "slug": "manual-trans-rr",
+      "difficulty": 5,
+      "tools": [{ "name": "Transmission jack", "specialty": true }],
+      "typicalParts": ["Gaskets/seals", "Manual trans fluid", "Clutch (inspect)"],
+      "notes": "R&R; do clutch while out."
+    },
+    {
+      "slug": "auto-trans-rebuild",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Trans rebuild tooling", "specialty": true },
+        { "name": "Press", "specialty": true },
+        { "name": "End-play gauges", "specialty": true }
+      ],
+      "typicalParts": ["Master rebuild kit", "Clutches/steels", "Converter", "ATF"],
+      "notes": "Specialist work; bench rebuild."
+    },
+    {
+      "slug": "manual-trans-rebuild",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Press", "specialty": true },
+        { "name": "Bearing tools", "specialty": true }
+      ],
+      "typicalParts": ["Bearing/synchro kit", "Seals/gaskets", "Fluid"],
+      "notes": "Bench rebuild."
+    }
+  ]
+}

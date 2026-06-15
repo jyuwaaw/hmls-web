@@ -1,0 +1,398 @@
+{
+  "_baseToolsAssumed": [
+    "Floor jack",
+    "Jack stands",
+    "Socket & wrench set",
+    "Torque wrench",
+    "Screwdrivers/pliers",
+    "Shop rags",
+    "Gloves"
+  ],
+  "_note": "tools[] = notable/specialty tools only. likelySizes = AI-estimated common fastener sizes (confidence: estimated, prep hint only).",
+  "jobs": [
+    {
+      "slug": "oil-change",
+      "difficulty": 1,
+      "tools": [
+        { "name": "Oil filter wrench", "specialty": true },
+        { "name": "Drain pan" },
+        { "name": "Funnel" }
+      ],
+      "typicalParts": ["Engine oil", "Oil filter", "Drain plug crush washer"],
+      "likelySizes": ["Drain plug 14-17mm (or 3/8\" square)"],
+      "notes": ""
+    },
+    {
+      "slug": "oil-change-synthetic",
+      "difficulty": 1,
+      "tools": [{ "name": "Oil filter wrench", "specialty": true }, { "name": "Drain pan" }],
+      "typicalParts": ["Full-synthetic oil", "Oil filter", "Crush washer"],
+      "likelySizes": ["Drain plug 14-17mm"],
+      "notes": ""
+    },
+    {
+      "slug": "synthetic-oil-change",
+      "difficulty": 1,
+      "tools": [{ "name": "Oil filter wrench", "specialty": true }, { "name": "Drain pan" }],
+      "typicalParts": ["Full-synthetic oil", "Oil filter", "Crush washer"],
+      "likelySizes": ["Drain plug 14-17mm"],
+      "notes": "Alias of oil-change-synthetic."
+    },
+    {
+      "slug": "oil-change-diesel",
+      "difficulty": 1,
+      "tools": [
+        { "name": "Oil filter wrench / cap socket", "specialty": true },
+        { "name": "Large drain pan" }
+      ],
+      "typicalParts": ["Diesel-spec oil (large qty)", "Oil filter", "Crush washer"],
+      "likelySizes": ["Drain plug 17-19mm", "Filter cap 24-36mm"],
+      "notes": "High oil capacity; may have secondary/bypass filter."
+    },
+    {
+      "slug": "air-filter",
+      "difficulty": 1,
+      "tools": [{ "name": "Screwdriver", "optional": true }],
+      "typicalParts": ["Engine air filter"],
+      "notes": "Often tool-free airbox clips."
+    },
+    {
+      "slug": "air-filter-replacement",
+      "difficulty": 1,
+      "tools": [{ "name": "Screwdriver", "optional": true }],
+      "typicalParts": ["Engine air filter"],
+      "notes": "Alias of air-filter."
+    },
+    {
+      "slug": "cabin-filter",
+      "difficulty": 1,
+      "tools": [{ "name": "Trim tool", "optional": true }],
+      "typicalParts": ["Cabin air filter"],
+      "notes": "Usually behind glovebox."
+    },
+    {
+      "slug": "cabin-air-filter-replacement",
+      "difficulty": 1,
+      "tools": [{ "name": "Trim tool", "optional": true }],
+      "typicalParts": ["Cabin air filter"],
+      "notes": "Alias of cabin-filter."
+    },
+    {
+      "slug": "wiper-blade-replacement",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Wiper blades (pair)"],
+      "notes": "Tool-free clip/hook."
+    },
+    {
+      "slug": "tire-rotation",
+      "difficulty": 1,
+      "tools": [{ "name": "Impact wrench", "optional": true }],
+      "typicalParts": [],
+      "likelySizes": ["Lug nuts 17/19/21/22mm"],
+      "notes": "Re-torque to spec; reset TPMS if position-based."
+    },
+    {
+      "slug": "tire-balance",
+      "difficulty": 2,
+      "tools": [{ "name": "Wheel balancer", "specialty": true }],
+      "typicalParts": ["Wheel weights"],
+      "likelySizes": ["Lug nuts 17/19/21/22mm"],
+      "notes": "Requires balancer machine."
+    },
+    {
+      "slug": "tire-mount-balance",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Tire changer", "specialty": true },
+        { "name": "Wheel balancer", "specialty": true }
+      ],
+      "typicalParts": ["Wheel weights", "Valve stems"],
+      "likelySizes": ["Lug nuts 17/19/21/22mm"],
+      "notes": "Needs mount/balance machines."
+    },
+    {
+      "slug": "wheel-alignment",
+      "difficulty": 2,
+      "tools": [{ "name": "Alignment rack & heads", "specialty": true }],
+      "typicalParts": [],
+      "notes": "2-wheel/thrust alignment on alignment equipment."
+    },
+    {
+      "slug": "wheel-alignment-4-wheel",
+      "difficulty": 2,
+      "tools": [{ "name": "Alignment rack & heads", "specialty": true }],
+      "typicalParts": [],
+      "notes": "Full 4-wheel alignment."
+    },
+    {
+      "slug": "tpms-relearn",
+      "difficulty": 1,
+      "tools": [{ "name": "TPMS relearn/activation tool", "specialty": true }],
+      "typicalParts": [],
+      "notes": "Some makes auto-relearn by driving."
+    },
+    {
+      "slug": "tpms-sensor",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Tire changer", "specialty": true },
+        { "name": "TPMS tool", "specialty": true }
+      ],
+      "typicalParts": ["TPMS sensor", "Valve service kit"],
+      "likelySizes": ["Sensor nut 11-12mm"],
+      "notes": "Demount tire; relearn after."
+    },
+    {
+      "slug": "battery-test",
+      "difficulty": 1,
+      "tools": [{ "name": "Battery/charging tester", "specialty": true }],
+      "typicalParts": [],
+      "notes": "Load/conductance test."
+    },
+    {
+      "slug": "charging-system-test",
+      "difficulty": 1,
+      "tools": [{ "name": "Battery/charging tester", "specialty": true }, { "name": "Multimeter" }],
+      "typicalParts": [],
+      "notes": "Check alternator output + draw."
+    },
+    {
+      "slug": "diagnostic-scan",
+      "difficulty": 1,
+      "tools": [{ "name": "OBD-II scan tool", "specialty": true }],
+      "typicalParts": [],
+      "notes": "Pull codes + live data."
+    },
+    {
+      "slug": "check-engine-diagnosis",
+      "difficulty": 2,
+      "tools": [{ "name": "Bidirectional scan tool", "specialty": true }, { "name": "Multimeter" }],
+      "typicalParts": [],
+      "notes": "Code + symptom diagnosis; may need smoke/pressure tests."
+    },
+    {
+      "slug": "electrical-diagnosis",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Multimeter" },
+        { "name": "Test light / power probe", "specialty": true },
+        { "name": "Wiring diagrams", "specialty": true }
+      ],
+      "typicalParts": [],
+      "notes": "Trace circuit per wiring diagram."
+    },
+    {
+      "slug": "drivability-diagnosis",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Bidirectional scan tool", "specialty": true },
+        { "name": "Fuel pressure gauge", "specialty": true },
+        { "name": "Lab scope", "specialty": true, "optional": true }
+      ],
+      "typicalParts": [],
+      "notes": "Misfire/performance root-cause."
+    },
+    {
+      "slug": "noise-diagnosis",
+      "difficulty": 2,
+      "tools": [{ "name": "Chassis ears / stethoscope", "specialty": true }],
+      "typicalParts": [],
+      "notes": "Road test + isolate source."
+    },
+    {
+      "slug": "fluid-leak-diagnosis",
+      "difficulty": 2,
+      "tools": [{ "name": "UV dye + light", "specialty": true }],
+      "typicalParts": ["UV dye"],
+      "notes": "Identify source/system."
+    },
+    {
+      "slug": "ac-diagnosis",
+      "difficulty": 2,
+      "tools": [{ "name": "Manifold gauge set", "specialty": true }, { "name": "Thermometer" }],
+      "typicalParts": [],
+      "notes": "Check pressures + vent temp."
+    },
+    {
+      "slug": "compression-test",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Compression gauge", "specialty": true },
+        { "name": "Spark plug socket", "specialty": true }
+      ],
+      "typicalParts": [],
+      "notes": "Remove all plugs; crank each cylinder."
+    },
+    {
+      "slug": "leak-down-test",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Leak-down tester", "specialty": true },
+        { "name": "Shop air", "specialty": true }
+      ],
+      "typicalParts": [],
+      "notes": "Locate ring/valve/head-gasket loss."
+    },
+    {
+      "slug": "cooling-pressure-test",
+      "difficulty": 1,
+      "tools": [{ "name": "Cooling system pressure tester", "specialty": true }],
+      "typicalParts": [],
+      "notes": "Pressurize to find leaks."
+    },
+    {
+      "slug": "emissions-inspection",
+      "difficulty": 1,
+      "tools": [{ "name": "OBD-II scan tool", "specialty": true }],
+      "typicalParts": [],
+      "notes": "Readiness monitors + visual."
+    },
+    {
+      "slug": "state-inspection",
+      "difficulty": 1,
+      "tools": [{ "name": "Scan tool", "specialty": true, "optional": true }],
+      "typicalParts": [],
+      "notes": "Safety/emissions per state requirements."
+    },
+    {
+      "slug": "pre-purchase-inspection",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Scan tool", "specialty": true },
+        { "name": "Paint/frame gauge", "optional": true }
+      ],
+      "typicalParts": [],
+      "notes": "Comprehensive multi-point + road test."
+    },
+    {
+      "slug": "spark-plug-service",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Spark plug socket", "specialty": true },
+        { "name": "Gap gauge", "specialty": true }
+      ],
+      "typicalParts": ["Spark plugs", "Anti-seize/dielectric grease"],
+      "likelySizes": ["Plug socket 5/8\" (16mm) or 13/16\" (21mm)"],
+      "notes": "Coil-on-plug: remove coils first."
+    },
+    {
+      "slug": "brake-fluid-service",
+      "difficulty": 1,
+      "tools": [{ "name": "Pressure/vacuum bleeder", "specialty": true }],
+      "typicalParts": ["Brake fluid (DOT spec)"],
+      "notes": "Flush old fluid through all 4 corners."
+    },
+    {
+      "slug": "coolant-service",
+      "difficulty": 1,
+      "tools": [{ "name": "Coolant fill funnel", "specialty": true }, { "name": "Drain pan" }],
+      "typicalParts": ["Coolant (correct spec)"],
+      "notes": "Bleed air after refill."
+    },
+    {
+      "slug": "power-steering-service",
+      "difficulty": 1,
+      "tools": [{ "name": "Fluid extractor", "specialty": true, "optional": true }],
+      "typicalParts": ["Power steering fluid (correct spec)"],
+      "notes": "Drain/refill or flush."
+    },
+    {
+      "slug": "transmission-service",
+      "difficulty": 2,
+      "tools": [{ "name": "Fluid pump/extractor", "specialty": true }, { "name": "Drain pan" }],
+      "typicalParts": ["ATF (correct spec)", "Trans filter", "Pan gasket"],
+      "likelySizes": ["Pan bolts 10-13mm", "Fill plug varies (often hex/Torx)"],
+      "notes": "Many modern units need fluid-level set at temperature."
+    },
+    {
+      "slug": "differential-service",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Fluid pump", "specialty": true },
+        { "name": "Fill/drain plug socket", "specialty": true }
+      ],
+      "typicalParts": ["Gear oil (correct spec)", "Cover gasket/RTV", "Friction modifier (LSD)"],
+      "likelySizes": ["Fill/drain plug 3/8\"-1/2\" square or 14-24mm hex"],
+      "notes": ""
+    },
+    {
+      "slug": "transfer-case-service",
+      "difficulty": 2,
+      "tools": [{ "name": "Fluid pump", "specialty": true }],
+      "typicalParts": ["Transfer case fluid (correct spec)"],
+      "likelySizes": ["Fill/drain plug 3/8\"-1/2\" square or hex"],
+      "notes": ""
+    },
+    {
+      "slug": "fuel-filter-service",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Quick-disconnect tool set", "specialty": true },
+        { "name": "Line wrench", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Fuel filter"],
+      "notes": "Relieve fuel pressure first; in-tank filters are a bigger job."
+    },
+    {
+      "slug": "tune-up-minor",
+      "difficulty": 2,
+      "tools": [{ "name": "Spark plug socket", "specialty": true }],
+      "typicalParts": ["Spark plugs", "Air filter", "Engine oil/filter"],
+      "likelySizes": ["Plug socket 5/8\" (16mm)"],
+      "notes": "Plugs + filters + oil."
+    },
+    {
+      "slug": "tune-up-major",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Spark plug socket", "specialty": true },
+        { "name": "Fuel injection cleaning kit", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Spark plugs", "Plug wires/coils", "All filters", "PCV", "Fluids"],
+      "notes": "Comprehensive service incl. ignition + induction."
+    },
+    {
+      "slug": "30k-service",
+      "difficulty": 2,
+      "tools": [{ "name": "Scan tool", "specialty": true, "optional": true }],
+      "typicalParts": [
+        "Oil/filter",
+        "Air & cabin filters",
+        "Tire rotation",
+        "Fluid top-offs",
+        "Inspection"
+      ],
+      "notes": "Per OE 30k schedule."
+    },
+    {
+      "slug": "60k-service",
+      "difficulty": 2,
+      "tools": [{ "name": "Spark plug socket", "specialty": true, "optional": true }],
+      "typicalParts": ["Oil/filter", "Filters", "Brake fluid", "Coolant (some)", "Plugs (some)"],
+      "notes": "Per OE 60k schedule."
+    },
+    {
+      "slug": "90k-service",
+      "difficulty": 2,
+      "tools": [{ "name": "Spark plug socket", "specialty": true, "optional": true }],
+      "typicalParts": ["Oil/filter", "Filters", "Fluids", "Plugs"],
+      "notes": "Per OE 90k schedule."
+    },
+    {
+      "slug": "100k-service",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Spark plug socket", "specialty": true },
+        { "name": "Coolant fill funnel", "specialty": true }
+      ],
+      "typicalParts": [
+        "Spark plugs",
+        "All fluids (coolant/trans/diff)",
+        "All filters",
+        "Belts (insp/replace)"
+      ],
+      "notes": "Major milestone service; include timing belt if due."
+    }
+  ]
+}

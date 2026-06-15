@@ -1,0 +1,230 @@
+{
+  "_baseToolsAssumed": [
+    "Floor jack",
+    "Jack stands",
+    "Socket & wrench set",
+    "Torque wrench",
+    "Drain pan",
+    "Screwdrivers/pliers"
+  ],
+  "_note": "tools[] = notable/specialty only. likelySizes estimated (prep hint).",
+  "jobs": [
+    {
+      "slug": "coolant-flush",
+      "difficulty": 1,
+      "tools": [{ "name": "Coolant fill funnel (spill-free)", "specialty": true }],
+      "typicalParts": ["Coolant (correct spec)", "Distilled water"],
+      "notes": "Bleed air after refill."
+    },
+    {
+      "slug": "radiator-cap",
+      "difficulty": 1,
+      "tools": [{ "name": "Cooling pressure tester", "optional": true }],
+      "typicalParts": ["Radiator cap (correct pressure rating)"],
+      "notes": ""
+    },
+    {
+      "slug": "coolant-reservoir",
+      "difficulty": 1,
+      "tools": [{ "name": "Hose clamp pliers", "optional": true }],
+      "typicalParts": ["Coolant reservoir/expansion tank", "Coolant"],
+      "notes": ""
+    },
+    {
+      "slug": "coolant-overflow-tank",
+      "difficulty": 1,
+      "tools": [{ "name": "Hose clamp pliers", "optional": true }],
+      "typicalParts": ["Overflow tank", "Coolant"],
+      "notes": ""
+    },
+    {
+      "slug": "coolant-temp-sensor",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Deep socket / wrench" },
+        { "name": "Coolant funnel", "specialty": true }
+      ],
+      "typicalParts": ["Coolant temp sensor (ECT)", "Coolant", "O-ring/sealant"],
+      "likelySizes": ["Sensor 19mm/22mm"],
+      "notes": "Some drain coolant below sensor first."
+    },
+    {
+      "slug": "thermostat",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Coolant funnel", "specialty": true },
+        { "name": "Gasket scraper", "optional": true }
+      ],
+      "typicalParts": ["Thermostat", "Gasket/O-ring", "Coolant"],
+      "likelySizes": ["Housing bolts 8-10mm"],
+      "notes": "Bleed cooling system after."
+    },
+    {
+      "slug": "thermostat-replacement",
+      "difficulty": 2,
+      "tools": [{ "name": "Coolant funnel", "specialty": true }],
+      "typicalParts": ["Thermostat", "Gasket", "Coolant"],
+      "likelySizes": ["Housing bolts 8-10mm"],
+      "notes": "Alias of thermostat."
+    },
+    {
+      "slug": "thermostat-housing",
+      "difficulty": 2,
+      "tools": [{ "name": "Coolant funnel", "specialty": true }, { "name": "Gasket scraper" }],
+      "typicalParts": ["Thermostat housing", "Thermostat", "Gasket", "Coolant"],
+      "likelySizes": ["Bolts 8-10mm"],
+      "notes": "Plastic housings warp—replace as assembly."
+    },
+    {
+      "slug": "water-outlet",
+      "difficulty": 2,
+      "tools": [{ "name": "Coolant funnel", "specialty": true }],
+      "typicalParts": ["Water outlet/neck", "Gasket/O-ring", "Coolant"],
+      "likelySizes": ["Bolts 8-10mm"],
+      "notes": ""
+    },
+    {
+      "slug": "radiator-hose-upper",
+      "difficulty": 1,
+      "tools": [{ "name": "Hose clamp pliers", "specialty": true }],
+      "typicalParts": ["Upper radiator hose", "Clamps", "Coolant"],
+      "notes": ""
+    },
+    {
+      "slug": "radiator-hose-lower",
+      "difficulty": 1,
+      "tools": [{ "name": "Hose clamp pliers", "specialty": true }],
+      "typicalParts": ["Lower radiator hose", "Clamps", "Coolant"],
+      "notes": ""
+    },
+    {
+      "slug": "radiator-hoses-both",
+      "difficulty": 2,
+      "tools": [{ "name": "Hose clamp pliers", "specialty": true }],
+      "typicalParts": ["Upper & lower hoses", "Clamps", "Coolant"],
+      "notes": ""
+    },
+    {
+      "slug": "heater-hoses",
+      "difficulty": 2,
+      "tools": [{ "name": "Hose clamp pliers", "specialty": true }],
+      "typicalParts": ["Heater hoses", "Clamps", "Coolant"],
+      "notes": "Routing can be tight against firewall."
+    },
+    {
+      "slug": "heater-control-valve",
+      "difficulty": 2,
+      "tools": [{ "name": "Hose clamp pliers", "specialty": true }],
+      "typicalParts": ["Heater control valve", "Coolant"],
+      "notes": ""
+    },
+    {
+      "slug": "radiator",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Hose clamp pliers", "specialty": true },
+        { "name": "Coolant funnel", "specialty": true }
+      ],
+      "typicalParts": ["Radiator", "Hoses/clamps", "Coolant"],
+      "notes": "Bleed after; watch trans cooler lines on autos."
+    },
+    {
+      "slug": "radiator-replacement",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Hose clamp pliers", "specialty": true },
+        { "name": "Coolant funnel", "specialty": true }
+      ],
+      "typicalParts": ["Radiator", "Coolant"],
+      "notes": "Alias of radiator."
+    },
+    {
+      "slug": "cooling-fan-relay",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Cooling fan relay"],
+      "notes": "In fuse/relay box."
+    },
+    {
+      "slug": "cooling-fan-motor",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Cooling fan motor"],
+      "likelySizes": ["Shroud bolts 8-10mm"],
+      "notes": "Often replaced as full assembly."
+    },
+    {
+      "slug": "cooling-fan-assembly",
+      "difficulty": 2,
+      "tools": [{ "name": "Coolant funnel", "specialty": true, "optional": true }],
+      "typicalParts": ["Cooling fan & shroud assembly"],
+      "likelySizes": ["Shroud bolts 8-10mm"],
+      "notes": "May need to drop coolant level / remove hose."
+    },
+    {
+      "slug": "cooling-fan-clutch",
+      "difficulty": 2,
+      "tools": [{ "name": "Fan clutch wrench set", "specialty": true }],
+      "typicalParts": ["Fan clutch"],
+      "notes": "RWD/truck mechanical fans; large thin wrenches needed."
+    },
+    {
+      "slug": "water-pump",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Gasket scraper" },
+        { "name": "Serpentine belt tool", "specialty": true },
+        { "name": "Coolant funnel", "specialty": true },
+        { "name": "Timing tools (if timing-driven)", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Water pump", "Gasket/O-ring", "Coolant", "Timing belt (if applicable)"],
+      "likelySizes": ["Pump bolts 10-13mm"],
+      "notes": "If timing-belt-driven, replace belt at same time."
+    },
+    {
+      "slug": "water-pump-replacement",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Serpentine belt tool", "specialty": true },
+        { "name": "Coolant funnel", "specialty": true }
+      ],
+      "typicalParts": ["Water pump", "Gasket", "Coolant"],
+      "notes": "Alias of water-pump."
+    },
+    {
+      "slug": "coolant-bypass-pipe",
+      "difficulty": 3,
+      "tools": [{ "name": "Coolant funnel", "specialty": true }],
+      "typicalParts": ["Bypass pipe", "O-rings/gaskets", "Coolant"],
+      "notes": "Often tucked under intake—access can be tight."
+    },
+    {
+      "slug": "engine-oil-cooler",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Oil filter wrench", "specialty": true, "optional": true },
+        { "name": "Coolant funnel", "specialty": true }
+      ],
+      "typicalParts": ["Oil cooler", "Gaskets/O-rings", "Oil", "Coolant"],
+      "notes": "Many are oil-to-coolant; service both fluids."
+    },
+    {
+      "slug": "trans-oil-cooler",
+      "difficulty": 3,
+      "tools": [{ "name": "Line/flare wrench", "specialty": true }],
+      "typicalParts": ["Trans cooler", "Cooler lines/fittings", "ATF"],
+      "notes": "Flush lines if trans failed."
+    },
+    {
+      "slug": "heater-core",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Full dash R&R tools", "specialty": true },
+        { "name": "Trim tools", "specialty": true },
+        { "name": "Coolant funnel", "specialty": true }
+      ],
+      "typicalParts": ["Heater core", "Coolant", "Seals/clips"],
+      "notes": "Usually requires full dash removal — one of the most labor-intensive jobs."
+    }
+  ]
+}
