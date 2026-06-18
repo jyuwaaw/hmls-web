@@ -20,6 +20,22 @@ const admin = new Hono<WithShop<AdminEnv>>();
 admin.use("*", requireAdmin);
 admin.use("*", requireShopContext);
 
+// GET /shops — list shops visible to this admin.
+// Owner sees all shops; admin sees only their own shop.
+admin.get("/shops", async (c) => {
+  const isOwner = c.get("isOwner");
+  const shopId = c.get("shopId");
+  const rows = isOwner
+    ? await db
+      .select({ id: schema.shops.id, name: schema.shops.name, slug: schema.shops.slug })
+      .from(schema.shops)
+    : await db
+      .select({ id: schema.shops.id, name: schema.shops.name, slug: schema.shops.slug })
+      .from(schema.shops)
+      .where(eq(schema.shops.id, shopId));
+  return c.json(rows);
+});
+
 // GET /me — lightweight role check (no DB). Used as the admin guard in the
 // web DashboardLayout; keeps the heavy /dashboard query for the dashboard page
 // alone instead of running it on every admin page.

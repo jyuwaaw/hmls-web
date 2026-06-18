@@ -19,10 +19,14 @@ export type ApiClient = {
   delete: <T>(path: string) => Promise<T>;
 };
 
-export function createApiClient(token: string | null | undefined): ApiClient {
+export function createApiClient(
+  token: string | null | undefined,
+  shopId?: string,
+): ApiClient {
   const buildInit = (method: string, body?: unknown): RequestInit => {
     const headers: Record<string, string> = {};
     if (token) headers.Authorization = `Bearer ${token}`;
+    if (shopId) headers["X-Shop-Id"] = shopId;
     if (body !== undefined) headers["Content-Type"] = "application/json";
     return {
       method,

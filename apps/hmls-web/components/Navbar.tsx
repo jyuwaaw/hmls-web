@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
+import { ShopSwitcher } from "@/components/admin/ShopSwitcher";
 import MobileNav from "./MobileNav";
 import ThemeToggle from "./ThemeToggle";
 
@@ -21,7 +22,7 @@ const mechanicLink = { href: "/mechanic", label: "Mechanic", icon: Wrench };
 
 export default function Navbar() {
   const pathname = usePathname();
-  const { user, supabase, isLoading, isAdmin, isMechanic } = useAuth();
+  const { user, supabase, isLoading, isAdmin, isMechanic, isOwner } = useAuth();
   const isUserLoggedIn = !!user;
   const isHome = pathname === "/";
   const [scrolled, setScrolled] = useState(false);
@@ -140,6 +141,7 @@ export default function Navbar() {
               )}
             </>
           )}
+          {isOwner && <ShopSwitcher />}
           <ThemeToggle />
           {!isLoading &&
             (isUserLoggedIn ? (

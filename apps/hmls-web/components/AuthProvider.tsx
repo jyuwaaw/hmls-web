@@ -2,6 +2,7 @@
 
 import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { useActiveShop } from "@/hooks/useActiveShop";
 import { type ApiClient, createApiClient } from "@/lib/api-client";
 import { createClient } from "@/lib/supabase/client";
 
@@ -12,6 +13,9 @@ type AuthContextType = {
   isLoading: boolean;
   isAdmin: boolean;
   isMechanic: boolean;
+  isOwner: boolean;
+  activeShop: string | null;
+  setActiveShop: (id: string) => void;
   api: ApiClient;
 };
 
@@ -47,6 +51,7 @@ function rolesFromSession(session: Session | null) {
   return {
     isAdmin: role === "admin",
     isMechanic: role === "mechanic",
+    isOwner: role === "owner",
   };
 }
 
@@ -55,6 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [supabase] = useState(() => createClient());
+  const [activeShop, setActiveShop] = useActiveShop();
 
   useEffect(() => {
     let cancelled = false;
@@ -89,20 +95,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Only re-decode the JWT when the token itself changes. The full session
   // object holds refresh metadata that updates more often than the token.
   // biome-ignore lint/correctness/useExhaustiveDependencies: token is the only field that affects decoded roles
-  const { isAdmin, isMechanic } = useMemo(
+  const { isAdmin, isMechanic, isOwner } = useMemo(
     () => rolesFromSession(session),
     [session?.access_token],
   );
 
+  // Rebuild the api client whenever the token or the active shop changes so
+  // every request automatically carries the correct X-Shop-Id header.
   const api = useMemo(
-    () => createApiClient(session?.access_token),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- token is the only field that affects the api client
-    [session?.access_token],
+    () => createApiClient(session?.access_token, activeShop ?? undefined),
+    [session?.access_token, activeShop],
   );
 
   const value = useMemo(
-    () => ({ user, session, supabase, isLoading, isAdmin, isMechanic, api }),
-    [user, session, supabase, isLoading, isAdmin, isMechanic, api],
+    () => ({
+      user,
+      session,
+      supabase,
+      isLoading,
+      isAdmin,
+      isMechanic,
+      isOwner,
+      activeShop,
+      setActiveShop,
+      api,
+    }),
+    [
+      user,
+      session,
+      supabase,
+      isLoading,
+      isAdmin,
+      isMechanic,
+      isOwner,
+      activeShop,
+      setActiveShop,
+      api,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
