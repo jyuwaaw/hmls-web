@@ -17,11 +17,11 @@ Deno.test("nearestShop: outside every radius => null", () => {
   assertEquals(nearestShop({ lat: 40.0, lng: -100.0 }, capped), null);
 });
 
-Deno.test("parseGeocodeResponse: extracts lat/lng from a Google OK payload", () => {
-  const body = { status: "OK", results: [{ geometry: { location: { lat: 37.1, lng: -121.2 } } }] };
+Deno.test("parseGeocodeResponse: extracts lat/lng from a Census match (x=lng, y=lat)", () => {
+  const body = { result: { addressMatches: [{ coordinates: { x: -121.2, y: 37.1 } }] } };
   assertEquals(parseGeocodeResponse(body), { lat: 37.1, lng: -121.2 });
 });
 
-Deno.test("parseGeocodeResponse: ZERO_RESULTS => null", () => {
-  assertEquals(parseGeocodeResponse({ status: "ZERO_RESULTS", results: [] }), null);
+Deno.test("parseGeocodeResponse: no matches => null", () => {
+  assertEquals(parseGeocodeResponse({ result: { addressMatches: [] } }), null);
 });

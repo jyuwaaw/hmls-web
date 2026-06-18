@@ -28,26 +28,27 @@ export function nearestShop(point: Coords, shops: ShopGeo[]): string | null {
   return best?.id ?? null;
 }
 
-/** Extract coords from a Google Geocoding API response, or null. */
+/** Extract coords from a US Census geocoder response, or null.
+ *  Census returns coordinates as { x: longitude, y: latitude }. */
 // deno-lint-ignore no-explicit-any
 export function parseGeocodeResponse(body: any): Coords | null {
-  const loc = body?.results?.[0]?.geometry?.location;
-  if (body?.status !== "OK" || !loc) return null;
-  return { lat: loc.lat, lng: loc.lng };
+  const c = body?.result?.addressMatches?.[0]?.coordinates;
+  if (!c || typeof c.y !== "number" || typeof c.x !== "number") return null;
+  return { lat: c.y, lng: c.x };
 }
 
 import { db, schema } from "../db/client.ts";
 
-const GEOCODE_KEY = Deno.env.get("GOOGLE_MAPS_API_KEY") ?? Deno.env.get("GOOGLE_API_KEY") ?? "";
-
-/** Best-effort geocode. Returns null on any failure — never throws. */
+/** Best-effort geocode via the free US Census geocoder (no API key required).
+ *  Returns null on any failure/timeout/no-match — never throws. US addresses
+ *  only; misses fall back to the primary shop in routeOrderToShop. */
 export async function geocodeAddress(address: string): Promise<Coords | null> {
-  if (!GEOCODE_KEY || !address.trim()) return null;
+  if (!address.trim()) return null;
   try {
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${
+    const url = `https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=${
       encodeURIComponent(address)
-    }&key=${GEOCODE_KEY}`;
-    const res = await fetch(url);
+    }&benchmark=Public_AR_Current&format=json`;
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
     if (!res.ok) return null;
     return parseGeocodeResponse(await res.json());
   } catch {
