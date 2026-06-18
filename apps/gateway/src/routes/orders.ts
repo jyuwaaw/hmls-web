@@ -375,6 +375,9 @@ orders.post("/:id/schedule", zValidator("json", scheduleOrderInput), async (c) =
 
   const shopId = c.get("shopId");
   const authUser = c.get("authUser");
+  if (!(await orderInShop(id, shopId))) {
+    return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
+  }
   const result = await attachSchedule(
     id,
     {
