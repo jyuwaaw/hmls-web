@@ -4,8 +4,10 @@
 --   3. create the first two shop rows (table is empty as of 2026-06-17):
 --      san-jose (primary / backfill target) + orange-county
 --   4. backfill all existing customers/orders/providers -> san-jose
---   5. lock shop_id NOT NULL on customers/orders/providers
---   6. scoping indexes
+--   5. scoping indexes
+-- shop_id stays NULLABLE here. NOT NULL is enforced in a later migration (0029)
+-- once every write path stamps shop_id (Phases 1-3). The backfill below still
+-- makes all existing rows non-null immediately.
 -- Seed labor_rate_cents = 14000 ($140/hr) = current global hourly_rate, so
 -- per-shop pricing is a no-op on existing orders.
 
@@ -35,12 +37,7 @@ UPDATE customers SET shop_id = (SELECT id FROM shops WHERE slug = 'san-jose' LIM
 UPDATE orders    SET shop_id = (SELECT id FROM shops WHERE slug = 'san-jose' LIMIT 1) WHERE shop_id IS NULL;
 UPDATE providers SET shop_id = (SELECT id FROM shops WHERE slug = 'san-jose' LIMIT 1) WHERE shop_id IS NULL;
 
--- 5. lock NOT NULL
-ALTER TABLE customers ALTER COLUMN shop_id SET NOT NULL;
-ALTER TABLE orders    ALTER COLUMN shop_id SET NOT NULL;
-ALTER TABLE providers ALTER COLUMN shop_id SET NOT NULL;
-
--- 6. scoping indexes
+-- 5. scoping indexes
 CREATE INDEX IF NOT EXISTS customers_shop_id_idx ON customers (shop_id);
 CREATE INDEX IF NOT EXISTS providers_shop_id_idx ON providers (shop_id);
 CREATE INDEX IF NOT EXISTS orders_shop_status_idx ON orders (shop_id, status);

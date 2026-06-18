@@ -34,8 +34,8 @@ export const shops = pgTable("shops", {
   name: varchar("name", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 100 }).unique().notNull(),
   timezone: varchar("timezone", { length: 100 }).default("America/Los_Angeles"),
-  laborRateCents: integer("labor_rate_cents").default(12000),
-  taxRatePercent: numeric("tax_rate_percent", { precision: 5, scale: 4 }).default("0.1000"),
+  laborRateCents: integer("labor_rate_cents").default(14000),
+  taxRatePercent: numeric("tax_rate_percent", { precision: 5, scale: 4 }).default("0.0000"),
   latitude: numeric("latitude", { precision: 10, scale: 7 }),
   longitude: numeric("longitude", { precision: 10, scale: 7 }),
   serviceRadiusKm: integer("service_radius_km"),
@@ -47,7 +47,7 @@ export const userRoleEnum = pgEnum("user_role", ["customer", "admin", "mechanic"
 
 export const customers = pgTable("customers", {
   id: serial("id").primaryKey(),
-  shopId: uuid("shop_id").references(() => shops.id).notNull(),
+  shopId: uuid("shop_id").references(() => shops.id),
   name: varchar("name", { length: 255 }),
   phone: varchar("phone", { length: 20 }),
   email: varchar("email", { length: 255 }),
@@ -61,7 +61,7 @@ export const customers = pgTable("customers", {
 
 export const providers = pgTable("providers", {
   id: serial("id").primaryKey(),
-  shopId: uuid("shop_id").references(() => shops.id).notNull(),
+  shopId: uuid("shop_id").references(() => shops.id),
   authUserId: varchar("auth_user_id", { length: 255 }).unique(),
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }),
@@ -192,7 +192,7 @@ export const paymentMethodEnum = pgEnum("payment_method", [
 
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
-  shopId: uuid("shop_id").references(() => shops.id).notNull(),
+  shopId: uuid("shop_id").references(() => shops.id),
   customerId: integer("customer_id").references(() => customers.id).notNull(),
   status: orderStatusEnum("status").notNull().default("draft"),
   statusHistory: jsonb("status_history").$type<OrderStatusHistoryEntry[]>().notNull().default(
