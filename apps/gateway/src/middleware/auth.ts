@@ -57,11 +57,18 @@ export const requireAuth = createMiddleware<AuthEnv>(async (c, next) => {
     );
   }
 
-  const [customer] = await db
+  let [customer] = await db
     .select({ id: schema.customers.id })
     .from(schema.customers)
-    .where(eq(schema.customers.email, user.email))
+    .where(eq(schema.customers.authUserId, user.id))
     .limit(1);
+  if (!customer && user.email) {
+    [customer] = await db
+      .select({ id: schema.customers.id })
+      .from(schema.customers)
+      .where(eq(schema.customers.email, user.email))
+      .limit(1);
+  }
 
   if (!customer) {
     return c.json(
