@@ -171,7 +171,10 @@ async function resolveCustomer(
   const [created] = await db
     .insert(schema.customers)
     .values({
-      shopId: defaultShopId ?? null,
+      // shop_id is NOT NULL. INSERT-branch callers pass defaultShopId
+      // (routed from the order address). The UPDATE branch omits it, so for
+      // the rare guest-create-on-revise, route from the new customer's address.
+      shopId: defaultShopId ?? (await routeOrderToShop(addressIn ?? null)).shopId,
       name: nameIn ?? null,
       email: emailIn ?? null,
       phone: phoneIn ?? null,
