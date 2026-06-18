@@ -19,7 +19,9 @@ import {
   calculateDiscount,
   calculatePrice,
   getPricingConfig,
+  shopHourlyRate,
 } from "../../hmls/skills/estimate/pricing.ts";
+import { routeOrderToShop } from "../shop-routing.ts";
 import { toolResult } from "@hmls/shared/tool-result";
 import type { DiscountType, LineItem, ServiceInput } from "../../hmls/skills/estimate/types.ts";
 import type { OrderItem, RepairTechPrep } from "@hmls/shared/db/schema";
@@ -108,6 +110,7 @@ async function resolveCustomer(
   ctxCustomerId: number | undefined,
   paramCustomerId: number | undefined,
   customerInfo: CustomerInfoInput | undefined,
+  defaultShopId?: string,
 ): Promise<CustomerRecord | null> {
   const phoneIn = clean(customerInfo?.phone);
   const addressIn = clean(customerInfo?.address);
@@ -168,6 +171,7 @@ async function resolveCustomer(
   const [created] = await db
     .insert(schema.customers)
     .values({
+      shopId: defaultShopId ?? null,
       name: nameIn ?? null,
       email: emailIn ?? null,
       phone: phoneIn ?? null,
@@ -193,6 +197,8 @@ interface PriceServicesInput {
   travelMiles?: number;
   discountType?: DiscountType;
   vehicle?: { year: number; make: string; model: string };
+  /** Shop-specific labor rate override (cents). Falls back to global hourlyRate when omitted. */
+  hourlyRateOverride?: number;
 }
 
 async function priceServices(input: PriceServicesInput): Promise<{
@@ -203,7 +209,7 @@ async function priceServices(input: PriceServicesInput): Promise<{
 }> {
   const services = input.services;
   const serviceLineItems = await Promise.all(
-    services.map((s) => calculatePrice(s)),
+    services.map((s) => calculatePrice(s, input.hourlyRateOverride)),
   );
 
   const customLineItems: LineItem[] = (input.customItems ?? []).map((c) => ({
@@ -213,8 +219,9 @@ async function priceServices(input: PriceServicesInput): Promise<{
   }));
 
   const config = await getPricingConfig();
+  const effectiveHourlyRate = input.hourlyRateOverride ?? config.hourlyRate;
   const laborCents = services.reduce(
-    (sum, s) => sum + Math.round((s.laborHours ?? 0) * config.hourlyRate),
+    (sum, s) => sum + Math.round((s.laborHours ?? 0) * effectiveHourlyRate),
     0,
   );
 
@@ -477,12 +484,6 @@ export const createOrderTool = {
       };
     }
 
-    // 1. Run the pricing engine first (cheap, side-effect-free).
-    const { items, subtotal, rangeLow, rangeHigh } = await priceServices({
-      ...params,
-      vehicle: params.vehicle,
-    });
-
     const vehicleInfo = {
       year: String(params.vehicle.year),
       make: params.vehicle.make,
@@ -502,8 +503,30 @@ export const createOrderTool = {
     // for next time). The freshly-supplied customerInfo also wins on the
     // order's contact snapshot — if a customer corrects their phone or
     // service address inside one chat, the order row needs to follow.
+    //
+    // Per-shop labor rate: fetch the existing order's shopId so revisions
+    // price consistently with the shop that originally captured the order.
+    // We do NOT re-route on UPDATE — the shopId is locked at INSERT time.
     // ─────────────────────────────────────────────────────────────────
     if (params.orderId !== undefined) {
+      // Look up the existing order's shopId for consistent re-pricing.
+      const [existingOrder] = await db
+        .select({ shopId: schema.orders.shopId })
+        .from(schema.orders)
+        .where(eq(schema.orders.id, params.orderId))
+        .limit(1);
+      const existingShopId = existingOrder?.shopId ?? null;
+      const updateShopRate = existingShopId
+        ? (await shopHourlyRate(existingShopId) ?? undefined)
+        : undefined;
+
+      // Run pricing with the shop's rate (falls back to global if null).
+      const { items, subtotal, rangeLow, rangeHigh } = await priceServices({
+        ...params,
+        vehicle: params.vehicle,
+        hourlyRateOverride: updateShopRate,
+      });
+
       const actor = customerAgentActor(ctx) ?? staffAgentActor(ctx);
       await resolveCustomer(
         ctx?.customerId,
@@ -565,20 +588,48 @@ export const createOrderTool = {
     // ─────────────────────────────────────────────────────────────────
     // INSERT path — new draft
     // ─────────────────────────────────────────────────────────────────
+
+    // 1. Address from the agent's input (before customer resolution) —
+    //    this is the service address for the NEW order. Used for routing
+    //    so a NEW guest customer record is stamped with the right shopId.
+    const addressIn = clean(params.customerInfo?.address) ?? null;
+
+    // 2. Route the order from the input address. guestRoute gives us a
+    //    shopId to stamp on both the guest customer INSERT and the order.
+    //    Falls back to primary shop when address is absent or geocode fails.
+    const guestRoute = await routeOrderToShop(addressIn);
+
+    // 3. Resolve (or create) the customer. Guest INSERTs carry defaultShopId.
     const customer = await resolveCustomer(
       ctx?.customerId,
       params.customerId,
       params.customerInfo,
+      guestRoute.shopId,
     );
 
-    // Per-order contact snapshot — what THIS order will carry. The agent's
-    // freshly-supplied customerInfo wins (it's the most recent intent), and
-    // we fall back to the customer profile when the agent didn't pass a
-    // value. resolveCustomer has already backfilled blank profile fields
-    // from customerInfo, so customer.phone / customer.address reflect any
-    // newly-stored defaults.
+    // 4. Per-order contact snapshot — what THIS order will carry. The agent's
+    //    freshly-supplied customerInfo wins (it's the most recent intent), and
+    //    we fall back to the customer profile when the agent didn't pass a
+    //    value. resolveCustomer has already backfilled blank profile fields
+    //    from customerInfo, so customer.phone / customer.address reflect any
+    //    newly-stored defaults.
     const orderPhone = clean(params.customerInfo?.phone) ?? customer?.phone ?? null;
-    const orderAddress = clean(params.customerInfo?.address) ?? customer?.address ?? null;
+    const orderAddress = addressIn ?? customer?.address ?? null;
+
+    // 5. Final routing: if the order address came from input we already have
+    //    guestRoute; otherwise re-route from the customer profile address.
+    const routed = addressIn ? guestRoute : await routeOrderToShop(orderAddress);
+
+    // 6. Per-shop labor rate. Falls back to undefined (→ global rate) when
+    //    the shop row is missing or its laborRateCents column is null.
+    const insertShopRate = await shopHourlyRate(routed.shopId) ?? undefined;
+
+    // 7. Run the pricing engine with the shop's rate.
+    const { items, subtotal, rangeLow, rangeHigh } = await priceServices({
+      ...params,
+      vehicle: params.vehicle,
+      hourlyRateOverride: insertShopRate,
+    });
 
     // Customer-side requirement: after fallback to the profile, both phone
     // and a service address must resolve. The agent must collect whatever
@@ -629,6 +680,7 @@ export const createOrderTool = {
       const [row] = await tx
         .insert(schema.orders)
         .values({
+          shopId: routed.shopId,
           customerId: customer.id,
           status: "draft",
           statusHistory: [
@@ -648,6 +700,8 @@ export const createOrderTool = {
           contactEmail: customer.email ?? null,
           contactPhone: orderPhone,
           contactAddress: orderAddress,
+          locationLat: routed.coords ? String(routed.coords.lat) : null,
+          locationLng: routed.coords ? String(routed.coords.lng) : null,
         })
         .returning();
 
