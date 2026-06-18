@@ -131,7 +131,9 @@ git add apps/agent/migrations/0027_user_role_owner.sql
 git commit -m "feat(db): migration 0027 add owner role"
 ```
 
-### Task 3: Foundation migration (create shops, backfill, NOT NULL)
+### Task 3: Foundation migration (create shops, backfill)
+
+> **Correction (code review):** `SET NOT NULL` is **removed** from 0028 and deferred to a new final task **T16b** (migration `0029`). Marking `shopId` NOT NULL in Phase 0 broke existing `db.insert` calls (`deno task check` → 6 errors) because writes don't stamp `shopId` until Phases 1–3. 0028 still backfills existing rows to san-jose; the constraint lands after all write paths stamp shopId. The committed SQL is the source of truth (the block below shows the original intent — ignore its `SET NOT NULL` lines).
 
 **Files:**
 - Create: `apps/agent/migrations/0028_multi_tenancy.sql`
@@ -200,10 +202,13 @@ git commit -m "feat(db): migration 0028 multi-tenancy foundation + backfill"
 
 - [ ] **Step 3: Show both migrations to the user and get explicit approval to apply to prod.** STOP here until approved.
 
-- [ ] **Step 4: Apply migrations**
+- [ ] **Step 4: Apply migrations** — ⚠️ these hand-written SQL files are NOT tracked in the drizzle journal (`meta/_journal.json` only lists 0000 + 0016), so `deno task db:migrate` would **silently skip** them. Apply the SQL directly:
 
-Run: `cd apps/agent && infisical run --env=dev -- deno task db:migrate`
-Expected: 0027 and 0028 apply with no error.
+Run:
+```bash
+cd apps/agent && infisical run --env=dev -- bash -lc 'psql "$DATABASE_URL" -f migrations/0027_user_role_owner.sql && psql "$DATABASE_URL" -f migrations/0028_multi_tenancy.sql'
+```
+Expected: `ALTER TYPE` then `BEGIN`…`COMMIT`, no error.
 
 - [ ] **Step 5: Verify backfill (zero NULLs, two shops)**
 
