@@ -40,6 +40,7 @@ export async function autoAssignProvider(
   const [order] = await db
     .select({
       id: schema.orders.id,
+      shopId: schema.orders.shopId,
       customerId: schema.orders.customerId,
       providerId: schema.orders.providerId,
       scheduledAt: schema.orders.scheduledAt,
@@ -78,7 +79,13 @@ export async function autoAssignProvider(
   const eligible = await db
     .select({ id: schema.providers.id })
     .from(schema.providers)
-    .where(and(eq(schema.providers.isActive, true), sql`NOT ${conflictExists}`));
+    .where(
+      and(
+        eq(schema.providers.shopId, order.shopId),
+        eq(schema.providers.isActive, true),
+        sql`NOT ${conflictExists}`,
+      ),
+    );
 
   if (eligible.length === 0) {
     logger.info("auto-assign: no eligible mechanics for order #{orderId}", {

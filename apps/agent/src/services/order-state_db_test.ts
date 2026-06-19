@@ -29,8 +29,26 @@ const DATABASE_URL = Deno.env.get("DATABASE_URL");
 // name/contactName can be swept safely.
 const TEST_MARKER = "[order-state-l2-test]";
 const TEST_CUSTOMER_EMAIL = "order-state-l2-test@hmls.local";
+const TEST_SHOP_SLUG = "order-state-l2-test";
 
-async function ensureTestCustomer(): Promise<number> {
+async function ensureTestShop(): Promise<string> {
+  const [existing] = await db
+    .select()
+    .from(schema.shops)
+    .where(eq(schema.shops.slug, TEST_SHOP_SLUG))
+    .limit(1);
+  if (existing) return existing.id;
+  const [created] = await db
+    .insert(schema.shops)
+    .values({
+      name: `${TEST_MARKER} shop`,
+      slug: TEST_SHOP_SLUG,
+    })
+    .returning({ id: schema.shops.id });
+  return created.id;
+}
+
+async function ensureTestCustomer(shopId: string): Promise<number> {
   const [existing] = await db
     .select()
     .from(schema.customers)
@@ -40,6 +58,7 @@ async function ensureTestCustomer(): Promise<number> {
   const [created] = await db
     .insert(schema.customers)
     .values({
+      shopId,
       name: `${TEST_MARKER} customer`,
       email: TEST_CUSTOMER_EMAIL,
     })
@@ -56,11 +75,13 @@ async function sweepStaleFixtures(): Promise<void> {
 }
 
 async function insertTestMechanic(
+  shopId: string,
   opts: { name?: string; isActive?: boolean } = {},
 ): Promise<typeof schema.providers.$inferSelect> {
   const [row] = await db
     .insert(schema.providers)
     .values({
+      shopId,
       name: `${TEST_MARKER} ${opts.name ?? crypto.randomUUID().slice(0, 8)}`,
       isActive: opts.isActive ?? true,
     })
@@ -73,6 +94,7 @@ async function deleteMechanic(id: number): Promise<void> {
 }
 
 async function insertTestOrder(opts: {
+  shopId: string;
   status: OrderStatus;
   customerId: number;
   items?: OrderItem[];
@@ -83,6 +105,7 @@ async function insertTestOrder(opts: {
   const [row] = await db
     .insert(schema.orders)
     .values({
+      shopId: opts.shopId,
       customerId: opts.customerId,
       status: opts.status,
       statusHistory: [{
@@ -140,10 +163,11 @@ Deno.test({
   ignore: !DATABASE_URL,
   async fn(t) {
     await sweepStaleFixtures();
-    const customerId = await ensureTestCustomer();
+    const shopId = await ensureTestShop();
+    const customerId = await ensureTestCustomer(shopId);
 
     await t.step("transition: admin draft -> estimated emits status_change", async () => {
-      const order = await insertTestOrder({ status: "draft", customerId });
+      const order = await insertTestOrder({ shopId, status: "draft", customerId });
       try {
         const result = await transition(order.id, "estimated", ADMIN_ACTOR, {
           suppressNotification: true,
@@ -170,7 +194,7 @@ Deno.test({
     });
 
     await t.step("transition: forbidden actor does NOT mutate or emit event", async () => {
-      const order = await insertTestOrder({ status: "approved", customerId });
+      const order = await insertTestOrder({ shopId, status: "approved", customerId });
       try {
         // Customer cannot drive approved -> scheduled — only admin can.
         const customerActor: Actor = { kind: "customer", customerId };
@@ -191,7 +215,7 @@ Deno.test({
     });
 
     await t.step("transition: optimistic lock — second writer blocked", async () => {
-      const order = await insertTestOrder({ status: "draft", customerId });
+      const order = await insertTestOrder({ shopId, status: "draft", customerId });
       try {
         // Fire two transitions concurrently. Depending on which SELECT
         // interleaves with which UPDATE, the loser gets:
@@ -234,7 +258,7 @@ Deno.test({
     });
 
     await t.step("transition: cancelled with reason persists cancellationReason", async () => {
-      const order = await insertTestOrder({ status: "estimated", customerId });
+      const order = await insertTestOrder({ shopId, status: "estimated", customerId });
       try {
         const result = await transition(order.id, "cancelled", ADMIN_ACTOR, {
           reason: "Customer out of town",
@@ -256,6 +280,7 @@ Deno.test({
 
     await t.step("patchItems: estimated auto-flips to revised, emits 2 events", async () => {
       const order = await insertTestOrder({
+        shopId,
         status: "estimated",
         customerId,
         items: [sampleItem("Original service", 10000)],
@@ -284,6 +309,7 @@ Deno.test({
 
     await t.step("patchItems: expectedVersion mismatch returns conflict", async () => {
       const order = await insertTestOrder({
+        shopId,
         status: "draft",
         customerId,
         revisionNumber: 5,
@@ -309,6 +335,7 @@ Deno.test({
 
     await t.step("patchItems: autoRevertEstimatedToRevised=false stays in estimated", async () => {
       const order = await insertTestOrder({
+        shopId,
         status: "estimated",
         customerId,
         items: [sampleItem("Original", 10000)],
@@ -334,7 +361,7 @@ Deno.test({
     });
 
     await t.step("attachSchedule: approved -> scheduled advances + emits both events", async () => {
-      const order = await insertTestOrder({ status: "approved", customerId });
+      const order = await insertTestOrder({ shopId, status: "approved", customerId });
       try {
         const scheduledAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
         const result = await attachSchedule(order.id, {
@@ -364,7 +391,7 @@ Deno.test({
     });
 
     await t.step("attachSchedule: on estimated order is status-preserving", async () => {
-      const order = await insertTestOrder({ status: "estimated", customerId });
+      const order = await insertTestOrder({ shopId, status: "estimated", customerId });
       try {
         const result = await attachSchedule(order.id, {
           scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
@@ -387,7 +414,7 @@ Deno.test({
     });
 
     await t.step("attachSchedule: on scheduled order is a pure field update", async () => {
-      const order = await insertTestOrder({ status: "scheduled", customerId });
+      const order = await insertTestOrder({ shopId, status: "scheduled", customerId });
       try {
         const result = await attachSchedule(order.id, {
           scheduledAt: new Date(Date.now() + 48 * 60 * 60 * 1000),
@@ -406,7 +433,7 @@ Deno.test({
     });
 
     await t.step("recordPayment: stamps paidAt/method/reference on scheduled order", async () => {
-      const order = await insertTestOrder({ status: "scheduled", customerId });
+      const order = await insertTestOrder({ shopId, status: "scheduled", customerId });
       try {
         const result = await recordPayment(order.id, {
           amountCents: 25000,
@@ -430,7 +457,7 @@ Deno.test({
     });
 
     await t.step("recordPayment: forbidden on cancelled order, no side effects", async () => {
-      const order = await insertTestOrder({ status: "cancelled", customerId });
+      const order = await insertTestOrder({ shopId, status: "cancelled", customerId });
       try {
         const result = await recordPayment(order.id, {
           amountCents: 10000,
@@ -455,7 +482,7 @@ Deno.test({
     });
 
     await t.step("addNote: inserts note_added event with agent chain actor string", async () => {
-      const order = await insertTestOrder({ status: "draft", customerId });
+      const order = await insertTestOrder({ shopId, status: "draft", customerId });
       try {
         const agentActor: Actor = {
           kind: "agent",
@@ -486,7 +513,7 @@ Deno.test({
     // -------------------------------------------------------------------
 
     await t.step("transition: admin draft -> scheduled (chat-flow Confirm)", async () => {
-      const order = await insertTestOrder({ status: "draft", customerId });
+      const order = await insertTestOrder({ shopId, status: "draft", customerId });
       try {
         // Stamp scheduling fields first so the resulting `scheduled` order
         // is well-formed (matches what `schedule_order` does in the chat).
@@ -521,7 +548,7 @@ Deno.test({
     });
 
     await t.step("transition: customer can cancel draft (mid-chat walk-away)", async () => {
-      const order = await insertTestOrder({ status: "draft", customerId });
+      const order = await insertTestOrder({ shopId, status: "draft", customerId });
       try {
         const customerActor: Actor = { kind: "customer", customerId };
         const result = await transition(order.id, "cancelled", customerActor, {
@@ -542,8 +569,8 @@ Deno.test({
       // seeded providers; auto-assign picks any active mechanic with no
       // conflict, so we only verify behavior, not which specific row got
       // chosen.
-      const mech = await insertTestMechanic({ name: "auto-assign-happy" });
-      const order = await insertTestOrder({ status: "draft", customerId });
+      const mech = await insertTestMechanic(shopId, { name: "auto-assign-happy" });
+      const order = await insertTestOrder({ shopId, status: "draft", customerId });
       try {
         // Set scheduling fields without assigning anyone.
         const attached = await attachSchedule(order.id, {
@@ -570,8 +597,8 @@ Deno.test({
     });
 
     await t.step("autoAssignProvider: returns null on order with no scheduling", async () => {
-      const mech = await insertTestMechanic({ name: "auto-assign-no-time" });
-      const order = await insertTestOrder({ status: "draft", customerId });
+      const mech = await insertTestMechanic(shopId, { name: "auto-assign-no-time" });
+      const order = await insertTestOrder({ shopId, status: "draft", customerId });
       try {
         const outcome = await autoAssignProvider(order.id);
         assertStrictEquals(outcome.providerId, null);
@@ -586,8 +613,8 @@ Deno.test({
     });
 
     await t.step("autoAssignProvider: skips when already assigned", async () => {
-      const mech = await insertTestMechanic({ name: "auto-assign-already" });
-      const order = await insertTestOrder({ status: "draft", customerId });
+      const mech = await insertTestMechanic(shopId, { name: "auto-assign-already" });
+      const order = await insertTestOrder({ shopId, status: "draft", customerId });
       try {
         const attached = await attachSchedule(order.id, {
           scheduledAt: new Date(Date.now() + 72 * 60 * 60 * 1000),
