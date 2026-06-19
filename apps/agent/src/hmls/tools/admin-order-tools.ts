@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { db, schema, scoped, whereShop } from "../../db/client.ts";
+import { type AccessCtx, canWrite, orderAccessible } from "../../db/tenant.ts";
 import type { OrderItem } from "@hmls/shared/db/schema";
 import { EDITABLE_STATUSES, isOrderStatus } from "@hmls/shared/order/status";
 import { toolResult } from "@hmls/shared/tool-result";
@@ -251,6 +252,14 @@ const updateOrderItemsTool = {
     const id = Number(params.order_id);
     if (!Number.isInteger(id) || id <= 0) {
       return toolResult({ success: false, error: "Invalid order_id" });
+    }
+
+    // Ownership pre-flight (WRITE). Staff may only edit their own shop's
+    // order; owner-no-shop is read-only (rejected). Mirror the existing
+    // "not found" shape so existence isn't leaked.
+    const ctxAccess: AccessCtx = { shopId: ctx?.shopId, customerId: ctx?.customerId };
+    if (!canWrite(ctxAccess) || !(await orderAccessible(id, ctxAccess))) {
+      return toolResult({ success: false, error: `Order #${id} not found` });
     }
 
     if (params.idempotencyKey && executedKeys.has(params.idempotencyKey)) {
@@ -507,6 +516,12 @@ const updateOrderTool = {
     const id = Number(params.order_id);
     if (!Number.isInteger(id) || id <= 0) {
       return toolResult({ success: false, error: "Invalid order_id" });
+    }
+
+    // Ownership pre-flight (WRITE) — same rule as update_order_items.
+    const ctxAccess: AccessCtx = { shopId: ctx?.shopId, customerId: ctx?.customerId };
+    if (!canWrite(ctxAccess) || !(await orderAccessible(id, ctxAccess))) {
+      return toolResult({ success: false, error: `Order #${id} not found` });
     }
 
     if (

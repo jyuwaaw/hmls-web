@@ -11,9 +11,10 @@
 // matching the existing modify_order_items semantics.
 
 import { z } from "zod";
-import { eq, ilike } from "drizzle-orm";
+import { and, eq, ilike } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { db, schema } from "../../db/client.ts";
+import { type AccessCtx, canWrite, orderAccessible, OWNER_ALL_SHOPS } from "../../db/tenant.ts";
 import {
   buildFeeItems,
   calculateDiscount,
@@ -110,6 +111,7 @@ async function resolveCustomer(
   ctxCustomerId: number | undefined,
   paramCustomerId: number | undefined,
   customerInfo: CustomerInfoInput | undefined,
+  access: AccessCtx,
   defaultShopId?: string,
 ): Promise<CustomerRecord | null> {
   const phoneIn = clean(customerInfo?.phone);
@@ -125,6 +127,15 @@ async function resolveCustomer(
       .where(eq(schema.customers.id, id))
       .limit(1);
     if (!found) return null;
+
+    // Ownership gate: a customer agent may only resolve its own customer id;
+    // staff may only resolve a customer in their own shop. Owner all-shops may
+    // resolve any (read context — writes are blocked upstream by canWrite).
+    if (access.customerId != null) {
+      if (found.id !== access.customerId) return null;
+    } else if (access.shopId && access.shopId !== OWNER_ALL_SHOPS) {
+      if (found.shopId !== access.shopId) return null;
+    }
 
     const patch: Partial<typeof schema.customers.$inferInsert> = {};
     if (phoneIn && !found.phone) patch.phone = phoneIn;
@@ -147,10 +158,19 @@ async function resolveCustomer(
   if (!nameIn && !emailIn && !phoneIn) return null;
 
   if (emailIn) {
+    // Scope the email lookup to the staff caller's shop so shop A cannot
+    // find-or-attach a shop B customer by guessing their email. Customer
+    // agents never reach this branch (their id resolves above); owner
+    // all-shops may match any (writes blocked upstream by canWrite).
+    const emailMatch = ilike(schema.customers.email, emailIn);
+    const emailWhere = access.customerId == null && access.shopId &&
+        access.shopId !== OWNER_ALL_SHOPS
+      ? and(emailMatch, eq(schema.customers.shopId, access.shopId))
+      : emailMatch;
     const [existing] = await db
       .select()
       .from(schema.customers)
-      .where(ilike(schema.customers.email, emailIn))
+      .where(emailWhere)
       .limit(1);
     if (existing) {
       const patch: Partial<typeof schema.customers.$inferInsert> = {};
@@ -512,6 +532,15 @@ export const createOrderTool = {
     // We do NOT re-route on UPDATE — the shopId is locked at INSERT time.
     // ─────────────────────────────────────────────────────────────────
     if (params.orderId !== undefined) {
+      // Ownership pre-flight (cross-tenant WRITE — top priority). A customer
+      // may only revise their own order; staff only an order in their shop;
+      // owner all-shops is read-only (canWrite false → rejected). Return the
+      // same "not found" shape so existence is not leaked.
+      const ctxAccess: AccessCtx = { shopId: ctx?.shopId, customerId: ctx?.customerId };
+      if (!canWrite(ctxAccess) || !(await orderAccessible(params.orderId, ctxAccess))) {
+        return toolResult({ success: false, error: "Order not found" });
+      }
+
       // Look up the existing order's shopId for consistent re-pricing.
       const [existingOrder] = await db
         .select({ shopId: schema.orders.shopId })
@@ -535,6 +564,7 @@ export const createOrderTool = {
         ctx?.customerId,
         params.customerId,
         params.customerInfo,
+        ctxAccess,
       );
       const phoneIn = clean(params.customerInfo?.phone);
       const addressIn = clean(params.customerInfo?.address);
@@ -603,10 +633,12 @@ export const createOrderTool = {
     const guestRoute = await routeOrderToShop(addressIn);
 
     // 3. Resolve (or create) the customer. Guest INSERTs carry defaultShopId.
+    const insertAccess: AccessCtx = { shopId: ctx?.shopId, customerId: ctx?.customerId };
     const customer = await resolveCustomer(
       ctx?.customerId,
       params.customerId,
       params.customerInfo,
+      insertAccess,
       guestRoute.shopId,
     );
 
@@ -766,7 +798,15 @@ export const getOrderTool = {
   schema: z.object({
     orderId: z.number().int().describe("Order ID"),
   }),
-  execute: async (params: { orderId: number }, _ctx: unknown) => {
+  execute: async (params: { orderId: number }, ctx: ToolContext | undefined) => {
+    // Ownership pre-flight: customer sees only their own orders; staff only
+    // their shop's; owner all-shops may read any; no context denies. Return
+    // the same "not found" shape on a denied read so existence isn't leaked.
+    const ctxAccess: AccessCtx = { shopId: ctx?.shopId, customerId: ctx?.customerId };
+    if (!(await orderAccessible(params.orderId, ctxAccess))) {
+      return toolResult({ found: false, message: "Order not found" });
+    }
+
     const [order] = await db
       .select()
       .from(schema.orders)

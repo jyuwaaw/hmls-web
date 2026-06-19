@@ -15,6 +15,7 @@
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db, schema } from "../../db/client.ts";
+import { type AccessCtx, canWrite, orderAccessible } from "../../db/tenant.ts";
 import { toolResult } from "@hmls/shared/tool-result";
 import type { OrderItem } from "@hmls/shared/db/schema";
 import { autoAssignProvider } from "../../services/auto-assign.ts";
@@ -91,13 +92,22 @@ const scheduleOrderTool = {
       return toolResult({ success: false, error: "scheduledAt is not a valid date" });
     }
 
+    // Ownership pre-flight (WRITE). Customer may only schedule their own
+    // order; staff only their shop's; owner-no-shop is read-only (rejected).
+    // This subsumes the prior inline customerId check and adds the staff
+    // shop scope + owner-write block.
+    const ctxAccess: AccessCtx = { shopId: ctx?.shopId, customerId: ctx?.customerId };
+    if (!canWrite(ctxAccess) || !(await orderAccessible(id, ctxAccess))) {
+      return toolResult({ success: false, error: `Order #${id} not found` });
+    }
+
     // Customer agent first (returns null if no customerId in ctx), then
     // staff agent fallback. Same pattern as common/tools/order.ts.
     const customerActor = customerAgentActor(ctx);
     const actor = customerActor ?? staffAgentActor(ctx);
 
-    // Single SELECT covers both ownership check (customer) and item /
-    // duration derivation (everyone).
+    // Single SELECT for item / duration derivation (everyone). Ownership is
+    // already enforced by the pre-flight above.
     const [order] = await db
       .select({
         id: schema.orders.id,
@@ -109,9 +119,6 @@ const scheduleOrderTool = {
       .where(eq(schema.orders.id, id))
       .limit(1);
     if (!order) {
-      return toolResult({ success: false, error: `Order #${id} not found` });
-    }
-    if (customerActor && order.customerId !== ctx?.customerId) {
       return toolResult({ success: false, error: `Order #${id} not found` });
     }
 

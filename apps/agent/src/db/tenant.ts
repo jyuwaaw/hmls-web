@@ -27,6 +27,35 @@ export function scoped(
   return and(whereShop(column, shopId), ...extra);
 }
 
+export interface AccessCtx {
+  shopId?: string;
+  customerId?: number;
+}
+
+/** True iff the order exists AND the caller may access it under the access rule.
+ *  - customer (ctx.customerId set): only their own orders, across any shop
+ *  - owner all-shops (ctx.shopId === OWNER_ALL_SHOPS): may read any order
+ *  - staff (concrete ctx.shopId): only orders in their shop
+ *  - no context: deny */
+export async function orderAccessible(orderId: number, ctx: AccessCtx): Promise<boolean> {
+  const [o] = await db
+    .select({ shopId: schema.orders.shopId, customerId: schema.orders.customerId })
+    .from(schema.orders)
+    .where(eq(schema.orders.id, orderId))
+    .limit(1);
+  if (!o) return false;
+  if (ctx.customerId != null) return o.customerId === ctx.customerId; // customer: own orders
+  if (ctx.shopId === OWNER_ALL_SHOPS) return true; // owner: read any
+  if (ctx.shopId) return o.shopId === ctx.shopId; // staff: own shop
+  return false; // no context: deny
+}
+
+/** Writes are forbidden for an owner with no shop selected (and for no-context). */
+export function canWrite(ctx: AccessCtx): boolean {
+  if (ctx.customerId != null) return true;
+  return !!ctx.shopId && ctx.shopId !== OWNER_ALL_SHOPS;
+}
+
 /** List orders for a shop (status optional). */
 export function ordersForShop(shopId: string, status?: string) {
   return db.select().from(schema.orders).where(
