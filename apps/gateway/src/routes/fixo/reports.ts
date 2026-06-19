@@ -1,10 +1,10 @@
 import { Hono } from "hono";
-import { renderToStream } from "@react-pdf/renderer";
 import { db, schema } from "@hmls/agent/db";
 import { eq } from "drizzle-orm";
 import { DiagnosticReportPdf } from "@hmls/agent";
 import { getLogger } from "@logtape/logtape";
 import type { AuthContext } from "../../middleware/fixo/auth.ts";
+import { pdfResponse } from "../../lib/pdf-response.ts";
 
 const logger = getLogger(["hmls", "gateway", "fixo", "reports"]);
 
@@ -109,7 +109,7 @@ reports.get("/:reportId/pdf", async (c) => {
     : null;
 
   try {
-    const pdfStream = await renderToStream(
+    return await pdfResponse(
       DiagnosticReportPdf({
         reportId: report.id,
         generatedAt: report.generatedAt,
@@ -118,14 +118,8 @@ reports.get("/:reportId/pdf", async (c) => {
         result,
         estimate,
       }),
+      `Fixo-Report-${report.id}.pdf`,
     );
-
-    return new Response(pdfStream as unknown as ReadableStream, {
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `inline; filename="Fixo-Report-${report.id}.pdf"`,
-      },
-    });
   } catch (err) {
     logger.error("PDF render failed", {
       reportId,

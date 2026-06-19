@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import { renderToStream } from "@react-pdf/renderer";
 import { db, schema } from "@hmls/agent/db";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { type AdminEnv, requireAdmin } from "../middleware/admin.ts";
@@ -17,6 +16,7 @@ import {
 } from "@hmls/agent/order-state";
 import { autoAssignProvider } from "@hmls/agent/auto-assign";
 import { sendOrderStateResult } from "../lib/order-state-http.ts";
+import { pdfResponse } from "../lib/pdf-response.ts";
 import {
   addOrderNoteInput,
   createOrderInput,
@@ -549,7 +549,7 @@ ordersPdf.get("/:id/pdf", zValidator("query", orderPdfQuery), async (c) => {
       }),
     );
 
-  const pdfStream = await renderToStream(
+  return pdfResponse(
     EstimatePdf({
       estimate: {
         id,
@@ -563,14 +563,8 @@ ordersPdf.get("/:id/pdf", zValidator("query", orderPdfQuery), async (c) => {
       },
       customer,
     }),
+    `HMLS-Estimate-${id}.pdf`,
   );
-
-  return new Response(pdfStream as unknown as ReadableStream, {
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="HMLS-Estimate-${id}.pdf"`,
-    },
-  });
 });
 
 export { ordersPdf };

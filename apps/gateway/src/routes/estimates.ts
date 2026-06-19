@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { renderToStream } from "@react-pdf/renderer";
 import { db, schema } from "@hmls/agent/db";
 import { and, eq } from "drizzle-orm";
 import { EstimatePdf } from "@hmls/agent";
@@ -7,6 +6,7 @@ import { transition } from "@hmls/agent/order-state";
 import { Errors } from "@hmls/shared/errors";
 import { type AuthEnv, requireAuth } from "../middleware/auth.ts";
 import { sendOrderStateResult } from "../lib/order-state-http.ts";
+import { pdfResponse } from "../lib/pdf-response.ts";
 
 // After Layer 3 "estimate" is a VIEW on the `orders` table — there is no
 // separate `estimates` table anymore. The routes below still live under
@@ -77,7 +77,7 @@ estimates.get("/:id/pdf", async (c) => {
       price: i.totalCents ?? 0,
     }));
 
-  const pdfStream = await renderToStream(
+  return pdfResponse(
     EstimatePdf({
       estimate: {
         id,
@@ -91,14 +91,8 @@ estimates.get("/:id/pdf", async (c) => {
       },
       customer,
     }),
+    `HMLS-Estimate-${id}.pdf`,
   );
-
-  return new Response(pdfStream as unknown as ReadableStream, {
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="HMLS-Estimate-${id}.pdf"`,
-    },
-  });
 });
 
 // GET /estimates/:id/review — public review page via share token
