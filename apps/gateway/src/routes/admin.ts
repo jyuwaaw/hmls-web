@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import { db, schema } from "@hmls/agent/db";
+import { db, schema, whereShop } from "@hmls/agent/db";
 import { and, count, desc, eq, gte, sql } from "drizzle-orm";
 import { type AdminEnv, requireAdmin } from "../middleware/admin.ts";
 import { OWNER_ALL_SHOPS, requireShopContext, type WithShop } from "../middleware/shop-context.ts";
@@ -59,17 +59,17 @@ admin.get("/dashboard", async (c) => {
     recentCustomers,
   ] = await Promise.all([
     db.select({ count: count() }).from(schema.customers).where(
-      eq(schema.customers.shopId, shopId),
+      whereShop(schema.customers.shopId, shopId),
     ),
     db.select({ count: count() }).from(schema.orders).where(
-      eq(schema.orders.shopId, shopId),
+      whereShop(schema.orders.shopId, shopId),
     ),
     db
       .select()
       .from(schema.orders)
       .where(
         and(
-          eq(schema.orders.shopId, shopId),
+          whereShop(schema.orders.shopId, shopId),
           gte(schema.orders.scheduledAt, now),
           sql`${schema.orders.status} IN ('scheduled', 'in_progress')`,
         ),
@@ -79,7 +79,7 @@ admin.get("/dashboard", async (c) => {
     db
       .select()
       .from(schema.customers)
-      .where(eq(schema.customers.shopId, shopId))
+      .where(whereShop(schema.customers.shopId, shopId))
       .orderBy(desc(schema.customers.createdAt))
       .limit(5),
   ]);
@@ -95,7 +95,7 @@ admin.get("/dashboard", async (c) => {
     .from(schema.orders)
     .where(
       and(
-        eq(schema.orders.shopId, shopId),
+        whereShop(schema.orders.shopId, shopId),
         sql`${schema.orders.status} = 'completed' AND ${schema.orders.createdAt} >= ${thirtyDaysAgo.toISOString()}`,
       ),
     );
@@ -103,19 +103,19 @@ admin.get("/dashboard", async (c) => {
   const [pendingReview] = await db
     .select({ count: count() })
     .from(schema.orders)
-    .where(and(eq(schema.orders.shopId, shopId), eq(schema.orders.status, "draft")));
+    .where(and(whereShop(schema.orders.shopId, shopId), eq(schema.orders.status, "draft")));
 
   const [pendingApprovals] = await db
     .select({ count: count() })
     .from(schema.orders)
-    .where(and(eq(schema.orders.shopId, shopId), eq(schema.orders.status, "estimated")));
+    .where(and(whereShop(schema.orders.shopId, shopId), eq(schema.orders.status, "estimated")));
 
   const [activeJobs] = await db
     .select({ count: count() })
     .from(schema.orders)
     .where(
       and(
-        eq(schema.orders.shopId, shopId),
+        whereShop(schema.orders.shopId, shopId),
         sql`${schema.orders.status} IN ('approved', 'scheduled', 'in_progress')`,
       ),
     );
@@ -164,14 +164,14 @@ admin.get("/customers", zValidator("query", listCustomersQuery), async (c) => {
   let query = db
     .select()
     .from(schema.customers)
-    .where(eq(schema.customers.shopId, shopId))
+    .where(whereShop(schema.customers.shopId, shopId))
     .orderBy(desc(schema.customers.createdAt))
     .$dynamic();
 
   if (search) {
     query = query.where(
       and(
-        eq(schema.customers.shopId, shopId),
+        whereShop(schema.customers.shopId, shopId),
         sql`(${schema.customers.name} ILIKE ${
           "%" + search + "%"
         } OR ${schema.customers.email} ILIKE ${
@@ -200,7 +200,7 @@ admin.get("/customers/:id", async (c) => {
   const [customer] = await db
     .select()
     .from(schema.customers)
-    .where(and(eq(schema.customers.id, id), eq(schema.customers.shopId, shopId)))
+    .where(and(eq(schema.customers.id, id), whereShop(schema.customers.shopId, shopId)))
     .limit(1);
 
   if (!customer) {
@@ -210,7 +210,7 @@ admin.get("/customers/:id", async (c) => {
   const orders = await db
     .select()
     .from(schema.orders)
-    .where(and(eq(schema.orders.customerId, id), eq(schema.orders.shopId, shopId)))
+    .where(and(eq(schema.orders.customerId, id), whereShop(schema.orders.shopId, shopId)))
     .orderBy(desc(schema.orders.createdAt));
 
   return c.json<{ customer: CustomerRow; orders: OrderRow[] }>({ customer, orders });

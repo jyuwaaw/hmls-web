@@ -22,7 +22,7 @@ import {
   getPricingConfig,
   shopHourlyRate,
 } from "../../hmls/skills/estimate/pricing.ts";
-import { routeOrderToShop } from "../shop-routing.ts";
+import { type Coords, geocodeAddress, routeOrderToShop } from "../shop-routing.ts";
 import { toolResult } from "@hmls/shared/tool-result";
 import type { DiscountType, LineItem, ServiceInput } from "../../hmls/skills/estimate/types.ts";
 import type { OrderItem, RepairTechPrep } from "@hmls/shared/db/schema";
@@ -622,24 +622,40 @@ export const createOrderTool = {
     // INSERT path — new draft
     // ─────────────────────────────────────────────────────────────────
 
+    // 0. Cross-tenant WRITE gate (top priority — mirror of the UPDATE branch).
+    //    A customer agent always passes (ctx.customerId set); staff passes only
+    //    with a concrete shop bound; an owner with no shop selected
+    //    (ctx.shopId === OWNER_ALL_SHOPS) and the no-context case are rejected.
+    const insertAccess: AccessCtx = { shopId: ctx?.shopId, customerId: ctx?.customerId };
+    if (!canWrite(insertAccess)) {
+      return toolResult({ success: false, error: "Select a shop before creating an order." });
+    }
+
     // 1. Address from the agent's input (before customer resolution) —
-    //    this is the service address for the NEW order. Used for routing
-    //    so a NEW guest customer record is stamped with the right shopId.
+    //    this is the service address for the NEW order. Geocoding the address
+    //    populates the order's locationLat/Lng regardless of which shop owns it.
     const addressIn = clean(params.customerInfo?.address) ?? null;
 
-    // 2. Route the order from the input address. guestRoute gives us a
-    //    shopId to stamp on both the guest customer INSERT and the order.
-    //    Falls back to primary shop when address is absent or geocode fails.
-    const guestRoute = await routeOrderToShop(addressIn);
+    // 2. Branch on caller. The shop-selection rule differs:
+    //    - Customer agent (access.customerId != null): the order routes to the
+    //      nearest shop by service address (intended cross-shop routing). The
+    //      customer is resolved from ctx.customerId — a guest insert never
+    //      reaches the address-routed branch.
+    //    - Staff agent (access.customerId == null): canWrite guarantees a
+    //      concrete access.shopId. The order — AND any guest customer it
+    //      creates — MUST be the staff member's own shop, never the routed one.
+    const isCustomerAgent = insertAccess.customerId != null;
 
-    // 3. Resolve (or create) the customer. Guest INSERTs carry defaultShopId.
-    const insertAccess: AccessCtx = { shopId: ctx?.shopId, customerId: ctx?.customerId };
+    // 3. Resolve (or create) the customer. The guest-create defaultShopId is
+    //    the staff member's own shop (unused on the customer path, where the
+    //    id resolves and no guest is created) so a walk-in is never stamped
+    //    with a foreign (address-routed) shop.
     const customer = await resolveCustomer(
       ctx?.customerId,
       params.customerId,
       params.customerInfo,
       insertAccess,
-      guestRoute.shopId,
+      insertAccess.shopId, // concrete for staff; ignored for customer
     );
 
     // 4. Per-order contact snapshot — what THIS order will carry. The agent's
@@ -651,13 +667,26 @@ export const createOrderTool = {
     const orderPhone = clean(params.customerInfo?.phone) ?? customer?.phone ?? null;
     const orderAddress = addressIn ?? customer?.address ?? null;
 
-    // 5. Final routing: if the order address came from input we already have
-    //    guestRoute; otherwise re-route from the customer profile address.
-    const routed = addressIn ? guestRoute : await routeOrderToShop(orderAddress);
+    // 5. Resolve the order's shop + coordinates (best-effort; never gates
+    //    creation). Customer: route by the order address so shop + coords track
+    //    the job's location. Staff: shop is forced to the staff member's own
+    //    shop; geocode the order address only to populate coords.
+    let orderShopId: string;
+    let coords: Coords | null;
+    if (isCustomerAgent) {
+      const routed = await routeOrderToShop(orderAddress);
+      orderShopId = routed.shopId; // nearest shop wins
+      coords = routed.coords;
+    } else {
+      orderShopId = insertAccess.shopId as string; // staff's own shop (per canWrite)
+      coords = orderAddress ? await geocodeAddress(orderAddress) : null;
+    }
+    const locationLat = coords ? String(coords.lat) : null;
+    const locationLng = coords ? String(coords.lng) : null;
 
     // 6. Per-shop labor rate. Falls back to undefined (→ global rate) when
     //    the shop row is missing or its laborRateCents column is null.
-    const insertShopRate = await shopHourlyRate(routed.shopId) ?? undefined;
+    const insertShopRate = await shopHourlyRate(orderShopId) ?? undefined;
 
     // 7. Run the pricing engine with the shop's rate.
     const { items, subtotal, rangeLow, rangeHigh } = await priceServices({
@@ -715,7 +744,7 @@ export const createOrderTool = {
       const [row] = await tx
         .insert(schema.orders)
         .values({
-          shopId: routed.shopId,
+          shopId: orderShopId,
           customerId: customer.id,
           status: "draft",
           statusHistory: [
@@ -735,8 +764,8 @@ export const createOrderTool = {
           contactEmail: customer.email ?? null,
           contactPhone: orderPhone,
           contactAddress: orderAddress,
-          locationLat: routed.coords ? String(routed.coords.lat) : null,
-          locationLng: routed.coords ? String(routed.coords.lng) : null,
+          locationLat,
+          locationLng,
         })
         .returning();
 

@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { renderToStream } from "@react-pdf/renderer";
-import { db, schema } from "@hmls/agent/db";
+import { db, schema, whereShop } from "@hmls/agent/db";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { type AdminEnv, requireAdmin } from "../middleware/admin.ts";
 import { OWNER_ALL_SHOPS, requireShopContext, type WithShop } from "../middleware/shop-context.ts";
@@ -91,7 +91,11 @@ orders.get("/", zValidator("query", listOrdersQuery), async (c) => {
     .orderBy(desc(schema.orders.createdAt))
     .$dynamic();
 
-  const conditions = [eq(schema.orders.shopId, shopId)];
+  // whereShop returns undefined for the owner all-shops sentinel, so an owner
+  // with no shop selected sees every shop's orders; a concrete shop scopes.
+  const conditions: (ReturnType<typeof eq> | undefined)[] = [
+    whereShop(schema.orders.shopId, shopId),
+  ];
   if (status) {
     conditions.push(eq(schema.orders.status, status));
   }
@@ -226,7 +230,7 @@ orders.get("/:id", async (c) => {
   const [order] = await db
     .select()
     .from(schema.orders)
-    .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
+    .where(and(eq(schema.orders.id, id), whereShop(schema.orders.shopId, shopId)))
     .limit(1);
 
   if (!order) {

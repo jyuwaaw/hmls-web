@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { and, asc, between, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
-import { db, schema } from "@hmls/agent/db";
+import { db, schema, whereShop } from "@hmls/agent/db";
 import { type Actor, assignProvider } from "@hmls/agent/order-state";
 import { type AdminEnv, requireAdmin } from "../middleware/admin.ts";
 import { OWNER_ALL_SHOPS, requireShopContext, type WithShop } from "../middleware/shop-context.ts";
@@ -89,7 +89,7 @@ adminMechanics.get("/", async (c) => {
   const providers = await db
     .select()
     .from(schema.providers)
-    .where(eq(schema.providers.shopId, shopId))
+    .where(whereShop(schema.providers.shopId, shopId))
     .orderBy(desc(schema.providers.isActive), asc(schema.providers.name));
 
   if (providers.length === 0) return c.json<ProviderWithStats[]>([]);
@@ -130,7 +130,7 @@ adminMechanics.get("/", async (c) => {
       .from(schema.orders)
       .where(
         and(
-          eq(schema.orders.shopId, shopId),
+          whereShop(schema.orders.shopId, shopId),
           inArray(schema.orders.providerId, providerIds),
           gte(schema.orders.scheduledAt, weekStart),
           activeStatusSql,
@@ -147,7 +147,7 @@ adminMechanics.get("/", async (c) => {
       .from(schema.orders)
       .where(
         and(
-          eq(schema.orders.shopId, shopId),
+          whereShop(schema.orders.shopId, shopId),
           inArray(schema.orders.providerId, providerIds),
           between(
             schema.orders.scheduledAt,
@@ -168,7 +168,7 @@ adminMechanics.get("/", async (c) => {
       .from(schema.orders)
       .where(
         and(
-          eq(schema.orders.shopId, shopId),
+          whereShop(schema.orders.shopId, shopId),
           inArray(schema.orders.providerId, providerIds),
           eq(schema.orders.status, "completed"),
           gte(schema.orders.createdAt, thirtyDaysAgo),
@@ -182,7 +182,7 @@ adminMechanics.get("/", async (c) => {
       .from(schema.orders)
       .where(
         and(
-          eq(schema.orders.shopId, shopId),
+          whereShop(schema.orders.shopId, shopId),
           inArray(schema.orders.providerId, providerIds),
           gte(schema.orders.scheduledAt, now),
           lte(schema.orders.scheduledAt, endOfWeek(now)),
@@ -198,7 +198,7 @@ adminMechanics.get("/", async (c) => {
       .from(schema.orders)
       .where(
         and(
-          eq(schema.orders.shopId, shopId),
+          whereShop(schema.orders.shopId, shopId),
           inArray(schema.orders.providerId, providerIds),
           gte(schema.orders.scheduledAt, now),
           sql`${schema.orders.status} IN ('scheduled', 'in_progress')`,
