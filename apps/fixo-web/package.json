@@ -23,7 +23,7 @@
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.99.1",
     "@xyflow/react": "^12.10.2",
-    "ai": "^6.0.172",
+    "ai": "6.0.169",
     "ansi-to-react": "^6.2.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
