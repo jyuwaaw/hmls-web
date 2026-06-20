@@ -69,12 +69,13 @@ nothing is enforced server-side.
 
 ---
 
-## Slice 2: Fixo brain as an internal API + `prediction_id` loop — REVIEW GATE
+## Slice 2: Fixo brain as an in-process service + `prediction_id` loop — CONTRACT LOCKED (2026-06-20)
 
-> **STOP — do not implement past this line without user sign-off on the contract.**
-> The whole network play (other shops as Fixo-API clients) rests on this shape.
-> Picking it wrong = expensive rework. This section is a *proposal* to review,
-> not blessed tasks.
+> Contract blessed by the user. Full replace; **in-process function module (not
+> HTTP)** for Phase 0. The contract lives in code at
+> `apps/agent/src/fixo/brain-service.ts`. The route shapes below are the
+> transport-agnostic contract — Phase 0 calls them as functions; Phase 2 lifts
+> them behind HTTP for external shops (callsites unchanged).
 
 **Proposed contract (internal first — no auth/versioning/rate-limits yet):**
 
@@ -92,13 +93,19 @@ POST /fixo/outcomes            # the back-seam / loop closer
   → { ok: true }
 ```
 
-**Open decisions for review:**
-1. Where does `predictionId` live on the order side? Proposed: nullable `orders.fixo_prediction_id` (text, NO FK — soft correlation, migration file only). Alternative: stash in `order_events.metadata`.
-2. What triggers `POST /fixo/outcomes`? Proposed: fire when `confirmedDiagnosis` is saved on an order that carries a `fixo_prediction_id`.
-3. Does HMLS's brain (`agent/src/hmls`) get fully replaced by these calls now, or incrementally (estimate first, diagnosis later)?
-4. Internal transport: in-process function call vs real HTTP. Proposed: a typed in-process service module now, lifted to HTTP at productization (keeps the contract honest without standing up an API surface prematurely).
+**Locked decisions:**
+1. `predictionId` placement → nullable `orders.fixo_prediction_id` (text, **NO FK** — soft correlation). Migration FILE only; user applies.
+2. Outcome trigger → when `confirmed_diagnosis` is saved on an order carrying `fixo_prediction_id`, fire `recordOutcome`.
+3. HMLS brain → **FULL replace**: `agent/src/hmls` diagnosis + estimate route through `BrainService`.
+4. Transport → **in-process function module now**; HTTP-liftable later (serializable DTOs + `predictionId`). No HTTP infra until external shops (Phase 2). Why: same deploy today (a hop buys no isolation); chat hot-path reliability; the contract carries the decoupling, not the transport, so the lift is a swap not a rewrite.
 
-**After sign-off**, Slice 2 expands into TDD tasks: define the service contract → port the fixo tools behind it → swap HMLS callsites → add the `prediction_id` column migration → wire the outcome callback → eval the prediction-vs-truth join.
+**Tasks (TDD, ordered):**
+- [x] **2.1 Contract module** — `brain-service.ts`: DTOs + `BrainService` interface + `newPredictionId` (tested). DONE.
+- [ ] **2.2 Prediction store** — `fixo_predictions` table (predictionId PK, vehicle, symptom, predicted diagnosis/estimate jsonb, createdAt; outcome cols: confirmedDiagnosis, actualCostCents, outcomeAt) in `schema.ts` + nullable `orders.fixo_prediction_id`, both in one migration FILE (`db:generate`, NOT applied).
+- [ ] **2.3 In-process impl** — `FixoBrain implements BrainService`: `diagnose`/`estimate` run the existing Fixo engine, write a `fixo_predictions` row, return `predictionId`; `recordOutcome` upserts the outcome onto that row (idempotent on predictionId). Reuse `isolate_systems` / `fixo-estimate` / `lookupObdCode`.
+- [ ] **2.4 HMLS full replace** — point `agent/src/hmls` diagnosis + estimate at `BrainService`; stamp the returned `predictionId` onto `orders.fixo_prediction_id` at order create.
+- [ ] **2.5 Outcome callback** — in the `confirmedDiagnosis` write path, when the order has a `fixo_prediction_id`, call `recordOutcome`. Fire-and-forget; failures logged, never block the save.
+- [ ] **2.6 Eval join** — extend `fixo-eval --real` to score the brain's stored prediction against the confirmed outcome via the `predictionId` join (not just a fresh re-run).
 
 ---
 
