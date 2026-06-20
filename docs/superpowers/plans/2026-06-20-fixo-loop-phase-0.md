@@ -101,7 +101,7 @@ POST /fixo/outcomes            # the back-seam / loop closer
 
 **Tasks (TDD, ordered):**
 - [x] **2.1 Contract module** — `brain-service.ts`: DTOs + `BrainService` interface + `newPredictionId` (tested). DONE.
-- [ ] **2.2 Prediction store** — `fixo_predictions` table (predictionId PK, vehicle, symptom, predicted diagnosis/estimate jsonb, createdAt; outcome cols: confirmedDiagnosis, actualCostCents, outcomeAt) in `schema.ts` + nullable `orders.fixo_prediction_id`, both in one migration FILE (`db:generate`, NOT applied).
+- [x] **2.2 Prediction store** — DONE. `fixo_predictions` table + nullable `orders.fixo_prediction_id` in `schema.ts`; hand-written `migrations/0027_fixo_predictions.sql` (db:generate is unsafe here — journal out of sync per 0026; NOT applied, apply via prod path). deno check + web typecheck clean.
 - [ ] **2.3 In-process impl** — `FixoBrain implements BrainService`: `diagnose`/`estimate` run the existing Fixo engine, write a `fixo_predictions` row, return `predictionId`; `recordOutcome` upserts the outcome onto that row (idempotent on predictionId). Reuse `isolate_systems` / `fixo-estimate` / `lookupObdCode`.
 - [ ] **2.4 HMLS full replace** — point `agent/src/hmls` diagnosis + estimate at `BrainService`; stamp the returned `predictionId` onto `orders.fixo_prediction_id` at order create.
 - [ ] **2.5 Outcome callback** — in the `confirmedDiagnosis` write path, when the order has a `fixo_prediction_id`, call `recordOutcome`. Fire-and-forget; failures logged, never block the save.

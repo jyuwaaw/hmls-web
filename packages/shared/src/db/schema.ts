@@ -196,6 +196,11 @@ export const orders = pgTable("orders", {
   // complaint) to form the labeled (symptom → truth) data the diagnostic model
   // trains on. Nullable: filled on/after the visit.
   confirmedDiagnosis: text("confirmed_diagnosis"),
+  // Soft, FK-less link to the fixo_predictions row whose diagnose/estimate drove
+  // this order. Set at create when the brain produced a predictionId; null for
+  // orders not driven by a Fixo prediction. The join key for the calibration
+  // loop — no FK, so Fixo and HMLS stay decoupled.
+  fixoPredictionId: varchar("fixo_prediction_id", { length: 64 }),
   cancellationReason: text("cancellation_reason"),
   // Per-order contact snapshot — edit these instead of mutating the customers record
   contactName: varchar("contact_name", { length: 255 }),
@@ -729,6 +734,39 @@ export const funnelEvents = pgTable(
   ],
 );
 
+// --- Fixo predictions (the calibration loop's ground-truth store) ---
+//
+// One row per brain diagnose/estimate call, keyed by the predictionId the brain
+// mints (`newPredictionId()`). `recordOutcome` fills the outcome columns by
+// predictionId once the mechanic confirms what it actually was — that
+// (prediction → confirmed truth) pair is what the diagnostic engine calibrates
+// on. `orders.fixo_prediction_id` is the soft, FK-less link back.
+export const fixoPredictions = pgTable("fixo_predictions", {
+  // The predictionId minted by newPredictionId() (e.g. "pred_<uuid>").
+  id: text("id").primaryKey(),
+  vehicleInfo: jsonb("vehicle_info").$type<VehicleInfo | null>(),
+  symptom: text("symptom"),
+  dtcs: jsonb("dtcs").$type<string[] | null>(),
+  predictedDiagnosis: jsonb("predicted_diagnosis").$type<
+    | { candidateSystems: DiagnosticCandidateSystem[]; rootCause?: string; tests?: string[] }
+    | null
+  >(),
+  predictedEstimate: jsonb("predicted_estimate").$type<
+    | {
+      items: OrderItem[];
+      subtotalCents: number;
+      priceRangeLowCents: number;
+      priceRangeHighCents: number;
+    }
+    | null
+  >(),
+  // Outcome — filled later by recordOutcome (the loop closer).
+  confirmedDiagnosis: text("confirmed_diagnosis"),
+  actualCostCents: integer("actual_cost_cents"),
+  outcomeAt: timestamp("outcome_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 // Fixo types
 export type UserProfile = typeof userProfiles.$inferSelect;
 export type NewUserProfile = typeof userProfiles.$inferInsert;
@@ -754,3 +792,5 @@ export type FixoMessageEvent = typeof fixoMessageEvents.$inferSelect;
 export type NewFixoMessageEvent = typeof fixoMessageEvents.$inferInsert;
 export type FunnelEvent = typeof funnelEvents.$inferSelect;
 export type NewFunnelEvent = typeof funnelEvents.$inferInsert;
+export type FixoPrediction = typeof fixoPredictions.$inferSelect;
+export type NewFixoPrediction = typeof fixoPredictions.$inferInsert;
