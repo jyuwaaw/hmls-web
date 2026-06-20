@@ -44,15 +44,11 @@ export interface DiagnoseResult {
   tests?: string[];
 }
 
-export interface EstimateRequest {
-  /** Links the estimate to a prior `diagnose` call when one happened. */
-  predictionId?: string;
-  vehicle: VehicleInfo;
-  /** The diagnosis / job description the estimate is priced against. */
-  diagnosis: string;
-}
-
-export interface EstimateResult {
+// Pricing itself is the shared OLP engine (skills/estimate/pricing.ts), used
+// by both HMLS's create_order and Fixo — it is NOT re-implemented here. The
+// brain only *records* the priced estimate against a prediction so the
+// estimate-vs-actual-cost half of the calibration loop has its data.
+export interface EstimateRecord {
   predictionId: string;
   items: OrderItem[];
   subtotalCents: number;
@@ -72,6 +68,8 @@ export interface OutcomeRequest {
  *  directly by HMLS. Phase 2: the same shape behind HTTP for external shops. */
 export interface BrainService {
   diagnose(req: DiagnoseRequest): Promise<DiagnoseResult>;
-  estimate(req: EstimateRequest): Promise<EstimateResult>;
+  /** Attach the priced estimate to a prediction (for estimate-vs-actual
+   *  calibration). Pricing is the shared engine; this only records the result. */
+  recordEstimate(req: EstimateRecord): Promise<void>;
   recordOutcome(req: OutcomeRequest): Promise<void>;
 }

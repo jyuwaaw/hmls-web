@@ -59,3 +59,24 @@ export const recordOutcome: BrainService["recordOutcome"] = async (req) => {
     });
   }
 };
+
+/** Attach the priced estimate to a prediction row for estimate-vs-actual
+ *  calibration. Pricing is the shared OLP engine (skills/estimate/pricing.ts);
+ *  this only records the result. Idempotent; logs (never throws) on a missing
+ *  row, same as recordOutcome. */
+export const recordEstimate: BrainService["recordEstimate"] = async (req) => {
+  const { predictionId, ...estimate } = req;
+  const updated = await db
+    .update(schema.fixoPredictions)
+    .set({ predictedEstimate: estimate })
+    .where(eq(schema.fixoPredictions.id, predictionId))
+    .returning({ id: schema.fixoPredictions.id });
+
+  if (updated.length === 0) {
+    logger.warn("recordEstimate: no prediction row matched", { predictionId });
+  }
+};
+
+/** The assembled in-process brain. HMLS imports `brain` (or the individual
+ *  functions) and calls it directly; Phase 2 wraps the same shape behind HTTP. */
+export const brain: BrainService = { diagnose, recordEstimate, recordOutcome };

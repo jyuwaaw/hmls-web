@@ -25,7 +25,7 @@ import type { DiscountType, LineItem, ServiceInput } from "../../hmls/skills/est
 import type { OrderItem } from "@hmls/shared/db/schema";
 import { patchItems } from "../../services/order-state.ts";
 import { upsertOrderIntake } from "../../services/order-intake.ts";
-import { diagnose } from "../../fixo/fixo-brain.ts";
+import { diagnose, recordEstimate } from "../../fixo/fixo-brain.ts";
 import {
   customerAgentActor,
   staffAgentActor,
@@ -604,6 +604,21 @@ export const createOrderTool = {
       } catch (err) {
         console.error("diagnose failed during order create:", String(err));
       }
+    }
+
+    // Estimate-side calibration: attach the priced estimate (from the shared
+    // pricing engine above) to the prediction so estimate-vs-actual can be
+    // scored later. Fire-and-forget — never blocks order creation.
+    if (fixoPredictionId) {
+      recordEstimate({
+        predictionId: fixoPredictionId,
+        items,
+        subtotalCents: subtotal,
+        priceRangeLowCents: rangeLow,
+        priceRangeHighCents: rangeHigh,
+      }).catch((err) => {
+        console.error("recordEstimate failed during order create:", String(err));
+      });
     }
 
     const order = await db.transaction(async (tx) => {
