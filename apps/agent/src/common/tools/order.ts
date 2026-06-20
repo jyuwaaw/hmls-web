@@ -25,6 +25,7 @@ import type { DiscountType, LineItem, ServiceInput } from "../../hmls/skills/est
 import type { OrderItem } from "@hmls/shared/db/schema";
 import { patchItems } from "../../services/order-state.ts";
 import { upsertOrderIntake } from "../../services/order-intake.ts";
+import { diagnose } from "../../fixo/fixo-brain.ts";
 import {
   customerAgentActor,
   staffAgentActor,
@@ -589,6 +590,22 @@ export const createOrderTool = {
     const accessInstructions = clean(params.accessInstructions) ?? null;
     const symptomDescription = clean(params.symptomDescription) ?? null;
 
+    // Loop front-half: when the customer described a symptom, run the brain to
+    // produce + store a prediction and stamp its id on the order. Best-effort —
+    // a diagnosis failure (or the fixo_predictions table not yet migrated) must
+    // never block order creation; we just skip the link, so this stays safe to
+    // deploy ahead of migration 0027. The matching outcome is reported back when
+    // the mechanic records the confirmed diagnosis (see recordOutcome).
+    let fixoPredictionId: string | null = null;
+    if (symptomDescription) {
+      try {
+        fixoPredictionId =
+          (await diagnose({ vehicle: vehicleInfo, symptom: symptomDescription })).predictionId;
+      } catch (err) {
+        console.error("diagnose failed during order create:", String(err));
+      }
+    }
+
     const order = await db.transaction(async (tx) => {
       const [row] = await tx
         .insert(schema.orders)
@@ -604,6 +621,9 @@ export const createOrderTool = {
           priceRangeLowCents: rangeLow,
           priceRangeHighCents: rangeHigh,
           vehicleInfo,
+          // Only reference the column when set, so order creation still works
+          // before migration 0027 adds it (the link just stays empty).
+          ...(fixoPredictionId ? { fixoPredictionId } : {}),
           accessInstructions,
           shareToken,
           validDays,

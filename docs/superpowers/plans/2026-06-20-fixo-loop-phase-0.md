@@ -107,7 +107,7 @@ POST /fixo/outcomes            # the back-seam / loop closer
   - [x] `recordOutcome` — idempotent UPDATE of the prediction row by `predictionId`; logs (never throws) on a missing row.
   - [x] unit test for the `isolateSystems` core (was untested).
   - [ ] `estimate` — needs the OLP pricing-engine extraction (the calc is embedded in `createFixoEstimateTool.execute`). NEXT. When it lands, assemble the three into a `BrainService` object.
-- [ ] **2.4 HMLS full replace** — point `agent/src/hmls` diagnosis + estimate at `BrainService`; stamp the returned `predictionId` onto `orders.fixo_prediction_id` at order create.
+- [~] **2.4 HMLS integration** — PARTIAL: `create_order` (INSERT path) runs `diagnose` when a symptom is present and stamps `fixo_prediction_id` on the new order (best-effort; the column is referenced only when set, so it degrades safely pre-migration). **This + 2.5 makes the loop live end-to-end**: symptom → prediction → order → confirmed_diagnosis → `recordOutcome`. Still pending: the "full replace" of HMLS's *estimate* through `BrainService.estimate` (tied to 2.3 estimate).
 - [x] **2.5 Outcome callback** — DONE. Gateway orders PATCH fires `recordOutcome` after a `confirmed_diagnosis` write when the order carries `fixo_prediction_id` (actualCost = paidAmount ?? subtotal). Fire-and-forget (`.catch` logs), never blocks the save. Added `@hmls/agent/fixo-brain` export. No-op until 2.4 stamps `prediction_id`.
 - [ ] **2.6 Eval join** — extend `fixo-eval --real` to score the brain's stored prediction against the confirmed outcome via the `predictionId` join (not just a fresh re-run).
 
