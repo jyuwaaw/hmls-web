@@ -19,12 +19,17 @@
 //   ... --filter brake          # only scenarios whose name includes "brake"
 //   ... --list                  # list scenarios and exit
 //   ... --json                  # emit full structured results as JSON at the end
+//   ... --real [--limit N]      # score the brain against real (symptom →
+//                               #   confirmed_diagnosis) pairs pulled from the DB
 //
-// This is the seed of the planned A-phase shadow-accuracy eval: swap SCENARIOS
-// for real (symptom → confirmed_diagnosis) pairs and add scoring.
+// The --real mode is the A-phase shadow-accuracy eval: it pulls real
+// (symptom → confirmed_diagnosis) pairs, runs the brain on each symptom, and
+// scores the output against the confirmed truth (see diagnosis-score.ts).
+// Returns 0 pairs until mechanics actually fill confirmed_diagnosis.
 
 import type { ModelMessage } from "ai";
 import { runFixoAgent } from "../fixo/agent.ts";
+import { scoreDiagnosis } from "./diagnosis-score.ts";
 
 // ---------------------------------------------------------------------------
 // Scenarios
@@ -325,6 +330,90 @@ function printTrace(s: Scenario, r: RunResult, checks: CheckResult[]) {
 }
 
 // ---------------------------------------------------------------------------
+// Real-pair accuracy eval (--real)
+// ---------------------------------------------------------------------------
+
+interface RealPair {
+  orderId: number;
+  symptom: string;
+  truth: string;
+}
+
+/** Pull real (symptom → confirmed_diagnosis) pairs from the DB. Read-only;
+ *  needs DATABASE_URL (Infisical injects it). Returns [] until mechanics
+ *  actually fill confirmed_diagnosis (see Phase 0 plan, Task 2). */
+async function fetchRealPairs(limit: number): Promise<RealPair[]> {
+  const { db, schema } = await import("../db/client.ts");
+  const { and, eq, isNotNull } = await import("drizzle-orm");
+  const rows = await db
+    .select({
+      orderId: schema.orders.id,
+      symptom: schema.orderIntake.symptomDescription,
+      truth: schema.orders.confirmedDiagnosis,
+    })
+    .from(schema.orders)
+    .innerJoin(schema.orderIntake, eq(schema.orderIntake.orderId, schema.orders.id))
+    .where(
+      and(
+        isNotNull(schema.orders.confirmedDiagnosis),
+        isNotNull(schema.orderIntake.symptomDescription),
+      ),
+    )
+    .limit(limit);
+  return rows
+    .filter((r) => !!r.symptom?.trim() && !!r.truth?.trim())
+    .map((r) => ({ orderId: r.orderId, symptom: r.symptom as string, truth: r.truth as string }));
+}
+
+async function runRealEval(limit: number, json: boolean) {
+  const pairs = await fetchRealPairs(limit);
+  console.log(
+    `${C.bold}Fixo accuracy eval (real pairs)${C.reset} — ${pairs.length} ` +
+      `(symptom → confirmed_diagnosis) pair(s)`,
+  );
+  if (pairs.length === 0) {
+    console.log(
+      `${C.yellow}No pairs yet.${C.reset} confirmed_diagnosis is unfilled — enforce capture ` +
+        `first (Phase 0 plan, Task 2), then re-run.`,
+    );
+    return;
+  }
+
+  // deno-lint-ignore no-explicit-any
+  const structured: any[] = [];
+  let scoreSum = 0;
+  for (const p of pairs) {
+    const r = await runScenario({ name: `order-${p.orderId}`, prompt: p.symptom });
+    const sc = scoreDiagnosis(r.text, p.truth);
+    scoreSum += sc.score;
+
+    console.log(`\n${C.bold}${C.cyan}=== ORDER ${p.orderId} ===${C.reset}`);
+    console.log(`${C.dim}symptom:${C.reset} ${truncate(p.symptom, 240)}`);
+    console.log(`${C.dim}truth:  ${C.reset} ${truncate(p.truth, 240)}`);
+    console.log(`${C.dim}brain:  ${C.reset} ${truncate(r.text, 240)}`);
+    const mark = sc.score >= 0.5 ? C.green : C.red;
+    console.log(
+      `${mark}score=${sc.score.toFixed(2)}${C.reset} ` +
+        `matched=[${sc.matched.join(", ")}] missed=[${sc.missed.join(", ")}]`,
+    );
+    structured.push({
+      orderId: p.orderId,
+      symptom: p.symptom,
+      truth: p.truth,
+      brain: r.text,
+      ...sc,
+    });
+  }
+
+  const mean = scoreSum / pairs.length;
+  console.log(
+    `\n${C.bold}════ ACCURACY ════${C.reset} mean term-recall = ${(mean * 100).toFixed(1)}% ` +
+      `over ${pairs.length} pair(s)`,
+  );
+  if (json) console.log("\n" + JSON.stringify(structured, null, 2));
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -332,18 +421,23 @@ function parseArgs(args: string[]) {
   let filter: string | undefined;
   let list = false;
   let json = false;
+  let real = false;
+  let limit = 50;
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
     if (a === "--list") list = true;
     else if (a === "--json") json = true;
+    else if (a === "--real") real = true;
     else if (a === "--filter") filter = args[++i];
     else if (a.startsWith("--filter=")) filter = a.slice("--filter=".length);
+    else if (a === "--limit") limit = Number(args[++i]) || limit;
+    else if (a.startsWith("--limit=")) limit = Number(a.slice("--limit=".length)) || limit;
   }
-  return { filter, list, json };
+  return { filter, list, json, real, limit };
 }
 
 async function main() {
-  const { filter, list, json } = parseArgs(Deno.args);
+  const { filter, list, json, real, limit } = parseArgs(Deno.args);
 
   if (!Deno.env.get("GOOGLE_API_KEY")) {
     console.error(
@@ -351,6 +445,17 @@ async function main() {
         `infisical run --env=dev -- deno run -A apps/agent/src/scripts/fixo-eval.ts`,
     );
     Deno.exit(1);
+  }
+
+  if (real) {
+    if (!Deno.env.get("DATABASE_URL")) {
+      console.error(
+        `${C.red}DATABASE_URL missing.${C.reset} --real reads the DB (Infisical injects it).`,
+      );
+      Deno.exit(1);
+    }
+    await runRealEval(limit, json);
+    return;
   }
 
   const selected = SCENARIOS.filter((s) => !filter || s.name.includes(filter));
