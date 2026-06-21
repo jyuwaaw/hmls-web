@@ -747,8 +747,7 @@ export const fixoPredictions = pgTable("fixo_predictions", {
   vehicleInfo: jsonb("vehicle_info").$type<VehicleInfo | null>(),
   symptom: text("symptom"),
   dtcs: jsonb("dtcs").$type<string[] | null>(),
-  // deno-lint-ignore no-explicit-any
-  predictedDiagnosis: jsonb("predicted_diagnosis").$type<Record<string, any> | null>(),
+  predictedDiagnosis: jsonb("predicted_diagnosis").$type<Record<string, unknown> | null>(),
   predictedEstimate: jsonb("predicted_estimate").$type<
     | {
       items: OrderItem[];

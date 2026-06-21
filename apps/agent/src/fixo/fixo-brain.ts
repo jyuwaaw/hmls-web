@@ -25,6 +25,9 @@ const logger = getLogger(["hmls", "agent", "fixo-brain"]);
  *  DiagnoseOnceInput.vehicle shape (year/make/model required). Fallback to
  *  empty string so the agent still gets a usable prompt. */
 function toOnceVehicle(req: DiagnoseRequest): DiagnoseOnceInput["vehicle"] {
+  if (!req.vehicle.make || !req.vehicle.model) {
+    logger.warn("diagnose: incomplete vehicle info", { vehicle: req.vehicle });
+  }
   return {
     year: req.vehicle.year ?? "",
     make: req.vehicle.make ?? "",
