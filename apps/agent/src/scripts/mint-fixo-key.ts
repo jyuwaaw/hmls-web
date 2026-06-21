@@ -15,3 +15,7 @@ await db.insert(schema.fixoApiKeys).values({ keyHash: hash, label });
 console.log("Minted Fixo API key (shown once — store it now):");
 console.log(`  ${key}`);
 console.log(`  label: ${label}`);
+
+// ponytail: the postgres pool keeps the event loop alive, so the CLI never
+// exits on its own. The insert above is awaited, so force-exit after printing.
+Deno.exit(0);
