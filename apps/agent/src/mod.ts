@@ -3,6 +3,7 @@ export { type AgentConfig, type RunAgentOptions, runHmlsAgent } from "./hmls/age
 export { runStaffAgent, type RunStaffAgentOptions } from "./hmls/staff-agent.ts";
 export { runFixoAgent, type RunFixoAgentOptions } from "./fixo/agent.ts";
 export { type DiagnoseOnceInput, type DiagnoseOnceResult, runFixoOnce } from "./fixo/run-once.ts";
+export { diagnoseStructured, type StructuredDiagnosis } from "./fixo/diagnose-structured.ts";
 export {
   fixoResultSchema,
   type FixoSessionResult,
