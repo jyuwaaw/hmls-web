@@ -767,6 +767,20 @@ export const fixoPredictions = pgTable("fixo_predictions", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// --- Fixo public-API keys (external callers of the diagnose/estimate API) ---
+//
+// Stores only the SHA-256 hash of each key (see fixo/lib/api-keys.ts); the
+// plaintext is shown once at mint and never persisted. Looked up by key_hash
+// (unique) among rows where revoked_at IS NULL.
+export const fixoApiKeys = pgTable("fixo_api_keys", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  keyHash: text("key_hash").notNull().unique(),
+  label: text("label"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+});
+
 // Fixo types
 export type UserProfile = typeof userProfiles.$inferSelect;
 export type NewUserProfile = typeof userProfiles.$inferInsert;
@@ -794,3 +808,5 @@ export type FunnelEvent = typeof funnelEvents.$inferSelect;
 export type NewFunnelEvent = typeof funnelEvents.$inferInsert;
 export type FixoPrediction = typeof fixoPredictions.$inferSelect;
 export type NewFixoPrediction = typeof fixoPredictions.$inferInsert;
+export type FixoApiKey = typeof fixoApiKeys.$inferSelect;
+export type NewFixoApiKey = typeof fixoApiKeys.$inferInsert;

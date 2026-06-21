@@ -298,11 +298,11 @@ deno deploy env delete <KEY> --app hmls-api --org spinsirr
 
 ### Production URLs
 
-| App               | Domain                               | Hosting                                                                  |
-| ----------------- | ------------------------------------ | ------------------------------------------------------------------------ |
-| Web (HMLS)        | `https://hmls.autos`                 | Vercel (project `hmls`, scope: `spinsirrs-projects`)                     |
+| App               | Domain                        | Hosting                                                                  |
+| ----------------- | ----------------------------- | ------------------------------------------------------------------------ |
+| Web (HMLS)        | `https://hmls.autos`          | Vercel (project `hmls`, scope: `spinsirrs-projects`)                     |
 | API (main + fixo) | `https://api.fixo.ink` (fixo) | Deno Deploy (`hmls-api`)                                                 |
-| Fixo Web          | `https://fixo.ink`                   | Vercel (`prj_EzagTZlxfjG6U6h3Cbdt8uWjPwdO`, scope: `spinsirrs-projects`) |
+| Fixo Web          | `https://fixo.ink`            | Vercel (`prj_EzagTZlxfjG6U6h3Cbdt8uWjPwdO`, scope: `spinsirrs-projects`) |
 
 Both main API and Fixo API run in the same Deno Deploy app (`hmls-api`), routed by hostname.
 

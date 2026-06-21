@@ -2,6 +2,7 @@
 export { type AgentConfig, type RunAgentOptions, runHmlsAgent } from "./hmls/agent.ts";
 export { runStaffAgent, type RunStaffAgentOptions } from "./hmls/staff-agent.ts";
 export { runFixoAgent, type RunFixoAgentOptions } from "./fixo/agent.ts";
+export { type DiagnoseOnceInput, type DiagnoseOnceResult, runFixoOnce } from "./fixo/run-once.ts";
 export {
   fixoResultSchema,
   type FixoSessionResult,
@@ -60,6 +61,9 @@ export {
   uploadMedia,
   type UploadResult,
 } from "./fixo/lib/storage.ts";
+
+// Public-API key handling (gateway api-key middleware + mint script)
+export { generateApiKey, hashApiKey, verifyApiKey } from "./fixo/lib/api-keys.ts";
 
 // Notifications
 export { notifyOrderStatusChange, notifyPaymentFailed } from "./lib/notifications.ts";

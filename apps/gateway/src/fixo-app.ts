@@ -12,13 +12,15 @@ import { reports } from "./routes/fixo/reports.ts";
 import { complete } from "./routes/fixo/complete.ts";
 import { vehicleRoutes } from "./routes/fixo/vehicles.ts";
 import { funnel } from "./routes/fixo/funnel.ts";
+import { fixoApi } from "./routes/fixo/api.ts";
+import { type ApiKeyContext, authenticateApiKey } from "./middleware/fixo/api-key.ts";
 
 const DEV_MODE = Deno.env.get("DEV_MODE") === "true";
 
 const logger = getLogger(["hmls", "gateway", "fixo"]);
 
 export function createFixoApp() {
-  const app = new Hono<{ Variables: { auth: AuthContext } }>();
+  const app = new Hono<{ Variables: { auth: AuthContext; apiKey: ApiKeyContext } }>();
 
   // CORS — fixo origins only
   app.use(
@@ -87,6 +89,14 @@ export function createFixoApp() {
     );
   };
 
+  // deno-lint-ignore no-explicit-any -- Hono middleware type compatibility
+  const requireApiKey = async (c: any, next: any) => {
+    const result = await authenticateApiKey(c.req.raw);
+    if (result instanceof Response) return result;
+    c.set("apiKey", result);
+    await next();
+  };
+
   app.use("/sessions/*", requireAuth);
   app.use("/reports/*", requireAuth);
   app.use("/billing/checkout", requireAuth);
@@ -128,6 +138,10 @@ export function createFixoApp() {
   // email-CTA hits happen pre-signin. The route's own auth-aware logic
   // attributes events to userId when an auth cookie is present.
   app.route("/funnel", funnel);
+
+  // Public API (v1) — key-gated diagnostic brain. diagnose/estimate over REST.
+  app.use("/v1/*", requireApiKey);
+  app.route("/v1", fixoApi);
 
   return app;
 }
