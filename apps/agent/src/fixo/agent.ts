@@ -68,7 +68,14 @@ export function runFixoAgent(options: RunFixoAgentOptions) {
     system: options.systemPrompt ?? SYSTEM_PROMPT,
     messages: options.messages,
     tools,
-    stopWhen: [stepCountIs(10), hasToolCall("ask_user_question")],
+    // emit_diagnosis is the terminal capture tool for the one-shot structured
+    // path — stop as soon as it's called so we don't burn an extra model step
+    // (or wander into more tool calls) after the payload is captured.
+    stopWhen: [
+      stepCountIs(10),
+      hasToolCall("ask_user_question"),
+      hasToolCall("emit_diagnosis"),
+    ],
     onStepFinish: (step) => {
       const toolCalls = step.toolCalls ?? [];
       if (toolCalls.length > 0) {

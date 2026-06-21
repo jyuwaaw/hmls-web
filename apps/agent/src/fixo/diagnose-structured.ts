@@ -8,7 +8,12 @@
 
 import type { ModelMessage } from "ai";
 import { runFixoAgent } from "./agent.ts";
-import { buildStructuredDiagnosePrompt, type DiagnoseOnceInput } from "./run-once-prompt.ts";
+import { SYSTEM_PROMPT } from "./system-prompt.ts";
+import {
+  buildStructuredDiagnosePrompt,
+  type DiagnoseOnceInput,
+  ONESHOT_DIAGNOSIS_DIRECTIVE,
+} from "./run-once-prompt.ts";
 import { type StructuredDiagnosis, structuredDiagnosisSchema } from "./diagnosis-schema.ts";
 import { pickEmitDiagnosis } from "./diagnose-drain.ts";
 
@@ -18,14 +23,23 @@ export async function diagnoseStructured(input: DiagnoseOnceInput): Promise<Stru
   const messages: ModelMessage[] = [
     { role: "user", content: buildStructuredDiagnosePrompt(input) },
   ];
-  const result = runFixoAgent({ messages });
+  const result = runFixoAgent({
+    messages,
+    // Override the default SYSTEM_PROMPT (which says "begin with intake, ask
+    // follow-ups") — this path is single-shot, the caller can't answer. Without
+    // this, sparse requests can end without ever calling emit_diagnosis.
+    systemPrompt: `${SYSTEM_PROMPT}\n\n${ONESHOT_DIAGNOSIS_DIRECTIVE}`,
+  });
 
   const parts: { type: string; toolName?: string; output?: unknown }[] = [];
   for await (const part of result.fullStream) {
     // deno-lint-ignore no-explicit-any
     const p = part as any;
     if (p.type === "tool-result") {
-      parts.push({ type: p.type, toolName: p.toolName, output: p.output });
+      // Some AI-SDK/provider variants surface tool output on `result`, not
+      // `output` — capture both so emit_diagnosis isn't missed (runFixoOnce
+      // handles the same dual shape).
+      parts.push({ type: p.type, toolName: p.toolName, output: p.output ?? p.result });
     }
   }
   await result.text; // ensure the run has settled

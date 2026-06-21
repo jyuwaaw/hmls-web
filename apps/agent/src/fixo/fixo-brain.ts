@@ -11,7 +11,12 @@ import { eq } from "drizzle-orm";
 import { getLogger } from "@logtape/logtape";
 import { db, schema } from "../db/client.ts";
 import { diagnoseStructured } from "./diagnose-structured.ts";
-import { type BrainService, type DiagnoseRequest, newPredictionId } from "./brain-service.ts";
+import {
+  type BrainService,
+  type DiagnoseRequest,
+  type DiagnoseResult,
+  newPredictionId,
+} from "./brain-service.ts";
 import type { DiagnoseOnceInput } from "./run-once-prompt.ts";
 
 const logger = getLogger(["hmls", "agent", "fixo-brain"]);
@@ -79,7 +84,9 @@ export const diagnose: BrainService["diagnose"] = async (req) => {
     .where(eq(schema.fixoPredictions.id, predictionId));
   return {
     predictionId,
-    candidateSystems: structured.candidate_systems,
+    // confidence is number (0-3) in the schema; DiagnoseResult narrows to 0|1|2|3.
+    // Zod enforces the 0-3 range at parse time, so the assertion is runtime-safe.
+    candidateSystems: structured.candidate_systems as DiagnoseResult["candidateSystems"],
     rootCause: structured.likely_root_cause,
     tests: structured.recommended_tests,
   };
