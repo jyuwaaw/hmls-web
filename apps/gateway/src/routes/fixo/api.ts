@@ -5,7 +5,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { runFixoOnce } from "@hmls/agent";
+import { diagnoseStructured } from "@hmls/agent";
 
 const diagnoseInput = z.object({
   vehicle: z.object({
@@ -22,6 +22,6 @@ export const fixoApi = new Hono();
 // POST /v1/diagnose — diagnosis + estimate for a vehicle + symptom.
 fixoApi.post("/diagnose", zValidator("json", diagnoseInput), async (c) => {
   const body = c.req.valid("json");
-  const result = await runFixoOnce(body);
-  return c.json(result);
+  const diagnosis = await diagnoseStructured(body);
+  return c.json({ diagnosis });
 });
