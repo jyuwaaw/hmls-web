@@ -6,10 +6,10 @@
 
 ## One line
 
-Let an interested developer/shop sign in and generate their own Fixo API key — then immediately call
-`/v1/diagnose` + `/v1/mcp` — with no human in the loop. This removes the manual `mint-fixo-key.ts`
-step, which is an artificial funnel that drops every interested user who hits the "ask someone to
-mint a key" wall.
+Let an interested developer/shop sign in and generate their own Fixo API key — then immediately
+point their own agent (MCP client) at `/v1/mcp` — with no human in the loop. This removes the manual
+`mint-fixo-key.ts` step, which is an artificial funnel that drops every interested user who hits the
+"ask someone to mint a key" wall.
 
 ## Why now
 
@@ -27,6 +27,13 @@ limiting, input bounds, outcome ownership) must ship WITH the self-serve flow, n
   from a new "API keys" section in the signed-in app. No separate developer portal (YAGNI — split
   out later if the developer audience grows). (`authenticateRequest` already yields `userId` =
   Supabase `auth.users.id`.)
+- **External surface = MCP only.** Externally we offer the MCP endpoint (`/v1/mcp`) — the
+  agent-native surface that matches "bring your own agent." The REST `/v1/diagnose` was the stepping
+  stone; it has no internal consumer (HMLS uses the brain in-process; fixo.ink uses the `/task` chat
+  route), so it stays DORMANT/unadvertised — not removed, not promoted to self-serve users.
+  Self-serve keys are "MCP keys." (Both endpoints share the `/v1/*` key gate, so a key technically
+  works on either; hard per-endpoint key scoping is deferred — for now MCP is simply the only
+  documented external surface.)
 - **Pricing:** FREE, rate-limited tier. No payment/credits to start — charging upfront would
   re-create the funnel friction. Monetization (credits/tiers) is a later layer, deferred.
 - **Rate-limit storage:** DB fixed-window counter (reuses the existing Postgres; accurate; the one
@@ -70,14 +77,17 @@ api-key gate — you authenticate as a logged-in user to manage your keys:
 ### UI (fixo-web, signed-in area)
 
 An "API keys" page: create a key (show once + copy button), list keys (label / created / last used /
-revoke), and a short **getting-started** block — a `curl` example against `/v1/diagnose` and the MCP
-endpoint URL (`https://api.fixo.ink/v1/mcp`) with the `Authorization: Bearer` header.
+revoke), and a short **getting-started** block — how to point an MCP client (Cursor / Claude Desktop
+/ the AI SDK) at the MCP endpoint (`https://api.fixo.ink/v1/mcp`) with the
+`Authorization: Bearer
+<key>` header. (REST `/v1/diagnose` is intentionally NOT shown — MCP is the
+external surface.)
 
 ## Data flow
 
-sign in (fixo.ink) → "API keys" page → `POST /keys` → key shown once → copy → `curl /v1/diagnose` or
-point an MCP client at `/v1/mcp` with the key → calls are rate-limited + input-bounded; `diagnose`
-stamps the prediction with the key; `record_outcome` only accepts that key.
+sign in (fixo.ink) → "API keys" page → `POST /keys` → key shown once → copy → point an MCP client at
+`/v1/mcp` with the key → tool calls are rate-limited + input-bounded; the `diagnose` tool stamps the
+prediction with the key; `record_outcome` only accepts that key.
 
 ## Error handling
 
