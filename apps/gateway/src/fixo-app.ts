@@ -13,6 +13,7 @@ import { complete } from "./routes/fixo/complete.ts";
 import { vehicleRoutes } from "./routes/fixo/vehicles.ts";
 import { funnel } from "./routes/fixo/funnel.ts";
 import { fixoApi } from "./routes/fixo/api.ts";
+import { fixoMcp } from "./routes/fixo/mcp/route.ts";
 import { type ApiKeyContext, authenticateApiKey } from "./middleware/fixo/api-key.ts";
 
 const DEV_MODE = Deno.env.get("DEV_MODE") === "true";
@@ -142,6 +143,7 @@ export function createFixoApp() {
   // Public API (v1) — key-gated diagnostic brain. diagnose/estimate over REST.
   app.use("/v1/*", requireApiKey);
   app.route("/v1", fixoApi);
+  app.route("/v1/mcp", fixoMcp);
 
   return app;
 }
