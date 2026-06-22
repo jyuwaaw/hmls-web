@@ -11,6 +11,12 @@ import { pdfResponse } from "../lib/pdf-response.ts";
 // After Layer 3 "estimate" is a VIEW on the `orders` table — there is no
 // separate `estimates` table anymore. The routes below still live under
 // `/estimates/:id` for URL compat but the :id parameter is an order ID.
+//
+// NOTE: requireShopContext is intentionally NOT mounted here. Public routes
+// (/pdf, /review, /approve, /decline) use shareToken as the authorization
+// proof — the token IS the auth. The authenticated GET uses customerId
+// ownership. There is no shop context to resolve from an anonymous caller
+// holding a share-token link, and scoping by shopId would break those links.
 
 const estimates = new Hono<AuthEnv>();
 
@@ -39,7 +45,9 @@ estimates.get("/:id", requireAuth, async (c) => {
   return c.json(order);
 });
 
-// GET /estimates/:id/pdf — public via share token, or authenticated owner
+// GET /estimates/:id/pdf — public via share token only.
+// Token is REQUIRED — no token = 404 (do not leak existence).
+// Admins use GET /api/admin/orders/:id/pdf instead (auth-guarded, shop-scoped).
 estimates.get("/:id/pdf", async (c) => {
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id) || id <= 0) {
@@ -48,14 +56,16 @@ estimates.get("/:id/pdf", async (c) => {
 
   const token = c.req.query("token");
 
+  // Require a non-empty token — id-only access is an IDOR (any caller can
+  // read any order's PDF by guessing the numeric id).
+  if (!token) {
+    return c.json({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
+  }
+
   const [order] = await db
     .select()
     .from(schema.orders)
-    .where(
-      token
-        ? and(eq(schema.orders.id, id), eq(schema.orders.shareToken, token))
-        : eq(schema.orders.id, id),
-    )
+    .where(and(eq(schema.orders.id, id), eq(schema.orders.shareToken, token)))
     .limit(1);
 
   if (!order) throw Errors.notFound("Order", id);

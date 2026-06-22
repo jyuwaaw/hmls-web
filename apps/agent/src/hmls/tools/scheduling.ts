@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { db, schema } from "../../db/client.ts";
+import { db, schema, whereShop } from "../../db/client.ts";
 import { toolResult } from "@hmls/shared/tool-result";
+import type { ToolContext } from "../../common/convert-tools.ts";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -177,9 +178,10 @@ const getAvailabilityTool = {
       endDate?: string;
       preferredMechanicId?: number;
     },
-    _ctx: unknown,
+    ctx: ToolContext | undefined,
   ) => {
     const serviceDurationMinutes = Math.max(30, Math.ceil(params.durationMinutes));
+    const shopId = ctx?.shopId;
 
     // 1. Compute date range
     const startDate = params.date;
@@ -189,7 +191,8 @@ const getAvailabilityTool = {
       return d.toISOString().split("T")[0];
     })();
 
-    // 2. Find all active providers
+    // 2. Find all active providers, scoped to this chat session's shop.
+    const shopFilter = shopId ? whereShop(schema.providers.shopId, shopId) : undefined;
     const providers = await db
       .select({
         id: schema.providers.id,
@@ -197,7 +200,7 @@ const getAvailabilityTool = {
         timezone: schema.providers.timezone,
       })
       .from(schema.providers)
-      .where(eq(schema.providers.isActive, true));
+      .where(and(eq(schema.providers.isActive, true), shopFilter));
 
     if (providers.length === 0) {
       return toolResult({

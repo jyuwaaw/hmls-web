@@ -3,6 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import { and, asc, between, eq, gte, lte } from "drizzle-orm";
 import { db, schema } from "@hmls/agent/db";
 import { type MechanicEnv, requireMechanic } from "../middleware/mechanic.ts";
+import { requireShopContext, type WithShop } from "../middleware/shop-context.ts";
 import {
   createMechanicOverrideInput,
   listMechanicOverridesQuery,
@@ -18,9 +19,10 @@ import type {
 
 type ApiError = { error: { code: string; message: string } };
 
-const mechanic = new Hono<MechanicEnv>();
+const mechanic = new Hono<WithShop<MechanicEnv>>();
 
 mechanic.use("*", requireMechanic);
+mechanic.use("*", requireShopContext);
 
 // ---------------------------------------------------------------------------
 // GET /me — current mechanic's provider record
@@ -181,9 +183,10 @@ mechanic.delete("/overrides/:id", async (c) => {
 
 mechanic.get("/orders", zValidator("query", listMyOrdersQuery), async (c) => {
   const providerId = c.get("providerId");
+  const shopId = c.get("shopId");
   const { from, to } = c.req.valid("query");
 
-  const conditions = [eq(schema.orders.providerId, providerId)];
+  const conditions = [eq(schema.orders.providerId, providerId), eq(schema.orders.shopId, shopId)];
   if (from && to) {
     conditions.push(between(schema.orders.scheduledAt, new Date(from), new Date(to)));
   } else if (from) {

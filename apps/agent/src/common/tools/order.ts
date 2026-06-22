@@ -11,18 +11,22 @@
 // matching the existing modify_order_items semantics.
 
 import { z } from "zod";
-import { eq, ilike } from "drizzle-orm";
+import { and, eq, ilike } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { db, schema } from "../../db/client.ts";
+import { type AccessCtx, canWrite, orderAccessible, OWNER_ALL_SHOPS } from "../../db/tenant.ts";
 import {
   buildFeeItems,
   calculateDiscount,
   calculatePrice,
   getPricingConfig,
+  shopHourlyRate,
 } from "../../hmls/skills/estimate/pricing.ts";
+import { type Coords, geocodeAddress, routeOrderToShop } from "../shop-routing.ts";
 import { toolResult } from "@hmls/shared/tool-result";
 import type { DiscountType, LineItem, ServiceInput } from "../../hmls/skills/estimate/types.ts";
-import type { OrderItem } from "@hmls/shared/db/schema";
+import type { OrderItem, RepairTechPrep } from "@hmls/shared/db/schema";
+import { getRepairJobs } from "../../hmls/tools/olp-client.ts";
 import { patchItems } from "../../services/order-state.ts";
 import { upsertOrderIntake } from "../../services/order-intake.ts";
 import { fillPrediction, openPrediction, recordEstimate } from "../../fixo/fixo-brain.ts";
@@ -49,7 +53,7 @@ const discountEnum = z.enum([
 function toOrderItem(
   item: LineItem,
   category: OrderItem["category"],
-  opts?: { laborHours?: number; quantity?: number },
+  opts?: { laborHours?: number; quantity?: number; techPrep?: RepairTechPrep },
 ): OrderItem {
   const quantity = opts?.quantity ?? 1;
   return {
@@ -62,6 +66,7 @@ function toOrderItem(
     totalCents: item.price * quantity,
     taxable: category !== "discount",
     ...(opts?.laborHours ? { laborHours: opts.laborHours } : {}),
+    ...(opts?.techPrep ? { techPrep: opts.techPrep } : {}),
   };
 }
 
@@ -107,6 +112,8 @@ async function resolveCustomer(
   ctxCustomerId: number | undefined,
   paramCustomerId: number | undefined,
   customerInfo: CustomerInfoInput | undefined,
+  access: AccessCtx,
+  defaultShopId?: string,
 ): Promise<CustomerRecord | null> {
   const phoneIn = clean(customerInfo?.phone);
   const addressIn = clean(customerInfo?.address);
@@ -121,6 +128,15 @@ async function resolveCustomer(
       .where(eq(schema.customers.id, id))
       .limit(1);
     if (!found) return null;
+
+    // Ownership gate: a customer agent may only resolve its own customer id;
+    // staff may only resolve a customer in their own shop. Owner all-shops may
+    // resolve any (read context — writes are blocked upstream by canWrite).
+    if (access.customerId != null) {
+      if (found.id !== access.customerId) return null;
+    } else if (access.shopId && access.shopId !== OWNER_ALL_SHOPS) {
+      if (found.shopId !== access.shopId) return null;
+    }
 
     const patch: Partial<typeof schema.customers.$inferInsert> = {};
     if (phoneIn && !found.phone) patch.phone = phoneIn;
@@ -143,10 +159,19 @@ async function resolveCustomer(
   if (!nameIn && !emailIn && !phoneIn) return null;
 
   if (emailIn) {
+    // Scope the email lookup to the staff caller's shop so shop A cannot
+    // find-or-attach a shop B customer by guessing their email. Customer
+    // agents never reach this branch (their id resolves above); owner
+    // all-shops may match any (writes blocked upstream by canWrite).
+    const emailMatch = ilike(schema.customers.email, emailIn);
+    const emailWhere = access.customerId == null && access.shopId &&
+        access.shopId !== OWNER_ALL_SHOPS
+      ? and(emailMatch, eq(schema.customers.shopId, access.shopId))
+      : emailMatch;
     const [existing] = await db
       .select()
       .from(schema.customers)
-      .where(ilike(schema.customers.email, emailIn))
+      .where(emailWhere)
       .limit(1);
     if (existing) {
       const patch: Partial<typeof schema.customers.$inferInsert> = {};
@@ -167,6 +192,10 @@ async function resolveCustomer(
   const [created] = await db
     .insert(schema.customers)
     .values({
+      // shop_id is NOT NULL. INSERT-branch callers pass defaultShopId
+      // (routed from the order address). The UPDATE branch omits it, so for
+      // the rare guest-create-on-revise, route from the new customer's address.
+      shopId: defaultShopId ?? (await routeOrderToShop(addressIn ?? null)).shopId,
       name: nameIn ?? null,
       email: emailIn ?? null,
       phone: phoneIn ?? null,
@@ -192,6 +221,8 @@ interface PriceServicesInput {
   travelMiles?: number;
   discountType?: DiscountType;
   vehicle?: { year: number; make: string; model: string };
+  /** Shop-specific labor rate override (cents). Falls back to global hourlyRate when omitted. */
+  hourlyRateOverride?: number;
 }
 
 async function priceServices(input: PriceServicesInput): Promise<{
@@ -202,7 +233,7 @@ async function priceServices(input: PriceServicesInput): Promise<{
 }> {
   const services = input.services;
   const serviceLineItems = await Promise.all(
-    services.map((s) => calculatePrice(s)),
+    services.map((s) => calculatePrice(s, input.hourlyRateOverride)),
   );
 
   const customLineItems: LineItem[] = (input.customItems ?? []).map((c) => ({
@@ -212,8 +243,9 @@ async function priceServices(input: PriceServicesInput): Promise<{
   }));
 
   const config = await getPricingConfig();
+  const effectiveHourlyRate = input.hourlyRateOverride ?? config.hourlyRate;
   const laborCents = services.reduce(
-    (sum, s) => sum + Math.round((s.laborHours ?? 0) * config.hourlyRate),
+    (sum, s) => sum + Math.round((s.laborHours ?? 0) * effectiveHourlyRate),
     0,
   );
 
@@ -229,10 +261,38 @@ async function priceServices(input: PriceServicesInput): Promise<{
     services,
   });
 
+  // Tech-prep enrichment (internal, best-effort): pull tools/difficulty/HV-safety
+  // from the repair_jobs catalog for any service that carried a jobSlug, so the
+  // shop's assigned mobile tech knows what to bring. Never blocks order creation.
+  const techPrepBySlug = new Map<string, RepairTechPrep>();
+  const jobSlugs = services
+    .map((s) => s.jobSlug)
+    .filter((s): s is string => typeof s === "string" && s.length > 0);
+  if (jobSlugs.length > 0) {
+    try {
+      for (const j of await getRepairJobs(jobSlugs)) {
+        techPrepBySlug.set(j.slug, {
+          difficulty: j.difficulty,
+          tools: j.tools,
+          typicalParts: j.typicalParts,
+          hvSafety: j.hvSafety,
+          likelySizes: j.likelySizes,
+          notes: j.notes,
+        });
+      }
+    } catch {
+      // enrichment is non-critical — proceed without it
+    }
+  }
+
   const items: OrderItem[] = [
-    ...serviceLineItems.map((li, i) =>
-      toOrderItem(li, "labor", { laborHours: services[i]?.laborHours })
-    ),
+    ...serviceLineItems.map((li, i) => {
+      const slug = services[i]?.jobSlug;
+      return toOrderItem(li, "labor", {
+        laborHours: services[i]?.laborHours,
+        techPrep: slug ? techPrepBySlug.get(slug) : undefined,
+      });
+    }),
     ...customLineItems.map((li) => toOrderItem(li, "labor")),
     ...feeLineItems.map((li) => toOrderItem(li, "fee")),
   ];
@@ -352,6 +412,12 @@ export const createOrderTool = {
             .describe(
               "Customer is bringing their own parts. Skips parts pricing; bills labor only.",
             ),
+          jobSlug: z
+            .string()
+            .optional()
+            .describe(
+              "The `slug` for this job from lookup_labor_time results. Pass it through so the shop gets tools/difficulty/HV-safety for tech prep (internal — never shown to the customer).",
+            ),
         }),
       )
       .describe("Services to include in the order"),
@@ -442,12 +508,6 @@ export const createOrderTool = {
       };
     }
 
-    // 1. Run the pricing engine first (cheap, side-effect-free).
-    const { items, subtotal, rangeLow, rangeHigh } = await priceServices({
-      ...params,
-      vehicle: params.vehicle,
-    });
-
     const vehicleInfo = {
       year: String(params.vehicle.year),
       make: params.vehicle.make,
@@ -467,13 +527,45 @@ export const createOrderTool = {
     // for next time). The freshly-supplied customerInfo also wins on the
     // order's contact snapshot — if a customer corrects their phone or
     // service address inside one chat, the order row needs to follow.
+    //
+    // Per-shop labor rate: fetch the existing order's shopId so revisions
+    // price consistently with the shop that originally captured the order.
+    // We do NOT re-route on UPDATE — the shopId is locked at INSERT time.
     // ─────────────────────────────────────────────────────────────────
     if (params.orderId !== undefined) {
+      // Ownership pre-flight (cross-tenant WRITE — top priority). A customer
+      // may only revise their own order; staff only an order in their shop;
+      // owner all-shops is read-only (canWrite false → rejected). Return the
+      // same "not found" shape so existence is not leaked.
+      const ctxAccess: AccessCtx = { shopId: ctx?.shopId, customerId: ctx?.customerId };
+      if (!canWrite(ctxAccess) || !(await orderAccessible(params.orderId, ctxAccess))) {
+        return toolResult({ success: false, error: "Order not found" });
+      }
+
+      // Look up the existing order's shopId for consistent re-pricing.
+      const [existingOrder] = await db
+        .select({ shopId: schema.orders.shopId })
+        .from(schema.orders)
+        .where(eq(schema.orders.id, params.orderId))
+        .limit(1);
+      const existingShopId = existingOrder?.shopId ?? null;
+      const updateShopRate = existingShopId
+        ? (await shopHourlyRate(existingShopId) ?? undefined)
+        : undefined;
+
+      // Run pricing with the shop's rate (falls back to global if null).
+      const { items, subtotal, rangeLow, rangeHigh } = await priceServices({
+        ...params,
+        vehicle: params.vehicle,
+        hourlyRateOverride: updateShopRate,
+      });
+
       const actor = customerAgentActor(ctx) ?? staffAgentActor(ctx);
       await resolveCustomer(
         ctx?.customerId,
         params.customerId,
         params.customerInfo,
+        ctxAccess,
       );
       const phoneIn = clean(params.customerInfo?.phone);
       const addressIn = clean(params.customerInfo?.address);
@@ -530,20 +622,79 @@ export const createOrderTool = {
     // ─────────────────────────────────────────────────────────────────
     // INSERT path — new draft
     // ─────────────────────────────────────────────────────────────────
+
+    // 0. Cross-tenant WRITE gate (top priority — mirror of the UPDATE branch).
+    //    A customer agent always passes (ctx.customerId set); staff passes only
+    //    with a concrete shop bound; an owner with no shop selected
+    //    (ctx.shopId === OWNER_ALL_SHOPS) and the no-context case are rejected.
+    const insertAccess: AccessCtx = { shopId: ctx?.shopId, customerId: ctx?.customerId };
+    if (!canWrite(insertAccess)) {
+      return toolResult({ success: false, error: "Select a shop before creating an order." });
+    }
+
+    // 1. Address from the agent's input (before customer resolution) —
+    //    this is the service address for the NEW order. Geocoding the address
+    //    populates the order's locationLat/Lng regardless of which shop owns it.
+    const addressIn = clean(params.customerInfo?.address) ?? null;
+
+    // 2. Branch on caller. The shop-selection rule differs:
+    //    - Customer agent (access.customerId != null): the order routes to the
+    //      nearest shop by service address (intended cross-shop routing). The
+    //      customer is resolved from ctx.customerId — a guest insert never
+    //      reaches the address-routed branch.
+    //    - Staff agent (access.customerId == null): canWrite guarantees a
+    //      concrete access.shopId. The order — AND any guest customer it
+    //      creates — MUST be the staff member's own shop, never the routed one.
+    const isCustomerAgent = insertAccess.customerId != null;
+
+    // 3. Resolve (or create) the customer. The guest-create defaultShopId is
+    //    the staff member's own shop (unused on the customer path, where the
+    //    id resolves and no guest is created) so a walk-in is never stamped
+    //    with a foreign (address-routed) shop.
     const customer = await resolveCustomer(
       ctx?.customerId,
       params.customerId,
       params.customerInfo,
+      insertAccess,
+      insertAccess.shopId, // concrete for staff; ignored for customer
     );
 
-    // Per-order contact snapshot — what THIS order will carry. The agent's
-    // freshly-supplied customerInfo wins (it's the most recent intent), and
-    // we fall back to the customer profile when the agent didn't pass a
-    // value. resolveCustomer has already backfilled blank profile fields
-    // from customerInfo, so customer.phone / customer.address reflect any
-    // newly-stored defaults.
+    // 4. Per-order contact snapshot — what THIS order will carry. The agent's
+    //    freshly-supplied customerInfo wins (it's the most recent intent), and
+    //    we fall back to the customer profile when the agent didn't pass a
+    //    value. resolveCustomer has already backfilled blank profile fields
+    //    from customerInfo, so customer.phone / customer.address reflect any
+    //    newly-stored defaults.
     const orderPhone = clean(params.customerInfo?.phone) ?? customer?.phone ?? null;
-    const orderAddress = clean(params.customerInfo?.address) ?? customer?.address ?? null;
+    const orderAddress = addressIn ?? customer?.address ?? null;
+
+    // 5. Resolve the order's shop + coordinates (best-effort; never gates
+    //    creation). Customer: route by the order address so shop + coords track
+    //    the job's location. Staff: shop is forced to the staff member's own
+    //    shop; geocode the order address only to populate coords.
+    let orderShopId: string;
+    let coords: Coords | null;
+    if (isCustomerAgent) {
+      const routed = await routeOrderToShop(orderAddress);
+      orderShopId = routed.shopId; // nearest shop wins
+      coords = routed.coords;
+    } else {
+      orderShopId = insertAccess.shopId as string; // staff's own shop (per canWrite)
+      coords = orderAddress ? await geocodeAddress(orderAddress) : null;
+    }
+    const locationLat = coords ? String(coords.lat) : null;
+    const locationLng = coords ? String(coords.lng) : null;
+
+    // 6. Per-shop labor rate. Falls back to undefined (→ global rate) when
+    //    the shop row is missing or its laborRateCents column is null.
+    const insertShopRate = await shopHourlyRate(orderShopId) ?? undefined;
+
+    // 7. Run the pricing engine with the shop's rate.
+    const { items, subtotal, rangeLow, rangeHigh } = await priceServices({
+      ...params,
+      vehicle: params.vehicle,
+      hourlyRateOverride: insertShopRate,
+    });
 
     // Customer-side requirement: after fallback to the profile, both phone
     // and a service address must resolve. The agent must collect whatever
@@ -631,6 +782,7 @@ export const createOrderTool = {
       const [row] = await tx
         .insert(schema.orders)
         .values({
+          shopId: orderShopId,
           customerId: customer.id,
           status: "draft",
           statusHistory: [
@@ -653,6 +805,8 @@ export const createOrderTool = {
           contactEmail: customer.email ?? null,
           contactPhone: orderPhone,
           contactAddress: orderAddress,
+          locationLat,
+          locationLng,
         })
         .returning();
 
@@ -714,7 +868,15 @@ export const getOrderTool = {
   schema: z.object({
     orderId: z.number().int().describe("Order ID"),
   }),
-  execute: async (params: { orderId: number }, _ctx: unknown) => {
+  execute: async (params: { orderId: number }, ctx: ToolContext | undefined) => {
+    // Ownership pre-flight: customer sees only their own orders; staff only
+    // their shop's; owner all-shops may read any; no context denies. Return
+    // the same "not found" shape on a denied read so existence isn't leaked.
+    const ctxAccess: AccessCtx = { shopId: ctx?.shopId, customerId: ctx?.customerId };
+    if (!(await orderAccessible(params.orderId, ctxAccess))) {
+      return toolResult({ found: false, message: "Order not found" });
+    }
+
     const [order] = await db
       .select()
       .from(schema.orders)

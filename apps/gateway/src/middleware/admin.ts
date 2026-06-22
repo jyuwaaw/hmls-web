@@ -40,7 +40,7 @@ export const requireAdmin = createMiddleware<AdminEnv>(async (c, next) => {
     );
   }
 
-  if (user.role !== "admin") {
+  if (user.role !== "admin" && user.role !== "owner") {
     return c.json(
       { error: { code: "FORBIDDEN", message: "Admin access required" } },
       403,

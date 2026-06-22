@@ -20,6 +20,10 @@ export interface ServiceInput {
   /** Repair urgency tier surfaced on the resulting OrderItem so customers
    *  can triage by severity (required / recommended / maintenance / optional). */
   tier?: ItemTier;
+  /** OLP job slug (the `slug` from lookup_labor_time). Lets create_order attach
+   *  internal tech-prep (tools / difficulty / HV-safety) from the repair_jobs
+   *  catalog onto the labor item. Optional; enrichment is skipped if absent. */
+  jobSlug?: string;
 }
 
 export interface LineItem {

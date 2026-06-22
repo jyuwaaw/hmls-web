@@ -4,6 +4,7 @@ import { type AgentConfig, runStaffAgent } from "@hmls/agent";
 import { Errors } from "@hmls/shared/errors";
 import { getLogger } from "@logtape/logtape";
 import { type AdminEnv, requireAdmin } from "../middleware/admin.ts";
+import { requireShopContext, type WithShop } from "../middleware/shop-context.ts";
 
 const logger = getLogger(["hmls", "gateway", "staff-chat"]);
 
@@ -13,10 +14,13 @@ export function initStaffChat(config: AgentConfig) {
   _config = config;
 }
 
-const staffChat = new Hono<AdminEnv>();
+const staffChat = new Hono<WithShop<AdminEnv>>();
 
-// Staff chat endpoint — requires admin JWT
-staffChat.post("/", requireAdmin, async (c) => {
+staffChat.use("*", requireAdmin);
+staffChat.use("*", requireShopContext);
+
+// Staff chat endpoint — requires admin JWT + shop context
+staffChat.post("/", async (c) => {
   let body;
   try {
     body = await c.req.json();
@@ -33,9 +37,11 @@ staffChat.post("/", requireAdmin, async (c) => {
   }
 
   const authUser = c.get("authUser");
+  const shopId = c.get("shopId");
   const startTime = Date.now();
   logger.info("Request received", {
     userId: authUser.id,
+    shopId,
     messageCount: messages.length,
   });
 
@@ -46,6 +52,7 @@ staffChat.post("/", requireAdmin, async (c) => {
       messages: modelMessages,
       config: _config,
       adminEmail: authUser.email ?? undefined,
+      shopId,
     });
 
     const response = result.toUIMessageStreamResponse();

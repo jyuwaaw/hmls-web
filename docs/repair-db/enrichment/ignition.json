@@ -1,0 +1,121 @@
+{
+  "_baseToolsAssumed": ["Socket & wrench set", "Ratchet + extensions", "Screwdrivers/pliers"],
+  "_note": "tools[] = notable/specialty only.",
+  "jobs": [
+    {
+      "slug": "spark-plugs",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Spark plug socket", "specialty": true },
+        { "name": "Gap gauge", "specialty": true },
+        { "name": "Torque wrench" }
+      ],
+      "typicalParts": ["Spark plugs", "Anti-seize/dielectric grease"],
+      "likelySizes": ["Plug socket 5/8\" (16mm) or 13/16\" (21mm)"],
+      "notes": "Coil-on-plug: remove coils first."
+    },
+    {
+      "slug": "spark-plugs-v6",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Spark plug socket", "specialty": true },
+        { "name": "Swivel/wobble extensions", "specialty": true }
+      ],
+      "typicalParts": ["6 spark plugs", "Dielectric grease"],
+      "likelySizes": ["Plug socket 5/8\" (16mm)"],
+      "notes": "Rear bank on transverse V6 often needs intake/wiper cowl off."
+    },
+    {
+      "slug": "spark-plugs-v8",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Spark plug socket", "specialty": true },
+        { "name": "Swivel extensions", "specialty": true }
+      ],
+      "typicalParts": ["8 spark plugs", "Dielectric grease"],
+      "likelySizes": ["Plug socket 5/8\" (16mm)"],
+      "notes": "Tight access near firewall/exhaust."
+    },
+    {
+      "slug": "spark-plug-wires",
+      "difficulty": 1,
+      "tools": [{ "name": "Wire puller/boot pliers", "optional": true }],
+      "typicalParts": ["Spark plug wire set"],
+      "notes": "Replace one at a time to keep firing order."
+    },
+    {
+      "slug": "ignition-coil-single",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Ignition coil", "Dielectric grease"],
+      "notes": "Coil-on-plug."
+    },
+    {
+      "slug": "ignition-coils-all",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Ignition coil set", "Dielectric grease"],
+      "notes": "Often done with plugs."
+    },
+    {
+      "slug": "coil-pack",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Coil pack"],
+      "notes": "Wasted-spark systems."
+    },
+    {
+      "slug": "ignition-module",
+      "difficulty": 2,
+      "tools": [{ "name": "Heat-sink grease", "optional": true }],
+      "typicalParts": ["Ignition control module"],
+      "notes": "Apply heat-sink compound if distributor/ICM-mounted."
+    },
+    {
+      "slug": "distributor-cap",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Distributor cap"],
+      "notes": "Transfer wires in order."
+    },
+    {
+      "slug": "distributor-rotor",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Rotor"],
+      "notes": ""
+    },
+    {
+      "slug": "distributor-cap-rotor",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Cap & rotor"],
+      "notes": ""
+    },
+    {
+      "slug": "distributor",
+      "difficulty": 3,
+      "tools": [{ "name": "Timing light", "specialty": true }],
+      "typicalParts": ["Distributor", "Cap/rotor", "O-ring"],
+      "notes": "Mark position; set base timing after (distributor engines)."
+    },
+    {
+      "slug": "ignition-switch",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools" }],
+      "typicalParts": ["Ignition switch (electrical)"],
+      "notes": "Column work; some need key/immobilizer relearn."
+    },
+    {
+      "slug": "ignition-lock-cylinder",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Trim tools" },
+        { "name": "Lock cylinder release tool", "specialty": true },
+        { "name": "Scan tool (key relearn)", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Lock cylinder", "Key (some)"],
+      "notes": "Immobilizer/key relearn often required."
+    }
+  ]
+}

@@ -64,6 +64,8 @@ export default {
         return handleLaborTimes(env, body);
       case "/categories":
         return handleCategories(env, body);
+      case "/repair-jobs":
+        return handleRepairJobs(env, body);
       default:
         return json({ error: "Not found" }, 404);
     }
@@ -131,7 +133,7 @@ async function handleLaborTimes(env: Env, body: Record<string, unknown>): Promis
 
   const categoryCondition = category ? " AND category LIKE ? COLLATE NOCASE" : "";
 
-  const sql = `SELECT name, category, labor_hours, vehicle_id
+  const sql = `SELECT name, slug, category, labor_hours, vehicle_id
      FROM olp_labor_times
      WHERE vehicle_id IN (${idPlaceholders})
        AND ${nameCondition}${categoryCondition}
@@ -171,4 +173,53 @@ async function handleCategories(env: Env, body: Record<string, unknown>): Promis
     .all();
 
   return json({ categories: result.results });
+}
+
+// --- /repair-jobs ---
+// Body: { slugs: string[] }
+// Vehicle-independent job enrichment (tools / difficulty / typical parts / notes).
+// Excluded jobs (e.g. illegal emissions defeats) are never returned.
+
+function safeParse(v: unknown, fallback: unknown): unknown {
+  if (typeof v !== "string") return fallback;
+  try {
+    return JSON.parse(v);
+  } catch {
+    return fallback;
+  }
+}
+
+async function handleRepairJobs(env: Env, body: Record<string, unknown>): Promise<Response> {
+  const slugs = body.slugs as string[];
+
+  if (!Array.isArray(slugs) || slugs.length === 0) {
+    return json({ jobs: [] });
+  }
+
+  // D1 supports up to 100 items in an IN clause
+  const capped = slugs.slice(0, 100);
+  const placeholders = capped.map(() => "?").join(",");
+
+  const result = await env.OLP_DB.prepare(
+    `SELECT slug, name, category, difficulty, tools, typical_parts, likely_sizes, hv_safety, notes
+     FROM repair_jobs
+     WHERE slug IN (${placeholders})
+       AND excluded = 0`,
+  )
+    .bind(...capped)
+    .all();
+
+  const jobs = (result.results as Record<string, unknown>[]).map((r) => ({
+    slug: r.slug,
+    name: r.name,
+    category: r.category,
+    difficulty: r.difficulty,
+    tools: safeParse(r.tools, []),
+    typicalParts: safeParse(r.typical_parts, []),
+    likelySizes: safeParse(r.likely_sizes, null),
+    hvSafety: r.hv_safety === 1,
+    notes: r.notes ?? "",
+  }));
+
+  return json({ jobs });
 }

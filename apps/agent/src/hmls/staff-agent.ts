@@ -25,6 +25,10 @@ export interface RunStaffAgentOptions {
    *  ctx.adminEmail so the order-state harness can stamp events with the
    *  acting admin, not a generic "staff_agent" string. */
   adminEmail?: string;
+  /** Multi-tenancy: the shop this staff chat session belongs to. May be
+   *  OWNER_ALL_SHOPS ("__all__") for an owner with no shop filter, which
+   *  lets read tools span all shops. */
+  shopId?: string;
 }
 
 // Same skill bundle as the customer agent — staff also needs the
@@ -32,7 +36,7 @@ export interface RunStaffAgentOptions {
 const SKILLS_PROMISE = loadSkills(["order", "scheduling"]);
 
 export async function runStaffAgent(options: RunStaffAgentOptions) {
-  const { messages, config, adminEmail } = options;
+  const { messages, config, adminEmail, shopId } = options;
   const modelId = config.agentModel || DEFAULT_MODEL;
 
   const google = createGoogleGenerativeAI({ apiKey: config.googleApiKey });
@@ -50,7 +54,10 @@ export async function runStaffAgent(options: RunStaffAgentOptions) {
     ...adminOrderTools,
   ];
 
-  const tools = convertTools(allTools, adminEmail ? { adminEmail } : undefined);
+  const toolCtx: import("../common/convert-tools.ts").ToolContext = {};
+  if (adminEmail) toolCtx.adminEmail = adminEmail;
+  if (shopId) toolCtx.shopId = shopId;
+  const tools = convertTools(allTools, Object.keys(toolCtx).length > 0 ? toolCtx : undefined);
   const toolCount = Object.keys(tools).length;
   logger.info("Initializing staff agent", { model: modelId, toolCount });
 

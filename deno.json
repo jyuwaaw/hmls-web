@@ -14,7 +14,8 @@
     "postgres": "npm:postgres@^3.4.9",
     "@db/sqlite": "jsr:@db/sqlite@^0.13.0",
     "@logtape/logtape": "jsr:@logtape/logtape@^2.0.5",
-    "@std/assert": "jsr:@std/assert@^1.0.0"
+    "@std/assert": "jsr:@std/assert@^1.0.0",
+    "@std/fs": "jsr:@std/fs@^1.0.0"
   },
   "fmt": {
     "indentWidth": 2,

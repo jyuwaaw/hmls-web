@@ -1,9 +1,10 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { and, asc, between, desc, eq, gte, inArray, lte, sql } from "drizzle-orm";
-import { db, schema } from "@hmls/agent/db";
+import { db, schema, whereShop } from "@hmls/agent/db";
 import { type Actor, assignProvider } from "@hmls/agent/order-state";
 import { type AdminEnv, requireAdmin } from "../middleware/admin.ts";
+import { OWNER_ALL_SHOPS, requireShopContext, type WithShop } from "../middleware/shop-context.ts";
 import { sendOrderStateResult } from "../lib/order-state-http.ts";
 import {
   availableMinutesForWeek,
@@ -30,6 +31,26 @@ import type {
 
 type ApiError = { error: { code: string; message: string } };
 
+/** Returns true when the order exists and belongs to the given shop. */
+async function orderInShop(id: number, shopId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: schema.orders.id })
+    .from(schema.orders)
+    .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
+    .limit(1);
+  return !!row;
+}
+
+/** Returns true when the provider exists and belongs to the given shop. */
+async function providerInShop(id: number, shopId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: schema.providers.id })
+    .from(schema.providers)
+    .where(and(eq(schema.providers.id, id), eq(schema.providers.shopId, shopId)))
+    .limit(1);
+  return !!row;
+}
+
 /** Provider row with aggregate mechanic stats appended. */
 type ProviderWithStats = ProviderRow & {
   weekUtilization: number | null;
@@ -52,9 +73,10 @@ function adminActor(email: string | null | undefined): Actor {
   return { kind: "admin", email: email ?? "admin" };
 }
 
-const adminMechanics = new Hono<AdminEnv>();
+const adminMechanics = new Hono<WithShop<AdminEnv>>();
 
 adminMechanics.use("*", requireAdmin);
+adminMechanics.use("*", requireShopContext);
 
 // GET / — list mechanics with aggregate stats
 adminMechanics.get("/", async (c) => {
@@ -62,10 +84,12 @@ adminMechanics.get("/", async (c) => {
   const weekStart = new Date(now);
   weekStart.setUTCDate(weekStart.getUTCDate() - 14);
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const shopId = c.get("shopId");
 
   const providers = await db
     .select()
     .from(schema.providers)
+    .where(whereShop(schema.providers.shopId, shopId))
     .orderBy(desc(schema.providers.isActive), asc(schema.providers.name));
 
   if (providers.length === 0) return c.json<ProviderWithStats[]>([]);
@@ -106,6 +130,7 @@ adminMechanics.get("/", async (c) => {
       .from(schema.orders)
       .where(
         and(
+          whereShop(schema.orders.shopId, shopId),
           inArray(schema.orders.providerId, providerIds),
           gte(schema.orders.scheduledAt, weekStart),
           activeStatusSql,
@@ -122,6 +147,7 @@ adminMechanics.get("/", async (c) => {
       .from(schema.orders)
       .where(
         and(
+          whereShop(schema.orders.shopId, shopId),
           inArray(schema.orders.providerId, providerIds),
           between(
             schema.orders.scheduledAt,
@@ -142,6 +168,7 @@ adminMechanics.get("/", async (c) => {
       .from(schema.orders)
       .where(
         and(
+          whereShop(schema.orders.shopId, shopId),
           inArray(schema.orders.providerId, providerIds),
           eq(schema.orders.status, "completed"),
           gte(schema.orders.createdAt, thirtyDaysAgo),
@@ -155,6 +182,7 @@ adminMechanics.get("/", async (c) => {
       .from(schema.orders)
       .where(
         and(
+          whereShop(schema.orders.shopId, shopId),
           inArray(schema.orders.providerId, providerIds),
           gte(schema.orders.scheduledAt, now),
           lte(schema.orders.scheduledAt, endOfWeek(now)),
@@ -170,6 +198,7 @@ adminMechanics.get("/", async (c) => {
       .from(schema.orders)
       .where(
         and(
+          whereShop(schema.orders.shopId, shopId),
           inArray(schema.orders.providerId, providerIds),
           gte(schema.orders.scheduledAt, now),
           sql`${schema.orders.status} IN ('scheduled', 'in_progress')`,
@@ -251,10 +280,15 @@ adminMechanics.get("/", async (c) => {
 // POST / — create a new mechanic
 adminMechanics.post("/", zValidator("json", createMechanicInput), async (c) => {
   const body = c.req.valid("json");
+  const shopId = c.get("shopId");
+  if (shopId === OWNER_ALL_SHOPS) {
+    return c.json({ error: { code: "NO_SHOP", message: "Select a shop before writing" } }, 400);
+  }
 
   const [created] = await db
     .insert(schema.providers)
     .values({
+      shopId,
       name: body.name,
       email: body.email ?? null,
       phone: body.phone ?? null,
@@ -277,10 +311,12 @@ adminMechanics.get("/:id", async (c) => {
     );
   }
 
+  const shopId = c.get("shopId");
+
   const [provider] = await db
     .select()
     .from(schema.providers)
-    .where(eq(schema.providers.id, id))
+    .where(and(eq(schema.providers.id, id), eq(schema.providers.shopId, shopId)))
     .limit(1);
 
   if (!provider) {
@@ -303,6 +339,10 @@ adminMechanics.patch("/:id", zValidator("json", updateMechanicInput), async (c) 
   }
 
   const body = c.req.valid("json");
+  const shopId = c.get("shopId");
+  if (shopId === OWNER_ALL_SHOPS) {
+    return c.json({ error: { code: "NO_SHOP", message: "Select a shop before writing" } }, 400);
+  }
 
   const updates: Record<string, unknown> = {};
   if (body.name !== undefined) updates.name = body.name;
@@ -322,7 +362,7 @@ adminMechanics.patch("/:id", zValidator("json", updateMechanicInput), async (c) 
   const [updated] = await db
     .update(schema.providers)
     .set(updates)
-    .where(eq(schema.providers.id, id))
+    .where(and(eq(schema.providers.id, id), eq(schema.providers.shopId, shopId)))
     .returning();
 
   if (!updated) {
@@ -345,10 +385,12 @@ adminMechanics.delete("/:id", async (c) => {
     );
   }
 
+  const shopId = c.get("shopId");
+
   const [updated] = await db
     .update(schema.providers)
     .set({ isActive: false })
-    .where(eq(schema.providers.id, id))
+    .where(and(eq(schema.providers.id, id), eq(schema.providers.shopId, shopId)))
     .returning();
 
   if (!updated) {
@@ -369,6 +411,13 @@ adminMechanics.get("/:id/availability", async (c) => {
       400,
     );
   }
+  const shopId = c.get("shopId");
+  if (!(await providerInShop(id, shopId))) {
+    return c.json<ApiError>(
+      { error: { code: "NOT_FOUND", message: "Mechanic not found" } },
+      404,
+    );
+  }
   const rows = await db
     .select()
     .from(schema.providerAvailability)
@@ -384,6 +433,14 @@ adminMechanics.put("/:id/availability", zValidator("json", setAvailabilityInput)
     return c.json<ApiError>(
       { error: { code: "BAD_REQUEST", message: "Invalid mechanic ID" } },
       400,
+    );
+  }
+
+  const shopId = c.get("shopId");
+  if (!(await providerInShop(id, shopId))) {
+    return c.json<ApiError>(
+      { error: { code: "NOT_FOUND", message: "Mechanic not found" } },
+      404,
     );
   }
 
@@ -432,6 +489,13 @@ adminMechanics.get("/:id/overrides", zValidator("query", listOverridesQuery), as
       400,
     );
   }
+  const shopId = c.get("shopId");
+  if (!(await providerInShop(id, shopId))) {
+    return c.json<ApiError>(
+      { error: { code: "NOT_FOUND", message: "Mechanic not found" } },
+      404,
+    );
+  }
   const { from, to } = c.req.valid("query");
 
   const conditions = [eq(schema.providerScheduleOverrides.providerId, id)];
@@ -457,6 +521,14 @@ adminMechanics.post("/:id/overrides", zValidator("json", createOverrideInput), a
     return c.json<ApiError>(
       { error: { code: "BAD_REQUEST", message: "Invalid mechanic ID" } },
       400,
+    );
+  }
+
+  const shopId = c.get("shopId");
+  if (!(await providerInShop(id, shopId))) {
+    return c.json<ApiError>(
+      { error: { code: "NOT_FOUND", message: "Mechanic not found" } },
+      404,
     );
   }
 
@@ -512,6 +584,14 @@ adminMechanics.delete("/:id/overrides/:overrideId", async (c) => {
     );
   }
 
+  const shopId = c.get("shopId");
+  if (!(await providerInShop(id, shopId))) {
+    return c.json<ApiError>(
+      { error: { code: "NOT_FOUND", message: "Mechanic not found" } },
+      404,
+    );
+  }
+
   const result = await db
     .delete(schema.providerScheduleOverrides)
     .where(
@@ -541,8 +621,9 @@ adminMechanics.get("/:id/orders", zValidator("query", listMechanicOrdersQuery), 
     );
   }
   const { from, to } = c.req.valid("query");
+  const shopId = c.get("shopId");
 
-  const conditions = [eq(schema.orders.providerId, id)];
+  const conditions = [eq(schema.orders.providerId, id), eq(schema.orders.shopId, shopId)];
   if (from && to) {
     conditions.push(
       between(schema.orders.scheduledAt, new Date(from), new Date(to)),
@@ -563,7 +644,14 @@ adminMechanics.get("/:id/orders", zValidator("query", listMechanicOrdersQuery), 
     .from(schema.orders)
     .leftJoin(
       schema.customers,
-      eq(schema.orders.customerId, schema.customers.id),
+      // Scope the join by the order's own shopId so a customer whose home shop
+      // differs from the order's routed shop is never surfaced here. Using the
+      // order-column shop (not the caller's shopId) handles OWNER_ALL_SHOPS
+      // transparently — the join only succeeds when customer and order share a shop.
+      and(
+        eq(schema.orders.customerId, schema.customers.id),
+        eq(schema.customers.shopId, schema.orders.shopId),
+      ),
     )
     .where(and(...conditions))
     .orderBy(asc(schema.orders.scheduledAt))
@@ -598,18 +686,30 @@ adminMechanics.post(
 
     const body = c.req.valid("json");
 
+    const shopId = c.get("shopId");
+
     // Pre-check the provider here so the "mechanic not found" error keeps its
     // specific wording — the harness's `not_found` path is keyed on the id we
     // pass in, so routing this through `sendOrderStateResult` alone would
     // surface it as "Order #<providerId> not found" in the admin dialog.
+    // Also scope by shopId so cross-shop assignment is impossible.
     const [provider] = await db
       .select({ id: schema.providers.id })
       .from(schema.providers)
-      .where(eq(schema.providers.id, body.providerId))
+      .where(and(eq(schema.providers.id, body.providerId), eq(schema.providers.shopId, shopId)))
       .limit(1);
     if (!provider) {
       return c.json<ApiError>(
         { error: { code: "NOT_FOUND", message: "Target mechanic not found" } },
+        404,
+      );
+    }
+
+    // Guard the order too — the provider is shop-checked above but the order
+    // path param was not yet verified to belong to this shop.
+    if (!(await orderInShop(orderId, shopId))) {
+      return c.json<ApiError>(
+        { error: { code: "NOT_FOUND", message: "Order not found" } },
         404,
       );
     }

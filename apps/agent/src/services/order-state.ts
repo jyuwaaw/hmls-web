@@ -613,6 +613,16 @@ export async function assignProvider(
   if (!provider) {
     return { ok: false, error: { code: "not_found", orderId: providerId } };
   }
+  if (provider.shopId !== order.shopId) {
+    return {
+      ok: false,
+      error: {
+        code: "forbidden",
+        reason:
+          `Provider ${providerId} belongs to a different shop and cannot be assigned to this order`,
+      },
+    };
+  }
   if (!provider.isActive && !options.force) {
     return {
       ok: false,

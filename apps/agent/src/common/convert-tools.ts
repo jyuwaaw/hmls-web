@@ -7,6 +7,10 @@ export interface ToolContext {
   /** Fixo chat: the active fixo_sessions.id. Required by tools that
    *  mutate session-scoped state (e.g. update_diagnostic_state). */
   fixoSessionId?: number;
+  /** Multi-tenancy: the shop this chat session belongs to. Staff agent:
+   *  may be OWNER_ALL_SHOPS for owner-wide reads. Customer agent: always
+   *  a concrete shopId (resolved at first-contact upsert). */
+  shopId?: string;
 }
 
 // deno-lint-ignore no-explicit-any

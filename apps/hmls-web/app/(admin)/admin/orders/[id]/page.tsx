@@ -11,6 +11,7 @@ import { OrderDetailsCard } from "@/components/order/OrderDetailsCard";
 import { OrderDocumentCard } from "@/components/order/OrderDocumentCard";
 import { OrderOpsPanel } from "@/components/order/OrderOpsPanel";
 import { OrderSectionsRegion } from "@/components/order/OrderSectionsRegion";
+import { TechPrepCard } from "@/components/order/TechPrepCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -208,6 +209,8 @@ export default function OrderDetailPage() {
             onSetTime={() => invoker.openDialog("set_time")}
             onReassign={() => invoker.openDialog("reassign")}
           />
+
+          <TechPrepCard order={order} />
 
           {order.cancellationReason && (
             <Card className="gap-0 py-0 border-destructive/50">

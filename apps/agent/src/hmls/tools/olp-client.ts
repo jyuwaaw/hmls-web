@@ -41,6 +41,8 @@ export interface OlpVehicle {
 
 export interface OlpLaborTime {
   name: string;
+  /** Normalized job slug — the join key to repair_jobs (see getRepairJobs) */
+  slug: string;
   category: string;
   labor_hours: number;
   vehicle_id: number;
@@ -49,6 +51,7 @@ export interface OlpLaborTime {
 /** Labor time result with provenance metadata for debugging */
 export interface LaborTimeResult {
   name: string;
+  slug: string;
   category: string;
   labor_hours: number;
   vehicle_id: number;
@@ -158,4 +161,42 @@ export async function getCategoryBreakdown(
     vehicleIds,
   });
   return data.categories;
+}
+
+// --- Repair-job enrichment (vehicle-independent: tools / difficulty / parts) ---
+
+export interface RepairTool {
+  name: string;
+  specialty?: boolean;
+  optional?: boolean;
+}
+
+export interface RepairJob {
+  slug: string;
+  name: string;
+  category: string;
+  /** 1 (trivial) – 5 (engine-out / specialist) */
+  difficulty: number;
+  tools: RepairTool[];
+  typicalParts: string[];
+  /** AI-estimated common fastener sizes — prep hint only, may be null */
+  likelySizes: string[] | null;
+  /** EV high-voltage job: requires HV-certified tech + insulated PPE + service disconnect */
+  hvSafety: boolean;
+  notes: string;
+}
+
+/**
+ * Fetch vehicle-independent job enrichment (tools, difficulty, typical parts,
+ * notes) for a set of job slugs — typically the slugs returned by
+ * searchLaborTimes(). Excluded jobs (e.g. illegal emissions defeats) are never
+ * returned by the worker.
+ */
+export async function getRepairJobs(slugs: string[]): Promise<RepairJob[]> {
+  if (slugs.length === 0) return [];
+  logger.debug("getRepairJobs", { slugs: slugs.length });
+  const data = await olpPost<{ jobs: RepairJob[] }>("/repair-jobs", {
+    slugs: [...new Set(slugs)],
+  });
+  return data.jobs ?? [];
 }

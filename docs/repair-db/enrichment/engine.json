@@ -1,0 +1,642 @@
+{
+  "_baseToolsAssumed": [
+    "Floor jack",
+    "Jack stands",
+    "Socket & wrench set",
+    "Torque wrench",
+    "Screwdrivers/pliers",
+    "Gasket scraper",
+    "Drain pan"
+  ],
+  "_note": "tools[] = notable/specialty only. Internal-engine jobs assume engine stand/hoist + machine-shop access.",
+  "jobs": [
+    {
+      "slug": "pcv-valve",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["PCV valve", "Grommet"],
+      "notes": ""
+    },
+    {
+      "slug": "oil-separatorpcv",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Oil separator / PCV assembly", "Gaskets"],
+      "notes": ""
+    },
+    {
+      "slug": "maf-sensor",
+      "difficulty": 1,
+      "tools": [{ "name": "Torx/Security bit", "optional": true }],
+      "typicalParts": ["MAF sensor"],
+      "notes": "Don't touch the sensing element."
+    },
+    {
+      "slug": "map-sensor",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["MAP sensor", "O-ring"],
+      "notes": ""
+    },
+    {
+      "slug": "boost-sensor",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Boost/MAP sensor", "O-ring"],
+      "notes": ""
+    },
+    {
+      "slug": "tps",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Throttle position sensor"],
+      "notes": "Idle relearn on some."
+    },
+    {
+      "slug": "iac-valve",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Idle air control valve", "Gasket"],
+      "notes": "Clean throttle body while there."
+    },
+    {
+      "slug": "idler-pulley",
+      "difficulty": 1,
+      "tools": [{ "name": "Serpentine belt tool", "specialty": true }],
+      "typicalParts": ["Idler pulley"],
+      "notes": ""
+    },
+    {
+      "slug": "serpentine-belt",
+      "difficulty": 1,
+      "tools": [{ "name": "Serpentine belt tool / breaker bar", "specialty": true }],
+      "typicalParts": ["Serpentine belt"],
+      "notes": "Note routing diagram."
+    },
+    {
+      "slug": "serpentine-belt-replacement",
+      "difficulty": 1,
+      "tools": [{ "name": "Serpentine belt tool", "specialty": true }],
+      "typicalParts": ["Serpentine belt"],
+      "notes": "Alias."
+    },
+    {
+      "slug": "serpentine-belt-tensioner",
+      "difficulty": 2,
+      "tools": [{ "name": "Serpentine belt tool", "specialty": true }],
+      "typicalParts": ["Belt tensioner", "Serpentine belt (often with)"],
+      "notes": ""
+    },
+    {
+      "slug": "oil-pressure-sensor",
+      "difficulty": 2,
+      "tools": [{ "name": "Oil pressure sender socket", "optional": true }],
+      "typicalParts": ["Oil pressure sensor/switch", "Sealant"],
+      "notes": ""
+    },
+    {
+      "slug": "oil-level-sensor",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Oil level sensor", "O-ring", "Engine oil"],
+      "notes": "In oil pan; drain oil first."
+    },
+    {
+      "slug": "cam-position-sensor",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Camshaft position sensor", "O-ring"],
+      "notes": "Relearn on some makes."
+    },
+    {
+      "slug": "crank-position-sensor",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Crankshaft position sensor", "O-ring"],
+      "notes": "May require crank relearn."
+    },
+    {
+      "slug": "knock-sensor",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["Knock sensor", "Harness (some)"],
+      "notes": "Frequently under the intake manifold — adds significant labor."
+    },
+    {
+      "slug": "throttle-body",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Throttle body", "Gasket"],
+      "notes": "Throttle relearn after on many vehicles."
+    },
+    {
+      "slug": "vvt-solenoid",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["VVT / oil control solenoid", "O-ring"],
+      "notes": ""
+    },
+    {
+      "slug": "vvt-solenoids-all",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["All VVT solenoids", "O-rings"],
+      "notes": ""
+    },
+    {
+      "slug": "vvt-actuator",
+      "difficulty": 3,
+      "tools": [{ "name": "Camshaft locking tools", "specialty": true }],
+      "typicalParts": ["VVT actuator/phaser", "Timing components"],
+      "notes": "Timing-related — lock cams."
+    },
+    {
+      "slug": "valve-cover-gasket",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Valve cover gasket", "Spark plug tube seals", "Grommets"],
+      "notes": "Very common oil leak."
+    },
+    {
+      "slug": "valve-cover-gaskets-both",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["Both valve cover gaskets", "Seals"],
+      "notes": "V-engines; intake often must come off."
+    },
+    {
+      "slug": "intake-manifold-gasket",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["Intake manifold gasket set", "Coolant (if coolant-cooled)"],
+      "notes": "Transfer sensors/lines."
+    },
+    {
+      "slug": "intake-manifold",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["Intake manifold", "Gasket set", "Coolant"],
+      "notes": "Plastic manifolds crack at coolant ports."
+    },
+    {
+      "slug": "exhaust-manifold-gasket",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Penetrating oil" },
+        { "name": "Stud extractor", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Exhaust manifold gasket", "Studs/nuts"],
+      "notes": "Studs commonly snap — plan for extraction."
+    },
+    {
+      "slug": "exhaust-manifold",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Penetrating oil" },
+        { "name": "Stud extractor kit", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Exhaust manifold", "Gasket", "Studs/nuts"],
+      "notes": "Heat-seized hardware; broken studs common."
+    },
+    {
+      "slug": "intercooler",
+      "difficulty": 3,
+      "tools": [{ "name": "Hose clamp pliers", "optional": true }],
+      "typicalParts": ["Intercooler", "Boots/clamps"],
+      "notes": "FMIC behind bumper, or top-mount."
+    },
+    {
+      "slug": "turbo-wastegate",
+      "difficulty": 3,
+      "tools": [{ "name": "Boost gauge", "optional": true }],
+      "typicalParts": ["Wastegate / actuator"],
+      "notes": "Set/verify boost after."
+    },
+    {
+      "slug": "turbocharger",
+      "difficulty": 4,
+      "tools": [{ "name": "Penetrating oil" }, { "name": "Line wrenches", "specialty": true }],
+      "typicalParts": ["Turbocharger", "Oil feed/return lines", "Gaskets", "Engine oil"],
+      "notes": "Prime oil before start; ensure clean oil supply."
+    },
+    {
+      "slug": "supercharger",
+      "difficulty": 4,
+      "tools": [],
+      "typicalParts": ["Supercharger", "Gaskets", "Coupler/snout (if serviced)", "SC oil"],
+      "notes": "Intake/blower removal."
+    },
+    {
+      "slug": "engine-mount-front",
+      "difficulty": 2,
+      "tools": [{ "name": "Engine support / jack", "specialty": true }],
+      "typicalParts": ["Front engine mount"],
+      "notes": "Support engine before removing."
+    },
+    {
+      "slug": "engine-mount-rear",
+      "difficulty": 2,
+      "tools": [{ "name": "Engine support / jack", "specialty": true }],
+      "typicalParts": ["Rear engine mount"],
+      "notes": ""
+    },
+    {
+      "slug": "engine-mounts-all",
+      "difficulty": 3,
+      "tools": [{ "name": "Engine support / jack", "specialty": true }],
+      "typicalParts": ["All engine/trans mounts"],
+      "notes": "Do one at a time, engine supported."
+    },
+    {
+      "slug": "transmission-mount",
+      "difficulty": 2,
+      "tools": [{ "name": "Transmission jack", "specialty": true, "optional": true }],
+      "typicalParts": ["Transmission mount"],
+      "notes": "Support trans."
+    },
+    {
+      "slug": "harmonic-balancer",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Balancer puller & installer", "specialty": true },
+        { "name": "Crank holding tool", "specialty": true }
+      ],
+      "typicalParts": ["Harmonic balancer", "Center bolt (often TTY)"],
+      "notes": "Center bolt extremely tight."
+    },
+    {
+      "slug": "front-main-seal",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Balancer puller", "specialty": true },
+        { "name": "Seal installer", "specialty": true }
+      ],
+      "typicalParts": ["Front crankshaft seal"],
+      "notes": "Remove balancer/timing cover."
+    },
+    {
+      "slug": "rear-main-seal",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Transmission jack", "specialty": true },
+        { "name": "Seal installer", "specialty": true },
+        { "name": "Flywheel lock", "specialty": true }
+      ],
+      "typicalParts": ["Rear main seal"],
+      "notes": "Transmission + flywheel/flexplate must come out."
+    },
+    {
+      "slug": "oil-pan-gasket",
+      "difficulty": 3,
+      "tools": [{ "name": "RTV sealant", "optional": true }],
+      "typicalParts": ["Oil pan gasket / RTV", "Engine oil"],
+      "notes": "Subframe/crossmember may block removal."
+    },
+    {
+      "slug": "oil-pan",
+      "difficulty": 3,
+      "tools": [{ "name": "RTV sealant", "optional": true }],
+      "typicalParts": ["Oil pan", "Gasket/RTV", "Engine oil"],
+      "notes": ""
+    },
+    {
+      "slug": "oil-pump",
+      "difficulty": 4,
+      "tools": [{ "name": "Timing/front cover tools", "specialty": true }],
+      "typicalParts": ["Oil pump", "Gaskets/seals", "Engine oil"],
+      "notes": "Usually behind timing cover; prime on install."
+    },
+    {
+      "slug": "freeze-plug",
+      "difficulty": 3,
+      "tools": [{ "name": "Freeze plug installer / drift", "specialty": true }],
+      "typicalParts": ["Core/freeze plug", "Sealant", "Coolant"],
+      "notes": "Rear plugs may need engine/trans out."
+    },
+    {
+      "slug": "freeze-plugs-all",
+      "difficulty": 4,
+      "tools": [{ "name": "Freeze plug installer", "specialty": true }],
+      "typicalParts": ["Full freeze plug set", "Coolant"],
+      "notes": "Rear bank plugs often need engine partially out."
+    },
+    {
+      "slug": "rocker-arms",
+      "difficulty": 3,
+      "tools": [{ "name": "Valve spring compressor", "specialty": true, "optional": true }],
+      "typicalParts": ["Rocker arms", "Valve cover gasket"],
+      "notes": "OHC engines may need cam removal."
+    },
+    {
+      "slug": "valve-adjustment",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Feeler gauges", "specialty": true },
+        { "name": "Shim/bucket kit", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Valve cover gasket", "Adjustment shims (if needed)"],
+      "notes": "Cold engine; shim-under-bucket is involved."
+    },
+    {
+      "slug": "valve-seals",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Valve spring compressor (on-vehicle)", "specialty": true },
+        { "name": "Cylinder air-hold adapter", "specialty": true }
+      ],
+      "typicalParts": ["Valve stem seals", "Valve cover gasket"],
+      "notes": "On-vehicle with air-hold; tedious per cylinder."
+    },
+    {
+      "slug": "valve-spring-single",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Valve spring compressor", "specialty": true },
+        { "name": "Air-hold adapter", "specialty": true }
+      ],
+      "typicalParts": ["Valve spring", "Keepers/retainer"],
+      "notes": ""
+    },
+    {
+      "slug": "valve-springs",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Valve spring compressor", "specialty": true },
+        { "name": "Air-hold adapter", "specialty": true }
+      ],
+      "typicalParts": ["Valve spring set"],
+      "notes": "On-vehicle or head off."
+    },
+    {
+      "slug": "cylinder-head-resurface",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Machine shop", "specialty": true },
+        { "name": "Straightedge & feeler", "specialty": true }
+      ],
+      "typicalParts": ["Head gasket set", "Head bolts (TTY)"],
+      "notes": "Head removed; resurface at machine shop."
+    },
+    {
+      "slug": "cylinder-head-rr",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Camshaft/timing locking tools", "specialty": true },
+        { "name": "Torque-angle gauge", "specialty": true }
+      ],
+      "typicalParts": ["Head gasket set", "Head bolts (TTY)", "Coolant", "Oil"],
+      "notes": "TTY head bolts; reset timing."
+    },
+    {
+      "slug": "head-gasket",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Cam/timing tools", "specialty": true },
+        { "name": "Torque-angle gauge", "specialty": true },
+        { "name": "Straightedge", "specialty": true }
+      ],
+      "typicalParts": ["Head gasket set", "TTY head bolts", "Coolant", "Oil"],
+      "notes": "Check head flatness; TTY torque sequence."
+    },
+    {
+      "slug": "head-gaskets-both",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Cam/timing tools", "specialty": true },
+        { "name": "Torque-angle gauge", "specialty": true }
+      ],
+      "typicalParts": ["Both head gasket sets", "TTY bolts", "Coolant", "Oil"],
+      "notes": "V6/V8 both banks."
+    },
+    {
+      "slug": "valve-job",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Machine shop (valve grind)", "specialty": true },
+        { "name": "Valve spring compressor", "specialty": true }
+      ],
+      "typicalParts": ["Valves/seals/guides as needed", "Head gasket set", "TTY bolts"],
+      "notes": "Head to machine shop."
+    },
+    {
+      "slug": "lifter-single",
+      "difficulty": 4,
+      "tools": [{ "name": "Cam/timing tools", "specialty": true, "optional": true }],
+      "typicalParts": ["Lifter/lash adjuster", "Gaskets"],
+      "notes": "Access varies; OHC may need cam out."
+    },
+    {
+      "slug": "lifters-all",
+      "difficulty": 5,
+      "tools": [{ "name": "Cam/timing tools", "specialty": true }],
+      "typicalParts": ["Lifter set", "Gasket set"],
+      "notes": "Top-end teardown; common on AFM/DOD engines."
+    },
+    {
+      "slug": "camshaft-rr",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Camshaft locking tools", "specialty": true },
+        { "name": "Torque-angle gauge", "specialty": true }
+      ],
+      "typicalParts": ["Camshaft", "Lifters/followers", "Gaskets", "Timing kit"],
+      "notes": "Requires timing R&R."
+    },
+    {
+      "slug": "crankshaft-rr",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Engine hoist/stand", "specialty": true },
+        { "name": "Plastigage", "specialty": true },
+        { "name": "Torque-angle gauge", "specialty": true }
+      ],
+      "typicalParts": ["Crankshaft", "Main/rod bearings", "Seals", "Gasket set"],
+      "notes": "Engine out / full teardown."
+    },
+    {
+      "slug": "main-bearings",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Plastigage", "specialty": true },
+        { "name": "Torque-angle gauge", "specialty": true }
+      ],
+      "typicalParts": ["Main bearing set", "RTV/gaskets", "Oil"],
+      "notes": "Engine out or crank dropped."
+    },
+    {
+      "slug": "rod-bearings",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Plastigage", "specialty": true },
+        { "name": "Torque-angle gauge", "specialty": true }
+      ],
+      "typicalParts": ["Rod bearing set", "Oil pan gasket", "Oil"],
+      "notes": "Oil pan off; engine often partly out."
+    },
+    {
+      "slug": "piston-single",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Ring compressor", "specialty": true },
+        { "name": "Cylinder hone", "specialty": true }
+      ],
+      "typicalParts": ["Piston & rings", "Bearings", "Gasket set"],
+      "notes": "Engine teardown."
+    },
+    {
+      "slug": "pistons-all",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Ring compressor", "specialty": true },
+        { "name": "Cylinder hone", "specialty": true }
+      ],
+      "typicalParts": ["Piston/ring set", "Bearings", "Full gasket set"],
+      "notes": "Full rebuild territory."
+    },
+    {
+      "slug": "piston-rings",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Ring compressor", "specialty": true },
+        { "name": "Hone", "specialty": true }
+      ],
+      "typicalParts": ["Ring set", "Bearings", "Gasket set"],
+      "notes": "Engine teardown / machine work."
+    },
+    {
+      "slug": "flywheel",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Flywheel lock", "specialty": true },
+        { "name": "Transmission jack", "specialty": true }
+      ],
+      "typicalParts": ["Flywheel", "Bolts (often TTY)"],
+      "notes": "Manual: trans + clutch out."
+    },
+    {
+      "slug": "flexplate",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Flywheel/flexplate lock", "specialty": true },
+        { "name": "Transmission jack", "specialty": true }
+      ],
+      "typicalParts": ["Flexplate", "Bolts (often TTY)"],
+      "notes": "Auto: trans + torque converter out."
+    },
+    {
+      "slug": "short-block",
+      "difficulty": 5,
+      "tools": [{ "name": "Engine hoist & leveler", "specialty": true }],
+      "typicalParts": ["Short block", "Full gasket set", "Fluids"],
+      "notes": "Transfer heads/accessories."
+    },
+    {
+      "slug": "long-block",
+      "difficulty": 5,
+      "tools": [{ "name": "Engine hoist & leveler", "specialty": true }],
+      "typicalParts": ["Long block", "Gaskets", "Fluids"],
+      "notes": "Transfer intake/accessories."
+    },
+    {
+      "slug": "engine-rr",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Engine hoist & leveler", "specialty": true },
+        { "name": "Transmission jack", "specialty": true }
+      ],
+      "typicalParts": ["Gaskets/seals", "Mounts (as needed)", "Fluids"],
+      "notes": "R&R for access or swap."
+    },
+    {
+      "slug": "engine-rebuild",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Engine stand & hoist", "specialty": true },
+        { "name": "Machine shop", "specialty": true },
+        { "name": "Ring compressor / plastigage", "specialty": true }
+      ],
+      "typicalParts": ["Full rebuild kit (pistons/rings/bearings/gaskets/seals)", "Fluids"],
+      "notes": "Days of labor + machine work."
+    },
+    {
+      "slug": "spark-plug-replacement",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Spark plug socket", "specialty": true },
+        { "name": "Gap gauge", "specialty": true }
+      ],
+      "typicalParts": ["Spark plugs", "Anti-seize/dielectric grease"],
+      "likelySizes": ["Plug socket 5/8\" (16mm) or 13/16\" (21mm)"],
+      "notes": "Coil-on-plug: remove coils first."
+    },
+    {
+      "slug": "timing-belt",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Harmonic balancer puller", "specialty": true },
+        { "name": "Cam/TDC locking tools", "specialty": true }
+      ],
+      "typicalParts": ["Timing belt", "Tensioner", "Idlers", "Water pump (recommended)", "Seals"],
+      "notes": "Interference engines bend valves if mistimed."
+    },
+    {
+      "slug": "timing-belt-kit",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Balancer puller", "specialty": true },
+        { "name": "Cam locking tools", "specialty": true }
+      ],
+      "typicalParts": ["Belt", "Tensioner", "Idlers", "Water pump", "Seals"],
+      "notes": "Full kit incl. water pump."
+    },
+    {
+      "slug": "timing-belt-replacement",
+      "difficulty": 5,
+      "tools": [{ "name": "Cam locking tools", "specialty": true }],
+      "typicalParts": ["Timing belt kit"],
+      "notes": "Alias."
+    },
+    {
+      "slug": "timing-belt-tensioner",
+      "difficulty": 4,
+      "tools": [{ "name": "Cam locking tools", "specialty": true }],
+      "typicalParts": ["Timing belt tensioner", "Belt (with)"],
+      "notes": "Do with the belt."
+    },
+    {
+      "slug": "timing-chain",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Camshaft locking tools", "specialty": true },
+        { "name": "Torque-angle gauge", "specialty": true },
+        { "name": "Balancer puller", "specialty": true }
+      ],
+      "typicalParts": ["Timing chain kit", "Cover gaskets", "RTV", "TTY bolts"],
+      "notes": "Major; many single-use TTY fasteners."
+    },
+    {
+      "slug": "timing-chain-kit",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Cam locking tools", "specialty": true },
+        { "name": "Balancer puller", "specialty": true }
+      ],
+      "typicalParts": ["Chain, guides, tensioner, sprockets", "Gaskets", "RTV"],
+      "notes": ""
+    },
+    {
+      "slug": "timing-chain-guide",
+      "difficulty": 5,
+      "tools": [{ "name": "Cam locking tools", "specialty": true }],
+      "typicalParts": ["Chain guides", "Chain kit (recommended)", "Gaskets"],
+      "notes": "Requires timing cover off."
+    },
+    {
+      "slug": "timing-chain-tensioner",
+      "difficulty": 4,
+      "tools": [{ "name": "Cam locking tools", "specialty": true, "optional": true }],
+      "typicalParts": ["Chain tensioner", "Cover gasket"],
+      "notes": "Some accessible without full teardown."
+    }
+  ]
+}

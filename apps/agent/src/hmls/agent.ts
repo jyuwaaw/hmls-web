@@ -28,6 +28,9 @@ export interface RunAgentOptions {
   messages: ModelMessage[];
   config: AgentConfig;
   userContext?: UserContext;
+  /** Multi-tenancy: the shop the customer belongs to (stamped at first-contact
+   *  upsert). Threads into every tool so order/customer reads are shop-scoped. */
+  shopId?: string;
 }
 
 // Skill bodies inlined into the system prompt at boot. The customer agent
@@ -36,7 +39,7 @@ export interface RunAgentOptions {
 const SKILLS_PROMISE = loadSkills(["order", "scheduling"]);
 
 export async function runHmlsAgent(options: RunAgentOptions) {
-  const { messages, config, userContext } = options;
+  const { messages, config, userContext, shopId } = options;
   const modelId = config.agentModel || DEFAULT_MODEL;
 
   const google = createGoogleGenerativeAI({ apiKey: config.googleApiKey });
@@ -66,8 +69,10 @@ export async function runHmlsAgent(options: RunAgentOptions) {
     ...customerOrderTools,
   ];
 
-  const toolCtx = userContext ? { customerId: userContext.id } : undefined;
-  const tools = convertTools(allTools, toolCtx);
+  const toolCtx: import("../common/convert-tools.ts").ToolContext = {};
+  if (userContext) toolCtx.customerId = userContext.id;
+  if (shopId) toolCtx.shopId = shopId;
+  const tools = convertTools(allTools, Object.keys(toolCtx).length > 0 ? toolCtx : undefined);
   const toolCount = Object.keys(tools).length;
   logger.info("Initializing HMLS agent", { model: modelId, toolCount });
 

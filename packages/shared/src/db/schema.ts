@@ -34,17 +34,20 @@ export const shops = pgTable("shops", {
   name: varchar("name", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 100 }).unique().notNull(),
   timezone: varchar("timezone", { length: 100 }).default("America/Los_Angeles"),
-  laborRateCents: integer("labor_rate_cents").default(12000),
-  taxRatePercent: numeric("tax_rate_percent", { precision: 5, scale: 4 }).default("0.1000"),
+  laborRateCents: integer("labor_rate_cents").default(14000),
+  taxRatePercent: numeric("tax_rate_percent", { precision: 5, scale: 4 }).default("0.0000"),
+  latitude: numeric("latitude", { precision: 10, scale: 7 }),
+  longitude: numeric("longitude", { precision: 10, scale: 7 }),
+  serviceRadiusKm: integer("service_radius_km"),
   stripeAccountId: varchar("stripe_account_id", { length: 255 }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
-export const userRoleEnum = pgEnum("user_role", ["customer", "admin", "mechanic"]);
+export const userRoleEnum = pgEnum("user_role", ["customer", "admin", "mechanic", "owner"]);
 
 export const customers = pgTable("customers", {
   id: serial("id").primaryKey(),
-  shopId: uuid("shop_id").references(() => shops.id),
+  shopId: uuid("shop_id").references(() => shops.id).notNull(),
   name: varchar("name", { length: 255 }),
   phone: varchar("phone", { length: 20 }),
   email: varchar("email", { length: 255 }),
@@ -58,6 +61,7 @@ export const customers = pgTable("customers", {
 
 export const providers = pgTable("providers", {
   id: serial("id").primaryKey(),
+  shopId: uuid("shop_id").references(() => shops.id).notNull(),
   authUserId: varchar("auth_user_id", { length: 255 }).unique(),
   name: varchar("name", { length: 255 }).notNull(),
   email: varchar("email", { length: 255 }),
@@ -105,6 +109,24 @@ export const pricingConfig = pgTable("pricing_config", {
  */
 export type ItemTier = "required" | "recommended" | "maintenance" | "optional";
 
+/**
+ * Internal tech-prep metadata attached to a labor OrderItem, sourced from the
+ * `repair_jobs` catalog. For the shop's dispatch + the assigned mobile tech
+ * (what tools/parts to bring, how hard, whether HV certification is needed) —
+ * NOT shown to the customer.
+ */
+export interface RepairTechPrep {
+  /** 1 (trivial) – 5 (engine-out / specialist) */
+  difficulty: number;
+  tools: { name: string; specialty?: boolean; optional?: boolean }[];
+  typicalParts: string[];
+  /** EV high-voltage job: requires an HV-certified tech + insulated PPE */
+  hvSafety: boolean;
+  /** AI-estimated common fastener sizes — prep hint only, may be null */
+  likelySizes: string[] | null;
+  notes: string;
+}
+
 export interface OrderItem {
   id: string;
   category: "labor" | "parts" | "fee" | "discount";
@@ -121,6 +143,9 @@ export interface OrderItem {
   // priced into an order, but the id lets us aggregate "most-ordered jobs".
   olpLaborTimeId?: number;
   tier?: ItemTier;
+  // Internal-only repair-job enrichment for tech prep / dispatch (labor items).
+  // Never rendered to the customer — see EstimateCard / portal order views.
+  techPrep?: RepairTechPrep;
 }
 
 // --- jsonb shapes (declared once so Drizzle $inferSelect knows them) ---
@@ -167,7 +192,7 @@ export const paymentMethodEnum = pgEnum("payment_method", [
 
 export const orders = pgTable("orders", {
   id: serial("id").primaryKey(),
-  shopId: uuid("shop_id").references(() => shops.id),
+  shopId: uuid("shop_id").references(() => shops.id).notNull(),
   customerId: integer("customer_id").references(() => customers.id).notNull(),
   status: orderStatusEnum("status").notNull().default("draft"),
   statusHistory: jsonb("status_history").$type<OrderStatusHistoryEntry[]>().notNull().default(
@@ -226,6 +251,7 @@ export const orders = pgTable("orders", {
   customerIdx: index("orders_customer_id_idx").on(table.customerId),
   scheduledAtIdx: index("orders_scheduled_at_idx").on(table.scheduledAt),
   providerIdx: index("orders_provider_id_idx").on(table.providerId),
+  shopStatusIdx: index("orders_shop_status_idx").on(table.shopId, table.status),
 }));
 
 // --- Order Intake (customer-submitted intake; 1:1 child of orders) ---

@@ -20,20 +20,19 @@ import { PdfPreviewDialog } from "./PdfPreviewDialog";
  * Unified Estimate/Quote document card. Always visible — admin needs the
  * shareable PDF link regardless of order status, for audit.
  *
- * The PDF route (`/api/orders/:id/pdf`) accepts the call with or without
- * `?token=<shareToken>`:
- *   - With token: anyone (incl. customer with the share link) can fetch.
- *   - Without token: returns the PDF for the order id directly (admin/audit).
+ * Two distinct PDF paths:
+ *   - With shareToken: public token-based route `/api/orders/:id/pdf?token=...`
+ *     (also the link sent in customer emails — no auth required, token = capability)
+ *   - Without shareToken: admin-authenticated route `/api/admin/orders/:id/pdf`
+ *     (requires admin session + shop scope; no token needed; for draft/preview use)
  *
- * So we always render the Preview + Open buttons. If shareToken exists we
- * include it in the URL — that path is also what's printed on the customer's
- * estimate email, so admins clicking Open get the customer-facing rendering.
+ * Note: the public route now requires the token — id-only access was an IDOR.
  */
 export function OrderDocumentCard({ order }: { order: Order }) {
   const [showPdf, setShowPdf] = useState(false);
   const pdfUrl = order.shareToken
     ? `${AGENT_URL}/api/orders/${order.id}/pdf?token=${order.shareToken}`
-    : `${AGENT_URL}/api/orders/${order.id}/pdf`;
+    : `${AGENT_URL}/api/admin/orders/${order.id}/pdf`;
   const vehicle = order.vehicleInfo;
   const hasRange =
     order.priceRangeLowCents != null || order.priceRangeHighCents != null;

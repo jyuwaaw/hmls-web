@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { db, schema } from "../../db/client.ts";
+import { type AccessCtx, canWrite, orderAccessible, OWNER_ALL_SHOPS } from "../../db/tenant.ts";
 import { toolResult } from "@hmls/shared/tool-result";
 import type { ToolContext } from "../../common/convert-tools.ts";
 import {
@@ -59,6 +60,13 @@ const transitionOrderStatusTool = {
     if (!Number.isInteger(id) || id <= 0) {
       return toolResult({ success: false, error: "Invalid order ID" });
     }
+    // Ownership pre-flight (WRITE). Reject cross-tenant transitions and
+    // owner-no-shop writes; mirror the harness's "not found" shape so we
+    // don't leak existence.
+    const ctxAccess: AccessCtx = { shopId: ctx?.shopId, customerId: ctx?.customerId };
+    if (!canWrite(ctxAccess) || !(await orderAccessible(id, ctxAccess))) {
+      return toolResult({ success: false, error: `Order #${id} not found` });
+    }
     // Staff chat is the primary caller; if a customer ctx is somehow set we
     // respect it so customer-initiated transitions (approve / decline /
     // cancel) still work through this generic entry point.
@@ -94,6 +102,11 @@ const addOrderNoteTool = {
     const id = Number(params.orderId);
     if (!Number.isInteger(id) || id <= 0) {
       return toolResult({ success: false, error: "Invalid order ID" });
+    }
+    // Ownership pre-flight (WRITE) — same rule as transition_order_status.
+    const ctxAccess: AccessCtx = { shopId: ctx?.shopId, customerId: ctx?.customerId };
+    if (!canWrite(ctxAccess) || !(await orderAccessible(id, ctxAccess))) {
+      return toolResult({ success: false, error: `Order #${id} not found` });
     }
     const actor = customerAgentActor(ctx) ?? staffAgentActor(ctx);
     const result = await addNote(id, params.note, actor);
@@ -133,8 +146,19 @@ const getOrderStatusTool = {
       customerEmail?: string;
       customerPhone?: string;
     },
-    _ctx: unknown,
+    ctx: ToolContext | undefined,
   ) => {
+    const ctxAccess: AccessCtx = { shopId: ctx?.shopId, customerId: ctx?.customerId };
+    const isCustomer = ctxAccess.customerId != null;
+    const staffShopId = !isCustomer && ctxAccess.shopId && ctxAccess.shopId !== OWNER_ALL_SHOPS
+      ? ctxAccess.shopId
+      : null;
+
+    // No context at all → deny (don't leak any order).
+    if (!isCustomer && !ctxAccess.shopId) {
+      return toolResult({ success: false, error: "No order found" });
+    }
+
     if (!params.orderId && !params.customerEmail && !params.customerPhone) {
       return toolResult({
         success: false,
@@ -149,30 +173,55 @@ const getOrderStatusTool = {
       if (!Number.isInteger(id) || id <= 0) {
         return toolResult({ success: false, error: "Invalid order ID" });
       }
+      // Ownership pre-flight on the by-id path.
+      if (!(await orderAccessible(id, ctxAccess))) {
+        return toolResult({ success: false, error: "No order found" });
+      }
       const [row] = await db
         .select()
         .from(schema.orders)
         .where(eq(schema.orders.id, id))
         .limit(1);
       order = row;
+    } else if (isCustomer) {
+      // Customer agent: ignore the email/phone cross-lookup entirely — a
+      // customer only ever sees their OWN orders. Return their most-recent
+      // non-terminal order, falling back to any of their orders.
+      const ownedActive = and(
+        eq(schema.orders.customerId, ctxAccess.customerId!),
+        sql`${schema.orders.status} NOT IN ('cancelled', 'completed')`,
+      );
+      const [row] = await db
+        .select()
+        .from(schema.orders)
+        .where(ownedActive)
+        .orderBy(desc(schema.orders.createdAt))
+        .limit(1);
+      if (row) {
+        order = row;
+      } else {
+        const [anyRow] = await db
+          .select()
+          .from(schema.orders)
+          .where(eq(schema.orders.customerId, ctxAccess.customerId!))
+          .orderBy(desc(schema.orders.createdAt))
+          .limit(1);
+        order = anyRow;
+      }
     } else {
+      // Staff / owner: look the customer up by email or phone, scoped to the
+      // staff caller's shop (owner all-shops may span shops). Then their
+      // most-recent order, also shop-scoped for staff.
       const customer = await (async () => {
-        if (params.customerEmail) {
-          const [row] = await db
-            .select()
-            .from(schema.customers)
-            .where(eq(schema.customers.email, params.customerEmail))
-            .limit(1);
-          return row;
-        }
-        if (params.customerPhone) {
-          const [row] = await db
-            .select()
-            .from(schema.customers)
-            .where(eq(schema.customers.phone, params.customerPhone))
-            .limit(1);
-          return row;
-        }
+        const ident = params.customerEmail
+          ? eq(schema.customers.email, params.customerEmail)
+          : params.customerPhone
+          ? eq(schema.customers.phone, params.customerPhone)
+          : undefined;
+        if (!ident) return undefined;
+        const where = staffShopId ? and(ident, eq(schema.customers.shopId, staffShopId)) : ident;
+        const [row] = await db.select().from(schema.customers).where(where).limit(1);
+        return row;
       })();
 
       if (!customer) {
@@ -182,11 +231,16 @@ const getOrderStatusTool = {
         });
       }
 
+      const shopScope = staffShopId ? eq(schema.orders.shopId, staffShopId) : undefined;
       const [row] = await db
         .select()
         .from(schema.orders)
         .where(
-          sql`${schema.orders.customerId} = ${customer.id} AND ${schema.orders.status} NOT IN ('cancelled', 'completed')`,
+          and(
+            eq(schema.orders.customerId, customer.id),
+            sql`${schema.orders.status} NOT IN ('cancelled', 'completed')`,
+            shopScope,
+          ),
         )
         .orderBy(desc(schema.orders.createdAt))
         .limit(1);
@@ -195,7 +249,7 @@ const getOrderStatusTool = {
         const [anyRow] = await db
           .select()
           .from(schema.orders)
-          .where(eq(schema.orders.customerId, customer.id))
+          .where(and(eq(schema.orders.customerId, customer.id), shopScope))
           .orderBy(desc(schema.orders.createdAt))
           .limit(1);
         order = anyRow;

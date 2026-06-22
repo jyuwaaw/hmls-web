@@ -1,0 +1,397 @@
+{
+  "_baseToolsAssumed": [
+    "Floor jack",
+    "Jack stands",
+    "Lug/impact wrench",
+    "Socket & wrench set",
+    "Torque wrench",
+    "Brake cleaner",
+    "Screwdrivers/pliers"
+  ],
+  "_note": "tools[] lists notable/specialty tools beyond the base set; difficulty 1-5.",
+  "jobs": [
+    {
+      "slug": "brake-pads-front",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Caliper piston compressor / C-clamp", "specialty": true },
+        { "name": "Caliper hanger", "optional": true }
+      ],
+      "typicalParts": ["Front brake pads", "Caliper hardware/clip kit", "Brake grease"],
+      "notes": ""
+    },
+    {
+      "slug": "brake-pads-rear",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Caliper wind-back tool", "specialty": true },
+        { "name": "Scan tool (EPB service mode)", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Rear brake pads", "Caliper hardware/clip kit", "Brake grease"],
+      "notes": "Integrated/electronic parking brake needs wind-back tool or scan tool."
+    },
+    {
+      "slug": "brake-pad-replacement-front",
+      "difficulty": 2,
+      "tools": [{ "name": "Caliper piston compressor / C-clamp", "specialty": true }],
+      "typicalParts": ["Front brake pads", "Hardware kit", "Brake grease"],
+      "notes": "Alias of brake-pads-front."
+    },
+    {
+      "slug": "brake-pad-replacement-rear",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Caliper wind-back tool", "specialty": true },
+        { "name": "Scan tool (EPB)", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Rear brake pads", "Hardware kit", "Brake grease"],
+      "notes": "EPB models: retract via scan tool."
+    },
+    {
+      "slug": "brake-pads-rotors-front",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Caliper piston compressor", "specialty": true },
+        { "name": "Anti-seize", "optional": true }
+      ],
+      "typicalParts": ["Front pads", "Front rotors (pair)", "Hardware kit", "Brake grease"],
+      "notes": ""
+    },
+    {
+      "slug": "brake-pads-rotors-rear",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Caliper wind-back tool", "specialty": true },
+        { "name": "Scan tool (EPB)", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Rear pads", "Rear rotors (pair)", "Hardware kit"],
+      "notes": "EPB models need scan tool."
+    },
+    {
+      "slug": "brake-rotor-front-single",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Rotor retaining screw bit", "optional": true },
+        { "name": "Anti-seize" }
+      ],
+      "typicalParts": ["1 front rotor"],
+      "notes": ""
+    },
+    {
+      "slug": "brake-rotor-rear-single",
+      "difficulty": 2,
+      "tools": [{ "name": "Caliper wind-back tool", "specialty": true, "optional": true }],
+      "typicalParts": ["1 rear rotor"],
+      "notes": ""
+    },
+    {
+      "slug": "brake-rotor-replacement-front",
+      "difficulty": 2,
+      "tools": [{ "name": "Caliper piston compressor", "specialty": true }],
+      "typicalParts": ["Front rotors (pair)", "Pads (recommended with)"],
+      "notes": ""
+    },
+    {
+      "slug": "brake-rotor-replacement-rear",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Caliper wind-back tool", "specialty": true },
+        { "name": "Scan tool (EPB)", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Rear rotors (pair)", "Pads (recommended)"],
+      "notes": ""
+    },
+    {
+      "slug": "brake-rotors-front-pair",
+      "difficulty": 2,
+      "tools": [{ "name": "Caliper piston compressor", "specialty": true }],
+      "typicalParts": ["Front rotors (pair)"],
+      "notes": ""
+    },
+    {
+      "slug": "brake-rotors-rear-pair",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Caliper wind-back tool", "specialty": true },
+        { "name": "Scan tool (EPB)", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Rear rotors (pair)"],
+      "notes": ""
+    },
+    {
+      "slug": "brake-caliper-front",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Flare/line wrench", "specialty": true },
+        { "name": "Brake bleeder kit", "specialty": true },
+        { "name": "Drain pan" }
+      ],
+      "typicalParts": ["Front caliper", "Copper sealing washers", "Brake fluid"],
+      "notes": "Bleed after."
+    },
+    {
+      "slug": "brake-caliper-rear",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Flare/line wrench", "specialty": true },
+        { "name": "Brake bleeder kit", "specialty": true },
+        { "name": "Scan tool (EPB)", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Rear caliper", "Copper washers", "Brake fluid"],
+      "notes": "EPB caliper: deactivate via scan tool first."
+    },
+    {
+      "slug": "brake-caliper-bracket",
+      "difficulty": 2,
+      "tools": [{ "name": "Breaker bar" }],
+      "typicalParts": ["Caliper bracket", "Bracket bolts"],
+      "notes": "Bracket bolts are often very tight / one-time torque."
+    },
+    {
+      "slug": "caliper-rebuild-front",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Caliper seal/piston kit", "specialty": true },
+        { "name": "Compressed air", "specialty": true },
+        { "name": "Brake hone", "specialty": true },
+        { "name": "Bleeder kit", "specialty": true }
+      ],
+      "typicalParts": ["Caliper rebuild kit (seals, piston, boot)", "Brake fluid"],
+      "notes": "Cleanliness critical; bleed after."
+    },
+    {
+      "slug": "caliper-rebuild-rear",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Caliper seal kit", "specialty": true },
+        { "name": "Compressed air", "specialty": true },
+        { "name": "Brake hone", "specialty": true }
+      ],
+      "typicalParts": ["Rear caliper rebuild kit", "Brake fluid"],
+      "notes": "Harder due to integrated parking-brake mechanism."
+    },
+    {
+      "slug": "caliper-slide-pins",
+      "difficulty": 1,
+      "tools": [{ "name": "High-temp brake grease" }],
+      "typicalParts": ["Slide pin & boot kit", "Brake grease"],
+      "notes": ""
+    },
+    {
+      "slug": "brake-hose-front",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Flare/line wrench", "specialty": true },
+        { "name": "Brake bleeder kit", "specialty": true },
+        { "name": "Drain pan" }
+      ],
+      "typicalParts": ["Front brake hose", "Copper washers", "Brake fluid"],
+      "notes": "Bleed after."
+    },
+    {
+      "slug": "brake-hose-rear",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Flare/line wrench", "specialty": true },
+        { "name": "Brake bleeder kit", "specialty": true }
+      ],
+      "typicalParts": ["Rear brake hose", "Copper washers", "Brake fluid"],
+      "notes": "Bleed after."
+    },
+    {
+      "slug": "brake-line-single",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Flare/line wrenches", "specialty": true },
+        { "name": "Tubing cutter", "specialty": true },
+        { "name": "Double-flaring tool", "specialty": true },
+        { "name": "Tube bender", "specialty": true },
+        { "name": "Bleeder kit", "specialty": true }
+      ],
+      "typicalParts": ["Brake line tubing", "Fittings/unions", "Brake fluid"],
+      "notes": "Fabricate & flare to length; bleed."
+    },
+    {
+      "slug": "brake-lines-complete",
+      "difficulty": 5,
+      "tools": [
+        { "name": "Flare/line wrenches", "specialty": true },
+        { "name": "Double-flaring tool", "specialty": true },
+        { "name": "Tube bender", "specialty": true },
+        { "name": "Vehicle lift", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Full brake line set", "Fittings", "Brake fluid (large qty)"],
+      "notes": "Major job; full-system bleed afterward."
+    },
+    {
+      "slug": "brake-master-cylinder",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Flare/line wrenches", "specialty": true },
+        { "name": "Bench-bleed kit", "specialty": true },
+        { "name": "Drain pan" }
+      ],
+      "typicalParts": ["Master cylinder", "Reservoir grommets", "Brake fluid"],
+      "notes": "Bench-bleed before install; then system bleed."
+    },
+    {
+      "slug": "brake-booster",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Flare/line wrench", "specialty": true },
+        { "name": "Vacuum gauge", "optional": true }
+      ],
+      "typicalParts": ["Brake booster", "Booster gasket/seal", "Check valve"],
+      "notes": "Under-dash pushrod disconnect; bleed after."
+    },
+    {
+      "slug": "brake-booster-check-valve",
+      "difficulty": 1,
+      "tools": [{ "name": "Hose pick", "optional": true }],
+      "typicalParts": ["Check valve", "Grommet"],
+      "notes": ""
+    },
+    {
+      "slug": "brake-proportioning-valve",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Flare/line wrenches", "specialty": true },
+        { "name": "Bleeder kit", "specialty": true }
+      ],
+      "typicalParts": ["Proportioning/combination valve", "Brake fluid"],
+      "notes": "Bleed after."
+    },
+    {
+      "slug": "brake-bleed-all",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Pressure/vacuum bleeder", "specialty": true },
+        { "name": "Scan tool (ABS bleed)", "specialty": true, "optional": true }
+      ],
+      "typicalParts": ["Brake fluid"],
+      "notes": "ABS-equipped may require scan-tool automated bleed."
+    },
+    {
+      "slug": "brake-fluid-flush",
+      "difficulty": 1,
+      "tools": [{ "name": "Pressure/vacuum bleeder", "specialty": true }],
+      "typicalParts": ["Brake fluid (correct DOT spec)"],
+      "notes": ""
+    },
+    {
+      "slug": "brake-light-switch",
+      "difficulty": 1,
+      "tools": [{ "name": "Trim tool", "optional": true }],
+      "typicalParts": ["Brake light switch"],
+      "notes": "At the brake pedal under dash."
+    },
+    {
+      "slug": "brake-drum-rear",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Drum puller", "specialty": true, "optional": true },
+        { "name": "Dead-blow hammer" }
+      ],
+      "typicalParts": ["Brake drum"],
+      "notes": "Back off adjuster if drum is seized on shoes."
+    },
+    {
+      "slug": "drum-brake-shoes-rear",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Drum brake spring tool set", "specialty": true },
+        { "name": "Brake adjusting tool", "specialty": true }
+      ],
+      "typicalParts": ["Brake shoes", "Drum hardware/spring kit"],
+      "notes": "Photograph layout first; adjust after."
+    },
+    {
+      "slug": "drum-brake-hardware",
+      "difficulty": 3,
+      "tools": [{ "name": "Drum brake spring tool set", "specialty": true }],
+      "typicalParts": ["Drum hardware/spring kit"],
+      "notes": "Fiddly return springs."
+    },
+    {
+      "slug": "wheel-cylinder",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Drum brake spring tools", "specialty": true },
+        { "name": "Flare/line wrench", "specialty": true },
+        { "name": "Bleeder kit", "specialty": true }
+      ],
+      "typicalParts": ["Wheel cylinder", "Brake fluid"],
+      "notes": "Bleed after."
+    },
+    {
+      "slug": "electronic-parking-brake",
+      "difficulty": 3,
+      "tools": [{ "name": "Scan tool (EPB service mode)", "specialty": true }],
+      "typicalParts": ["EPB actuator/motor"],
+      "notes": "Must enter service mode via scan tool; calibrate after."
+    },
+    {
+      "slug": "parking-brake-actuator",
+      "difficulty": 3,
+      "tools": [{ "name": "Scan tool", "specialty": true }],
+      "typicalParts": ["Parking brake actuator motor"],
+      "notes": "Calibrate after install."
+    },
+    {
+      "slug": "parking-brake-cable",
+      "difficulty": 2,
+      "tools": [{ "name": "Penetrating oil" }],
+      "typicalParts": ["Parking brake cable"],
+      "notes": "Adjust tension after."
+    },
+    {
+      "slug": "parking-brake-shoes",
+      "difficulty": 3,
+      "tools": [{ "name": "Drum/spring tools", "specialty": true }],
+      "typicalParts": ["Parking brake shoe kit"],
+      "notes": "Drum-in-hat style on many rear-disc vehicles."
+    },
+    {
+      "slug": "abs-module",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Scan tool (coding/bleed)", "specialty": true },
+        { "name": "Multimeter", "optional": true }
+      ],
+      "typicalParts": ["ABS control module"],
+      "notes": "Usually needs programming/coding + ABS bleed."
+    },
+    {
+      "slug": "abs-pump",
+      "difficulty": 4,
+      "tools": [
+        { "name": "Flare/line wrenches", "specialty": true },
+        { "name": "Scan tool (ABS bleed)", "specialty": true },
+        { "name": "Bleeder kit", "specialty": true }
+      ],
+      "typicalParts": ["ABS pump/HCU", "Brake fluid"],
+      "notes": "Requires scan-tool automated bleed."
+    },
+    {
+      "slug": "abs-sensor-front",
+      "difficulty": 2,
+      "tools": [{ "name": "Pick/trim tool" }, { "name": "Penetrating oil" }],
+      "typicalParts": ["Front ABS wheel-speed sensor"],
+      "notes": "Often seized in knuckle—may break on removal."
+    },
+    {
+      "slug": "abs-sensor-rear",
+      "difficulty": 2,
+      "tools": [{ "name": "Pick/trim tool" }, { "name": "Penetrating oil" }],
+      "typicalParts": ["Rear ABS wheel-speed sensor"],
+      "notes": "Often seized—may break on removal."
+    },
+    {
+      "slug": "abs-tone-ring",
+      "difficulty": 3,
+      "tools": [{ "name": "Press / puller", "specialty": true, "optional": true }],
+      "typicalParts": ["ABS tone/reluctor ring"],
+      "notes": "Frequently integral to hub or axle (may require hub/axle service)."
+    }
+  ]
+}

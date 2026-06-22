@@ -57,11 +57,29 @@ export const requireAuth = createMiddleware<AuthEnv>(async (c, next) => {
     );
   }
 
-  const [customer] = await db
+  let [customer] = await db
     .select({ id: schema.customers.id })
     .from(schema.customers)
-    .where(eq(schema.customers.email, user.email))
+    .where(eq(schema.customers.authUserId, user.id))
     .limit(1);
+  if (!customer && user.email) {
+    // Email fallback: only bind when EXACTLY ONE row matches — avoids cross-shop
+    // mis-binding when multiple shops have a customer with the same address.
+    const emailMatches = await db
+      .select({ id: schema.customers.id })
+      .from(schema.customers)
+      .where(eq(schema.customers.email, user.email))
+      .limit(2);
+    if (emailMatches.length === 1) {
+      customer = emailMatches[0];
+      // Self-heal: stamp auth_user_id so the fallback is not needed next time.
+      await db
+        .update(schema.customers)
+        .set({ authUserId: user.id })
+        .where(eq(schema.customers.id, customer.id));
+    }
+    // 0 or ≥2 matches → treat as not-found (falls through to 403 below).
+  }
 
   if (!customer) {
     return c.json(

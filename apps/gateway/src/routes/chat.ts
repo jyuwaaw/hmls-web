@@ -3,6 +3,7 @@ import { convertToModelMessages } from "ai";
 import { eq } from "drizzle-orm";
 import { type AgentConfig, runHmlsAgent, type UserContext } from "@hmls/agent";
 import { db, schema } from "@hmls/agent/db";
+import { routeOrderToShop } from "@hmls/agent/common/shop-routing";
 import { Errors } from "@hmls/shared/errors";
 import { getLogger } from "@logtape/logtape";
 import { type AuthUserEnv, requireAuthUser } from "../middleware/auth.ts";
@@ -15,43 +16,79 @@ export function initChat(config: AgentConfig) {
   _config = config;
 }
 
-/** Look up customer by email, or create one if not found. */
+/** Look up customer by authUserId (preferred) or unique email, or create one if not found.
+ *  Returns the customer context AND their shopId (resolved from the DB row,
+ *  or stamped at creation using the primary shop).
+ *
+ *  Email fallback is guarded: we only bind when EXACTLY ONE customer row matches
+ *  the email to prevent cross-shop mis-binding when two shops share an email. */
 async function resolveCustomer(
-  userInfo: { email: string; name?: string; phone?: string },
-): Promise<UserContext | undefined> {
+  userInfo: { email: string; authUserId: string; name?: string; phone?: string },
+): Promise<{ ctx: UserContext; shopId: string } | undefined> {
   if (!userInfo.email) return undefined;
 
-  // Try to find existing customer by email
-  const [existing] = await db
+  // 1. Preferred: match by auth_user_id (fast, unambiguous).
+  let existing = await db
     .select()
     .from(schema.customers)
-    .where(eq(schema.customers.email, userInfo.email))
-    .limit(1);
+    .where(eq(schema.customers.authUserId, userInfo.authUserId))
+    .limit(1)
+    .then((rows) => rows[0] ?? null);
+
+  // 2. Email fallback: only bind when EXACTLY ONE row matches — avoids cross-shop
+  //    mis-binding when multiple shops have a customer with the same email.
+  if (!existing) {
+    const emailMatches = await db
+      .select()
+      .from(schema.customers)
+      .where(eq(schema.customers.email, userInfo.email))
+      .limit(2);
+    if (emailMatches.length === 1) {
+      existing = emailMatches[0];
+      // Self-heal: stamp auth_user_id so the fallback is not needed next time.
+      await db
+        .update(schema.customers)
+        .set({ authUserId: userInfo.authUserId })
+        .where(eq(schema.customers.id, existing.id));
+    }
+    // 0 or ≥2 matches → existing stays null → create a new customer below.
+  }
 
   if (existing) {
+    // Use the customer's assigned shopId (shopId is NOT NULL per migration 0029).
     return {
-      id: existing.id,
-      name: existing.name ?? userInfo.name ?? "",
-      email: existing.email ?? userInfo.email,
-      phone: existing.phone ?? userInfo.phone ?? "",
+      ctx: {
+        id: existing.id,
+        name: existing.name ?? userInfo.name ?? "",
+        email: existing.email ?? userInfo.email,
+        phone: existing.phone ?? userInfo.phone ?? "",
+      },
+      shopId: existing.shopId,
     };
   }
 
-  // Create new customer
+  // 3. No match — create a new customer stamped with the primary shop.
+  const { shopId } = await routeOrderToShop(null);
+
   const [created] = await db
     .insert(schema.customers)
     .values({
       name: userInfo.name || null,
       email: userInfo.email,
       phone: userInfo.phone || null,
+      shopId,
+      authUserId: userInfo.authUserId,
     })
     .returning();
 
   return {
-    id: created.id,
-    name: created.name ?? "",
-    email: created.email ?? userInfo.email,
-    phone: created.phone ?? "",
+    ctx: {
+      id: created.id,
+      name: created.name ?? "",
+      email: created.email ?? userInfo.email,
+      phone: created.phone ?? "",
+    },
+    shopId: created.shopId,
   };
 }
 
@@ -97,12 +134,14 @@ chat.post("/", requireAuthUser, async (c) => {
   }
 
   // Resolve authenticated user -> customer record (upsert on first contact).
-  const userContext = await resolveCustomer({ email: authUser.email });
+  const resolved = await resolveCustomer({ email: authUser.email, authUserId: authUser.id });
+  const userContext = resolved?.ctx;
+  const shopId = resolved?.shopId;
 
   const startTime = Date.now();
   const userId = userContext?.id ?? authUser.email;
   const messageCount = messages.length;
-  logger.info("Request received", { userId, messageCount });
+  logger.info("Request received", { userId, shopId, messageCount });
 
   try {
     const modelMessages = await convertToModelMessages(messages);
@@ -111,6 +150,7 @@ chat.post("/", requireAuthUser, async (c) => {
       messages: modelMessages,
       config: _config,
       userContext,
+      shopId,
     });
 
     const response = result.toUIMessageStreamResponse();

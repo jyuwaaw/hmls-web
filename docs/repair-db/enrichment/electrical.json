@@ -1,0 +1,590 @@
+{
+  "_baseToolsAssumed": [
+    "Socket & wrench set",
+    "Screwdrivers/pliers",
+    "Trim/panel tools",
+    "Multimeter"
+  ],
+  "_note": "tools[] = notable/specialty only. Airbag/SRS work requires disconnecting battery + wait time.",
+  "jobs": [
+    {
+      "slug": "battery",
+      "difficulty": 1,
+      "tools": [
+        { "name": "Battery terminal cleaner", "optional": true },
+        { "name": "Memory saver", "optional": true }
+      ],
+      "typicalParts": ["Battery", "Terminal protectant"],
+      "notes": "Idle/window relearn on some."
+    },
+    {
+      "slug": "battery-replacement",
+      "difficulty": 1,
+      "tools": [{ "name": "Memory saver", "optional": true }],
+      "typicalParts": ["Battery"],
+      "notes": "Alias of battery; some need battery registration (BMS)."
+    },
+    {
+      "slug": "battery-terminal",
+      "difficulty": 1,
+      "tools": [{ "name": "Terminal cleaner/brush" }],
+      "typicalParts": ["Battery terminal/clamp"],
+      "notes": ""
+    },
+    {
+      "slug": "battery-cable-negative",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Negative battery cable"],
+      "notes": "Trace to chassis ground."
+    },
+    {
+      "slug": "battery-cable-positive",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Positive battery cable"],
+      "notes": "Trace to starter/distribution; disconnect battery first."
+    },
+    {
+      "slug": "battery-cables-both",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Positive & negative cables"],
+      "notes": ""
+    },
+    {
+      "slug": "alternator",
+      "difficulty": 3,
+      "tools": [{ "name": "Serpentine belt tool", "specialty": true }],
+      "typicalParts": ["Alternator", "Serpentine belt (often with)"],
+      "notes": ""
+    },
+    {
+      "slug": "alternator-replacement",
+      "difficulty": 3,
+      "tools": [{ "name": "Serpentine belt tool", "specialty": true }],
+      "typicalParts": ["Alternator"],
+      "notes": "Alias."
+    },
+    {
+      "slug": "alternator-belt",
+      "difficulty": 1,
+      "tools": [{ "name": "Serpentine/belt tool", "specialty": true }],
+      "typicalParts": ["Drive belt"],
+      "notes": ""
+    },
+    {
+      "slug": "voltage-regulator",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Voltage regulator (or alternator if integral)"],
+      "notes": "Most modern = integral to alternator/PCM."
+    },
+    {
+      "slug": "starter",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["Starter motor"],
+      "notes": "Often from below; disconnect battery."
+    },
+    {
+      "slug": "starter-motor-replacement",
+      "difficulty": 3,
+      "tools": [],
+      "typicalParts": ["Starter motor"],
+      "notes": "Alias."
+    },
+    {
+      "slug": "starter-solenoid",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Starter solenoid/contacts"],
+      "notes": "Often serviced with starter."
+    },
+    {
+      "slug": "main-relay",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Main/EFI relay"],
+      "notes": ""
+    },
+    {
+      "slug": "relay-generic",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Relay"],
+      "notes": "In fuse/relay box."
+    },
+    {
+      "slug": "horn-relay",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Horn relay"],
+      "notes": ""
+    },
+    {
+      "slug": "fuel-pump-relay",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Fuel pump relay"],
+      "notes": ""
+    },
+    {
+      "slug": "fuse-box-interior",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Interior fuse box / BCM"],
+      "notes": "May need programming if BCM-integrated."
+    },
+    {
+      "slug": "fuse-box-engine",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Underhood fuse/relay box"],
+      "notes": "Transfer fuses/relays."
+    },
+    {
+      "slug": "horn",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Horn"],
+      "notes": "Behind bumper/grille usually."
+    },
+    {
+      "slug": "headlight-bulb",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Headlight bulb"],
+      "notes": "Don't touch halogen glass."
+    },
+    {
+      "slug": "headlight-bulb-replacement",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Headlight bulb"],
+      "notes": "Alias."
+    },
+    {
+      "slug": "headlight-bulbs-pair",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Headlight bulbs (pair)"],
+      "notes": ""
+    },
+    {
+      "slug": "fog-light-bulb",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Fog light bulb"],
+      "notes": "Often access via fender liner."
+    },
+    {
+      "slug": "tail-light-bulb",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Tail light bulb"],
+      "notes": ""
+    },
+    {
+      "slug": "tail-light-bulb-replacement",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Tail light bulb"],
+      "notes": "Alias."
+    },
+    {
+      "slug": "turn-signal-bulb-front",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Front turn signal bulb"],
+      "notes": ""
+    },
+    {
+      "slug": "turn-signal-bulb-rear",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Rear turn signal bulb"],
+      "notes": ""
+    },
+    {
+      "slug": "third-brake-light",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Third brake light/CHMSL"],
+      "notes": ""
+    },
+    {
+      "slug": "hid-ballast",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["HID ballast"],
+      "notes": "High voltage — power off."
+    },
+    {
+      "slug": "led-headlight-module",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["LED driver module"],
+      "notes": ""
+    },
+    {
+      "slug": "headlight-assembly",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Headlight assembly"],
+      "notes": "Often bumper/grille loosened for access; aim after."
+    },
+    {
+      "slug": "headlight-assembly-pair",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Headlight assemblies (pair)"],
+      "notes": "Aim after."
+    },
+    {
+      "slug": "fog-light-assembly",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Fog light assembly"],
+      "notes": "Via fender liner/bumper."
+    },
+    {
+      "slug": "tail-light-assembly",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Tail light assembly", "Gasket"],
+      "notes": ""
+    },
+    {
+      "slug": "headlight-switch",
+      "difficulty": 1,
+      "tools": [{ "name": "Trim tools", "optional": true }],
+      "typicalParts": ["Headlight switch"],
+      "notes": ""
+    },
+    {
+      "slug": "dimmer-switch",
+      "difficulty": 1,
+      "tools": [{ "name": "Trim tools", "optional": true }],
+      "typicalParts": ["Dimmer/headlight dimmer switch"],
+      "notes": ""
+    },
+    {
+      "slug": "combination-switch",
+      "difficulty": 2,
+      "tools": [{ "name": "Steering wheel puller", "specialty": true, "optional": true }],
+      "typicalParts": ["Multifunction/combination switch"],
+      "notes": "Behind steering wheel; disable airbag."
+    },
+    {
+      "slug": "turn-signal-switch",
+      "difficulty": 2,
+      "tools": [{ "name": "Steering wheel puller", "specialty": true, "optional": true }],
+      "typicalParts": ["Turn signal switch"],
+      "notes": "Disable SRS; clockspring care."
+    },
+    {
+      "slug": "clock-spring",
+      "difficulty": 3,
+      "tools": [{ "name": "Steering wheel puller", "specialty": true }],
+      "typicalParts": ["Clock spring / SRS coil"],
+      "notes": "Disconnect battery + wait; center before install; SRS."
+    },
+    {
+      "slug": "airbag-driver",
+      "difficulty": 3,
+      "tools": [{ "name": "Torx/airbag release tool", "specialty": true }],
+      "typicalParts": ["Driver airbag module"],
+      "notes": "Disconnect battery, wait per spec; handle away from body; clear codes."
+    },
+    {
+      "slug": "airbag-passenger",
+      "difficulty": 3,
+      "tools": [{ "name": "Trim tools" }],
+      "typicalParts": ["Passenger airbag module"],
+      "notes": "Dash work; SRS safety procedure."
+    },
+    {
+      "slug": "airbag-side",
+      "difficulty": 3,
+      "tools": [{ "name": "Trim tools" }],
+      "typicalParts": ["Side/curtain airbag"],
+      "notes": "Seat/pillar trim; SRS procedure."
+    },
+    {
+      "slug": "airbag-module",
+      "difficulty": 3,
+      "tools": [{ "name": "Scan tool (SRS)", "specialty": true }],
+      "typicalParts": ["SRS control module"],
+      "notes": "Often needs programming; crash-data lockout on deployed modules."
+    },
+    {
+      "slug": "instrument-cluster",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Trim tools" },
+        { "name": "Scan tool (programming/odometer)", "specialty": true }
+      ],
+      "typicalParts": ["Instrument cluster"],
+      "notes": "Mileage/programming transfer usually required."
+    },
+    {
+      "slug": "speedometer",
+      "difficulty": 3,
+      "tools": [{ "name": "Scan tool", "specialty": true, "optional": true }],
+      "typicalParts": ["Speedometer/cluster"],
+      "notes": "Usually a cluster-level repair."
+    },
+    {
+      "slug": "speedometer-cable",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Speedometer cable"],
+      "notes": "Older mechanical clusters."
+    },
+    {
+      "slug": "blower-motor",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools", "optional": true }],
+      "typicalParts": ["Blower motor"],
+      "notes": "Usually under passenger dash."
+    },
+    {
+      "slug": "blower-motor-resistor",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Blower motor resistor"],
+      "notes": "Common 'only high speed works' fix."
+    },
+    {
+      "slug": "blower-motor-module",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Blower control module"],
+      "notes": "Auto-climate variable-speed module."
+    },
+    {
+      "slug": "window-motor-front",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim/panel tools", "specialty": true }],
+      "typicalParts": ["Front window motor"],
+      "notes": "Door panel + vapor barrier off."
+    },
+    {
+      "slug": "window-motor-rear",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim/panel tools", "specialty": true }],
+      "typicalParts": ["Rear window motor"],
+      "notes": ""
+    },
+    {
+      "slug": "window-regulator-front",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools", "specialty": true }],
+      "typicalParts": ["Front window regulator"],
+      "notes": ""
+    },
+    {
+      "slug": "window-regulator-rear",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools", "specialty": true }],
+      "typicalParts": ["Rear window regulator"],
+      "notes": ""
+    },
+    {
+      "slug": "window-motor-regulator-front",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools", "specialty": true }],
+      "typicalParts": ["Front regulator w/ motor"],
+      "notes": ""
+    },
+    {
+      "slug": "window-motor-regulator-rear",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools", "specialty": true }],
+      "typicalParts": ["Rear regulator w/ motor"],
+      "notes": ""
+    },
+    {
+      "slug": "door-lock-actuator-front",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools", "specialty": true }],
+      "typicalParts": ["Front door lock actuator"],
+      "notes": "Often integral to latch."
+    },
+    {
+      "slug": "door-lock-actuator-rear",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools", "specialty": true }],
+      "typicalParts": ["Rear door lock actuator"],
+      "notes": ""
+    },
+    {
+      "slug": "wiper-motor-front",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Front wiper motor"],
+      "notes": "Cowl panel off; mark park position."
+    },
+    {
+      "slug": "wiper-motor-rear",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools", "optional": true }],
+      "typicalParts": ["Rear wiper motor"],
+      "notes": "Liftgate trim off."
+    },
+    {
+      "slug": "wiper-linkage",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Wiper linkage/transmission"],
+      "notes": "Under cowl."
+    },
+    {
+      "slug": "wiper-transmission",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Wiper transmission/linkage"],
+      "notes": ""
+    },
+    {
+      "slug": "wiper-switch",
+      "difficulty": 1,
+      "tools": [{ "name": "Trim tools", "optional": true }],
+      "typicalParts": ["Wiper switch (column stalk)"],
+      "notes": ""
+    },
+    {
+      "slug": "washer-pump",
+      "difficulty": 1,
+      "tools": [],
+      "typicalParts": ["Washer pump", "Grommet"],
+      "notes": "At washer reservoir."
+    },
+    {
+      "slug": "washer-reservoir",
+      "difficulty": 2,
+      "tools": [{ "name": "Fender liner tools", "optional": true }],
+      "typicalParts": ["Washer reservoir", "Pump/grommet"],
+      "notes": "Often behind fender liner."
+    },
+    {
+      "slug": "power-seat-motor",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools" }],
+      "typicalParts": ["Power seat motor"],
+      "notes": "Seat out; SRS if occupancy sensor."
+    },
+    {
+      "slug": "heated-seat-module",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools" }],
+      "typicalParts": ["Heated seat module"],
+      "notes": ""
+    },
+    {
+      "slug": "seat-heater-element",
+      "difficulty": 3,
+      "tools": [
+        { "name": "Hog-ring pliers", "specialty": true },
+        { "name": "Upholstery tools", "specialty": true }
+      ],
+      "typicalParts": ["Seat heater element", "Hog rings"],
+      "notes": "Seat cover off."
+    },
+    {
+      "slug": "sunroof-motor",
+      "difficulty": 2,
+      "tools": [{ "name": "Headliner trim tools", "specialty": true }],
+      "typicalParts": ["Sunroof motor"],
+      "notes": "Initialize/relearn after."
+    },
+    {
+      "slug": "sunroof-switch",
+      "difficulty": 1,
+      "tools": [{ "name": "Trim tools", "optional": true }],
+      "typicalParts": ["Sunroof switch"],
+      "notes": ""
+    },
+    {
+      "slug": "mirror-motor",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools", "specialty": true }],
+      "typicalParts": ["Mirror motor/actuator"],
+      "notes": ""
+    },
+    {
+      "slug": "mirror-assembly",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools", "specialty": true }],
+      "typicalParts": ["Mirror assembly"],
+      "notes": ""
+    },
+    {
+      "slug": "trunk-actuator",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools" }],
+      "typicalParts": ["Trunk/liftgate latch actuator"],
+      "notes": ""
+    },
+    {
+      "slug": "backup-camera",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools" }],
+      "typicalParts": ["Backup camera"],
+      "notes": "Calibrate on some systems."
+    },
+    {
+      "slug": "radio",
+      "difficulty": 2,
+      "tools": [
+        { "name": "Radio removal keys", "specialty": true, "optional": true },
+        { "name": "Trim tools" }
+      ],
+      "typicalParts": ["Radio/head unit"],
+      "notes": "May need anti-theft code/programming."
+    },
+    {
+      "slug": "amplifier",
+      "difficulty": 2,
+      "tools": [{ "name": "Trim tools" }],
+      "typicalParts": ["Audio amplifier"],
+      "notes": "Often under seat/trunk trim."
+    },
+    {
+      "slug": "subwoofer",
+      "difficulty": 1,
+      "tools": [{ "name": "Trim tools", "optional": true }],
+      "typicalParts": ["Subwoofer"],
+      "notes": ""
+    },
+    {
+      "slug": "speaker-door",
+      "difficulty": 1,
+      "tools": [{ "name": "Trim tools" }],
+      "typicalParts": ["Door speaker"],
+      "notes": "Door panel off."
+    },
+    {
+      "slug": "speaker-dash",
+      "difficulty": 1,
+      "tools": [{ "name": "Trim tools" }],
+      "typicalParts": ["Dash speaker"],
+      "notes": ""
+    },
+    {
+      "slug": "antenna",
+      "difficulty": 1,
+      "tools": [{ "name": "Antenna nut tool", "optional": true }],
+      "typicalParts": ["Antenna mast/base"],
+      "notes": ""
+    },
+    {
+      "slug": "power-antenna-motor",
+      "difficulty": 2,
+      "tools": [],
+      "typicalParts": ["Power antenna motor/mast"],
+      "notes": "Older powered masts."
+    }
+  ]
+}

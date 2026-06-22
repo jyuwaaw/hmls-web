@@ -1,8 +1,9 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import { db, schema } from "@hmls/agent/db";
+import { db, schema, whereShop } from "@hmls/agent/db";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { type AdminEnv, requireAdmin } from "../middleware/admin.ts";
+import { OWNER_ALL_SHOPS, requireShopContext, type WithShop } from "../middleware/shop-context.ts";
 import { EstimatePdf } from "@hmls/agent";
 import type { OrderItem } from "@hmls/agent/db";
 import {
@@ -38,6 +39,16 @@ function adminActor(email: string | null | undefined): Actor {
   return { kind: "admin", email: email ?? "admin" };
 }
 
+/** Returns true when the order exists and belongs to the given shop. */
+async function orderInShop(id: number, shopId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ id: schema.orders.id })
+    .from(schema.orders)
+    .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
+    .limit(1);
+  return !!row;
+}
+
 /** Legacy orders predate the shareToken column. Lazily backfill one before
  *  a lifecycle write so the subsequent notification / PDF link has a valid
  *  token. Separate UPDATE (not inside the harness transaction) keeps the
@@ -56,9 +67,10 @@ async function backfillShareTokenIfMissing(orderId: number): Promise<void> {
   }
 }
 
-const orders = new Hono<AdminEnv>();
+const orders = new Hono<WithShop<AdminEnv>>();
 
 orders.use("*", requireAdmin);
+orders.use("*", requireShopContext);
 
 // GET /orders — list all orders (with pagination)
 orders.get("/", zValidator("query", listOrdersQuery), async (c) => {
@@ -72,13 +84,19 @@ orders.get("/", zValidator("query", listOrdersQuery), async (c) => {
   const limit = Math.min(200, Math.max(1, rawLimit ?? 50));
   const offset = (page - 1) * limit;
 
+  const shopId = c.get("shopId");
+
   let query = db
     .select()
     .from(schema.orders)
     .orderBy(desc(schema.orders.createdAt))
     .$dynamic();
 
-  const conditions = [];
+  // whereShop returns undefined for the owner all-shops sentinel, so an owner
+  // with no shop selected sees every shop's orders; a concrete shop scopes.
+  const conditions: (ReturnType<typeof eq> | undefined)[] = [
+    whereShop(schema.orders.shopId, shopId),
+  ];
   if (status) {
     conditions.push(eq(schema.orders.status, status));
   }
@@ -119,13 +137,17 @@ orders.get("/", zValidator("query", listOrdersQuery), async (c) => {
 // POST /orders — create a new draft order
 orders.post("/", zValidator("json", createOrderInput), async (c) => {
   const body = c.req.valid("json");
+  const shopId = c.get("shopId");
+  if (shopId === OWNER_ALL_SHOPS) {
+    return c.json({ error: { code: "NO_SHOP", message: "Select a shop before writing" } }, 400);
+  }
 
   const customerId = body.customer_id;
 
   const [customer] = await db
     .select()
     .from(schema.customers)
-    .where(eq(schema.customers.id, customerId))
+    .where(and(eq(schema.customers.id, customerId), eq(schema.customers.shopId, shopId)))
     .limit(1);
 
   if (!customer) {
@@ -165,6 +187,7 @@ orders.post("/", zValidator("json", createOrderInput), async (c) => {
     .insert(schema.orders)
     .values({
       customerId,
+      shopId,
       status: "draft",
       statusHistory: [{ status: "draft", timestamp: new Date().toISOString(), actor }],
       items: orderItems,
@@ -203,10 +226,12 @@ orders.get("/:id", async (c) => {
     return c.json<ApiError>({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
   }
 
+  const shopId = c.get("shopId");
+
   const [order] = await db
     .select()
     .from(schema.orders)
-    .where(eq(schema.orders.id, id))
+    .where(and(eq(schema.orders.id, id), whereShop(schema.orders.shopId, shopId)))
     .limit(1);
 
   if (!order) {
@@ -222,8 +247,17 @@ orders.get("/:id", async (c) => {
 
   const [customer, events, intake] = await Promise.all([
     order.customerId
-      ? db.select().from(schema.customers).where(eq(schema.customers.id, order.customerId)).limit(1)
-        .then((r) => r[0])
+      ? db.select().from(schema.customers).where(
+        // Scope by the order's shop unless the caller is the cross-shop owner
+        // (OWNER_ALL_SHOPS). This prevents a foreign-shop customer profile from
+        // leaking when an order is routed to a different shop than the customer's
+        // home shop. The order's contact snapshot (contactName/Email/Phone/Address)
+        // is always present and serves as the fallback when null is returned here.
+        shopId === OWNER_ALL_SHOPS ? eq(schema.customers.id, order.customerId) : and(
+          eq(schema.customers.id, order.customerId),
+          eq(schema.customers.shopId, order.shopId),
+        ),
+      ).limit(1).then((r) => r[0])
       : null,
     db.select().from(schema.orderEvents).where(eq(schema.orderEvents.orderId, id))
       .orderBy(desc(schema.orderEvents.createdAt)),
@@ -243,6 +277,7 @@ orders.patch("/:id", zValidator("json", updateOrderInput), async (c) => {
   }
 
   const body = c.req.valid("json");
+  const shopId = c.get("shopId");
 
   const authUser = c.get("authUser");
   const actor = adminActor(authUser.email);
@@ -258,7 +293,7 @@ orders.patch("/:id", zValidator("json", updateOrderInput), async (c) => {
     const [current] = await db
       .select({ items: schema.orders.items })
       .from(schema.orders)
-      .where(eq(schema.orders.id, id))
+      .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
       .limit(1);
     if (!current) {
       return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
@@ -297,7 +332,7 @@ orders.patch("/:id", zValidator("json", updateOrderInput), async (c) => {
     await db
       .update(schema.orders)
       .set(directUpdates)
-      .where(eq(schema.orders.id, id));
+      .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)));
   }
 
   if (!wantsItemEdit && Object.keys(directUpdates).length === 1) {
@@ -313,7 +348,7 @@ orders.patch("/:id", zValidator("json", updateOrderInput), async (c) => {
   const [latest] = await db
     .select()
     .from(schema.orders)
-    .where(eq(schema.orders.id, id))
+    .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
     .limit(1);
   if (!latest) {
     return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
@@ -368,7 +403,11 @@ orders.post("/:id/schedule", zValidator("json", scheduleOrderInput), async (c) =
     );
   }
 
+  const shopId = c.get("shopId");
   const authUser = c.get("authUser");
+  if (!(await orderInShop(id, shopId))) {
+    return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
+  }
   const result = await attachSchedule(
     id,
     {
@@ -389,7 +428,7 @@ orders.post("/:id/schedule", zValidator("json", scheduleOrderInput), async (c) =
   const [refreshed] = await db
     .select()
     .from(schema.orders)
-    .where(eq(schema.orders.id, id))
+    .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
     .limit(1);
   return c.json<OrderRow>(refreshed ?? result.value);
 });
@@ -403,7 +442,12 @@ orders.patch("/:id/status", zValidator("json", transitionOrderInput), async (c) 
 
   const body = c.req.valid("json");
   const newStatus = body.status as OrderStatus;
+  const shopId = c.get("shopId");
   const authUser = c.get("authUser");
+
+  if (!(await orderInShop(id, shopId))) {
+    return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
+  }
 
   // Drive-by adminNotes write — status-agnostic, so do it regardless of
   // transition outcome. Backfill shareToken for legacy orders while we're
@@ -412,7 +456,7 @@ orders.patch("/:id/status", zValidator("json", transitionOrderInput), async (c) 
     await db
       .update(schema.orders)
       .set({ adminNotes: body.notes })
-      .where(eq(schema.orders.id, id));
+      .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)));
   }
   await backfillShareTokenIfMissing(id);
 
@@ -428,6 +472,10 @@ orders.post("/:id/send", async (c) => {
   if (!Number.isInteger(id) || id <= 0) {
     return c.json<ApiError>({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
   }
+  const shopId = c.get("shopId");
+  if (!(await orderInShop(id, shopId))) {
+    return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
+  }
   const authUser = c.get("authUser");
   await backfillShareTokenIfMissing(id);
   const result = await transition(id, "estimated", adminActor(authUser.email));
@@ -442,6 +490,10 @@ orders.post("/:id/revise", async (c) => {
   if (!Number.isInteger(id) || id <= 0) {
     return c.json<ApiError>({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
   }
+  const shopId = c.get("shopId");
+  if (!(await orderInShop(id, shopId))) {
+    return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
+  }
   const authUser = c.get("authUser");
   const result = await transition(id, "revised", adminActor(authUser.email));
   return sendOrderStateResult(c, result);
@@ -452,6 +504,11 @@ orders.get("/:id/events", async (c) => {
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id) || id <= 0) {
     return c.json<ApiError>({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
+  }
+
+  const shopId = c.get("shopId");
+  if (!(await orderInShop(id, shopId))) {
+    return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
   }
 
   const events = await db
@@ -472,6 +529,11 @@ orders.post("/:id/events", zValidator("json", addOrderNoteInput), async (c) => {
     return c.json<ApiError>({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
   }
 
+  const shopId = c.get("shopId");
+  if (!(await orderInShop(id, shopId))) {
+    return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
+  }
+
   const body = c.req.valid("json");
 
   const authUser = c.get("authUser");
@@ -486,6 +548,11 @@ orders.post("/:id/payment", zValidator("json", recordPaymentInput), async (c) =>
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id) || id <= 0) {
     return c.json<ApiError>({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
+  }
+
+  const shopId = c.get("shopId");
+  if (!(await orderInShop(id, shopId))) {
+    return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
   }
 
   const body = c.req.valid("json");
@@ -508,11 +575,12 @@ orders.patch("/:id/notes", zValidator("json", updateAdminNotesInput), async (c) 
   }
 
   const body = c.req.valid("json");
+  const shopId = c.get("shopId");
 
   const [updated] = await db
     .update(schema.orders)
     .set({ adminNotes: body.notes, updatedAt: new Date() })
-    .where(eq(schema.orders.id, id))
+    .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
     .returning();
 
   if (!updated) {
@@ -522,9 +590,70 @@ orders.patch("/:id/notes", zValidator("json", updateAdminNotesInput), async (c) 
   return c.json<OrderRow>(updated);
 });
 
+// GET /orders/:id/pdf — admin-authenticated PDF (no token required; shop-scoped)
+// Mounted under /api/admin/orders, so requireAdmin + requireShopContext are
+// already applied by the orders router middleware above.
+orders.get("/:id/pdf", async (c) => {
+  const id = Number(c.req.param("id"));
+  if (!Number.isInteger(id) || id <= 0) {
+    return c.json<ApiError>({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
+  }
+
+  const shopId = c.get("shopId");
+
+  const [order] = await db
+    .select()
+    .from(schema.orders)
+    .where(
+      shopId === OWNER_ALL_SHOPS
+        ? eq(schema.orders.id, id)
+        : and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)),
+    )
+    .limit(1);
+
+  if (!order) {
+    return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
+  }
+
+  const customer = {
+    name: order.contactName,
+    phone: order.contactPhone,
+    email: order.contactEmail,
+    address: order.contactAddress,
+    vehicleInfo: order.vehicleInfo as { make?: string; model?: string; year?: string } | null,
+  };
+
+  const items =
+    ((order.items ?? []) as { name: string; description?: string; totalCents: number }[]).map(
+      (i) => ({
+        name: i.name,
+        description: i.description ?? "",
+        price: i.totalCents ?? 0,
+      }),
+    );
+
+  return pdfResponse(
+    EstimatePdf({
+      estimate: {
+        id,
+        items,
+        subtotal: order.subtotalCents ?? 0,
+        priceRangeLow: order.priceRangeLowCents ?? 0,
+        priceRangeHigh: order.priceRangeHighCents ?? 0,
+        notes: order.notes,
+        expiresAt: order.expiresAt ?? new Date(),
+        createdAt: order.createdAt,
+      },
+      customer,
+    }),
+    `HMLS-Estimate-${id}.pdf`,
+  );
+});
+
 export { orders };
 
-// Public order PDF route (token-based, no admin auth required)
+// Public order PDF route — token is REQUIRED; no token = 404.
+// This is the unauthenticated, capability-based path shared in customer emails.
 const ordersPdf = new Hono();
 
 ordersPdf.get("/:id/pdf", zValidator("query", orderPdfQuery), async (c) => {
@@ -535,14 +664,17 @@ ordersPdf.get("/:id/pdf", zValidator("query", orderPdfQuery), async (c) => {
 
   const { token } = c.req.valid("query");
 
+  // Require a non-empty token — id-only access is an IDOR (any caller can read
+  // any order's PDF by guessing the numeric id). Token presence is the
+  // capability proof that authorizes access to this specific order.
+  if (!token) {
+    return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
+  }
+
   const [order] = await db
     .select()
     .from(schema.orders)
-    .where(
-      token
-        ? and(eq(schema.orders.id, id), eq(schema.orders.shareToken, token))
-        : eq(schema.orders.id, id),
-    )
+    .where(and(eq(schema.orders.id, id), eq(schema.orders.shareToken, token)))
     .limit(1);
 
   if (!order) {

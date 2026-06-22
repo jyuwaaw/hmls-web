@@ -1,9 +1,10 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { db, schema } from "@hmls/agent/db";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { Errors } from "@hmls/shared/errors";
 import { type AuthEnv, requireAuth } from "../middleware/auth.ts";
+import { requireShopContext, type WithShop } from "../middleware/shop-context.ts";
 import { transition } from "@hmls/agent/order-state";
 import { sendOrderStateResult } from "../lib/order-state-http.ts";
 import { orderReasonInput, updateProfileInput } from "@hmls/shared/api/contracts/portal";
@@ -17,9 +18,10 @@ import type {
 
 type ApiError = { error: { code: string; message: string } };
 
-const portal = new Hono<AuthEnv>();
+const portal = new Hono<WithShop<AuthEnv>>();
 
 portal.use("*", requireAuth);
+portal.use("*", requireShopContext);
 
 // GET /me — current customer profile
 portal.get("/me", async (c) => {
@@ -67,6 +69,7 @@ portal.put("/me", zValidator("json", updateProfileInput), async (c) => {
 // inline without a per-row roundtrip.
 portal.get("/me/bookings", async (c) => {
   const customerId = c.get("customerId");
+  const shopId = c.get("shopId");
   const rows = await db
     .select({ order: schema.orders, intake: schema.orderIntake })
     .from(schema.orders)
@@ -74,7 +77,7 @@ portal.get("/me/bookings", async (c) => {
       schema.orderIntake,
       eq(schema.orderIntake.orderId, schema.orders.id),
     )
-    .where(eq(schema.orders.customerId, customerId))
+    .where(and(eq(schema.orders.customerId, customerId), eq(schema.orders.shopId, shopId)))
     .orderBy(desc(schema.orders.scheduledAt));
 
   // Filter in JS so we still include orders without scheduled_at if none match
@@ -87,10 +90,11 @@ portal.get("/me/bookings", async (c) => {
 // GET /me/orders — customer's orders (unified — replaces estimates + quotes)
 portal.get("/me/orders", async (c) => {
   const customerId = c.get("customerId");
+  const shopId = c.get("shopId");
   const rows = await db
     .select()
     .from(schema.orders)
-    .where(eq(schema.orders.customerId, customerId))
+    .where(and(eq(schema.orders.customerId, customerId), eq(schema.orders.shopId, shopId)))
     .orderBy(desc(schema.orders.createdAt));
 
   return c.json<OrderRow[]>(rows);
@@ -99,6 +103,7 @@ portal.get("/me/orders", async (c) => {
 // GET /me/orders/:id — single order detail with events (customer-scoped)
 portal.get("/me/orders/:id", async (c) => {
   const customerId = c.get("customerId");
+  const shopId = c.get("shopId");
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id) || id <= 0) {
     return c.json<ApiError>({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
@@ -107,7 +112,7 @@ portal.get("/me/orders/:id", async (c) => {
   const [order] = await db
     .select()
     .from(schema.orders)
-    .where(eq(schema.orders.id, id))
+    .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
     .limit(1);
 
   if (!order || order.customerId !== customerId) {
@@ -138,10 +143,11 @@ portal.get("/me/orders/:id", async (c) => {
 // GET /me/estimates — backward compat redirect to orders
 portal.get("/me/estimates", async (c) => {
   const customerId = c.get("customerId");
+  const shopId = c.get("shopId");
   const rows = await db
     .select()
     .from(schema.orders)
-    .where(eq(schema.orders.customerId, customerId))
+    .where(and(eq(schema.orders.customerId, customerId), eq(schema.orders.shopId, shopId)))
     .orderBy(desc(schema.orders.createdAt));
 
   return c.json<OrderRow[]>(rows);
@@ -150,10 +156,11 @@ portal.get("/me/estimates", async (c) => {
 // GET /me/quotes — backward compat redirect to orders
 portal.get("/me/quotes", async (c) => {
   const customerId = c.get("customerId");
+  const shopId = c.get("shopId");
   const rows = await db
     .select()
     .from(schema.orders)
-    .where(eq(schema.orders.customerId, customerId))
+    .where(and(eq(schema.orders.customerId, customerId), eq(schema.orders.shopId, shopId)))
     .orderBy(desc(schema.orders.createdAt));
 
   return c.json<OrderRow[]>(rows);
@@ -167,17 +174,18 @@ portal.get("/me/quotes", async (c) => {
 // POST /me/orders/:id/approve — customer approves estimate (estimated → approved)
 portal.post("/me/orders/:id/approve", async (c) => {
   const customerId = c.get("customerId");
+  const shopId = c.get("shopId");
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id) || id <= 0) {
     return c.json<ApiError>({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
   }
 
   // Ownership check — harness handles role-based permission, we handle
-  // "this customer owns this row".
+  // "this customer owns this row". Belt-and-suspenders: also assert shopId.
   const [order] = await db
     .select({ id: schema.orders.id, customerId: schema.orders.customerId })
     .from(schema.orders)
-    .where(eq(schema.orders.id, id))
+    .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
     .limit(1);
   if (!order || order.customerId !== customerId) {
     return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
@@ -190,6 +198,7 @@ portal.post("/me/orders/:id/approve", async (c) => {
 // POST /me/orders/:id/decline — customer declines estimate (estimated → declined)
 portal.post("/me/orders/:id/decline", zValidator("json", orderReasonInput), async (c) => {
   const customerId = c.get("customerId");
+  const shopId = c.get("shopId");
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id) || id <= 0) {
     return c.json<ApiError>({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
@@ -198,7 +207,7 @@ portal.post("/me/orders/:id/decline", zValidator("json", orderReasonInput), asyn
   const [order] = await db
     .select({ id: schema.orders.id, customerId: schema.orders.customerId })
     .from(schema.orders)
-    .where(eq(schema.orders.id, id))
+    .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
     .limit(1);
   if (!order || order.customerId !== customerId) {
     return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
@@ -218,6 +227,7 @@ portal.post(
   zValidator("json", orderReasonInput),
   async (c) => {
     const customerId = c.get("customerId");
+    const shopId = c.get("shopId");
     const id = Number(c.req.param("id"));
     if (!Number.isInteger(id) || id <= 0) {
       return c.json<ApiError>({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
@@ -226,7 +236,7 @@ portal.post(
     const [order] = await db
       .select({ id: schema.orders.id, customerId: schema.orders.customerId })
       .from(schema.orders)
-      .where(eq(schema.orders.id, id))
+      .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
       .limit(1);
     if (!order || order.customerId !== customerId) {
       return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);

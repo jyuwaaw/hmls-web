@@ -1,5 +1,6 @@
 // apps/agent/src/skills/estimate/pricing.ts
 
+import { eq } from "drizzle-orm";
 import { db, schema } from "../../../db/client.ts";
 import type { DiscountType, LineItem, PricingConfig, ServiceInput } from "./types.ts";
 
@@ -67,18 +68,34 @@ export function clearConfigCache(): void {
   cachedAt = 0;
 }
 
+/**
+ * Look up a shop's labor rate in cents from the `shops` table.
+ * Returns null if the shop is not found or the column is null (caller should
+ * fall back to the global `getPricingConfig().hourlyRate`).
+ */
+export async function shopHourlyRate(shopId: string): Promise<number | null> {
+  const [s] = await db
+    .select({ rate: schema.shops.laborRateCents })
+    .from(schema.shops)
+    .where(eq(schema.shops.id, shopId))
+    .limit(1);
+  return s?.rate ?? null;
+}
+
 /** Calculate labor + parts for a single service line item */
 export async function calculatePrice(
   service: ServiceInput,
+  hourlyRateOverride?: number,
 ): Promise<LineItem> {
   const config = await getPricingConfig();
+  const hourlyRate = hourlyRateOverride ?? config.hourlyRate;
 
   let laborCost = 0;
   let partsCost = 0;
 
   // Labor: hourlyRate × hours (OLP hours are already vehicle-specific)
   if (service.laborHours) {
-    laborCost = Math.round(config.hourlyRate * service.laborHours);
+    laborCost = Math.round(hourlyRate * service.laborHours);
   }
 
   // Parts markup (tiered on OEM cost)
