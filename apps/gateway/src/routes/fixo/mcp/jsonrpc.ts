@@ -7,11 +7,14 @@ export interface McpToolResult {
   structuredContent?: unknown;
   isError?: boolean;
 }
+export interface McpCallCtx {
+  apiKeyId?: string;
+}
 export interface McpTool {
   name: string;
   description: string;
   inputSchema: z.ZodType;
-  execute: (args: unknown) => Promise<McpToolResult> | McpToolResult;
+  execute: (args: unknown, ctx?: McpCallCtx) => Promise<McpToolResult> | McpToolResult;
 }
 export interface ServerInfo {
   name: string;
@@ -40,6 +43,7 @@ export async function handleMcpMessage(
   msg: JsonRpcMessage,
   tools: McpTool[],
   serverInfo: ServerInfo,
+  ctx?: McpCallCtx,
 ): Promise<object | null> {
   const id: JsonRpcId = msg.id ?? null;
   switch (msg.method) {
@@ -65,7 +69,7 @@ export async function handleMcpMessage(
       const parsed = tool.inputSchema.safeParse(msg.params?.arguments ?? {});
       if (!parsed.success) return err(id, -32602, `Invalid arguments: ${parsed.error.message}`);
       try {
-        return ok(id, await tool.execute(parsed.data));
+        return ok(id, await tool.execute(parsed.data, ctx));
       } catch (e) {
         // MCP convention: tool failures are in-band results with isError, not protocol errors.
         return ok(id, {

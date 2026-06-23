@@ -17,7 +17,11 @@ fixoMcp.post("/", async (c) => {
     );
   }
   // deno-lint-ignore no-explicit-any
-  const res = await handleMcpMessage(msg as any, fixoMcpTools, SERVER_INFO);
+  const apiKey = (c as any).get("apiKey") as { id: string } | undefined;
+  // deno-lint-ignore no-explicit-any
+  const res = await handleMcpMessage(msg as any, fixoMcpTools, SERVER_INFO, {
+    apiKeyId: apiKey?.id,
+  });
   if (res === null) return c.body(null, 202); // notification — no body
   return c.json(res);
 });

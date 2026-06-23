@@ -99,3 +99,23 @@ Deno.test("unknown method -> -32601", async () => {
   ) as any;
   assertEquals(r.error.code, -32601);
 });
+
+Deno.test("tools/call threads ctx to execute", async () => {
+  let seen: unknown;
+  const tools = [{
+    name: "echo",
+    description: "x",
+    inputSchema: z.object({}),
+    execute: (_args: unknown, ctx?: { apiKeyId?: string }) => {
+      seen = ctx?.apiKeyId;
+      return { content: [{ type: "text" as const, text: "ok" }] };
+    },
+  }];
+  await handleMcpMessage(
+    { jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "echo", arguments: {} } },
+    tools,
+    { name: "t", version: "0" },
+    { apiKeyId: "key-123" },
+  );
+  assertEquals(seen, "key-123");
+});

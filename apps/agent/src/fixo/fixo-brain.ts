@@ -16,6 +16,7 @@ import {
   type DiagnoseRequest,
   type DiagnoseResult,
   newPredictionId,
+  type OutcomeRequest,
 } from "./brain-service.ts";
 import type { DiagnoseOnceInput } from "./run-once-prompt.ts";
 import type { StructuredDiagnosis } from "./diagnosis-schema.ts";
@@ -42,7 +43,7 @@ function toOnceVehicle(req: DiagnoseRequest): DiagnoseOnceInput["vehicle"] {
  *
  *  ponytail: if a worker/queue ever exists, move fillPrediction there; for now
  *  a detached promise is fine since Deno Deploy doesn't kill the isolate mid-request. */
-export async function openPrediction(req: DiagnoseRequest): Promise<string> {
+export async function openPrediction(req: DiagnoseRequest, apiKeyId?: string): Promise<string> {
   const predictionId = newPredictionId();
   await db.insert(schema.fixoPredictions).values({
     id: predictionId,
@@ -50,6 +51,7 @@ export async function openPrediction(req: DiagnoseRequest): Promise<string> {
     symptom: req.symptom,
     dtcs: req.dtcs ?? null,
     predictedDiagnosis: null,
+    apiKeyId: apiKeyId ?? null,
   });
   return predictionId;
 }
@@ -74,8 +76,9 @@ export async function fillPrediction(predictionId: string, req: DiagnoseRequest)
  *  Used by the MCP `diagnose` tool. */
 export async function diagnoseForApi(
   req: DiagnoseRequest,
+  apiKeyId?: string,
 ): Promise<{ predictionId: string; diagnosis: StructuredDiagnosis }> {
-  const predictionId = await openPrediction(req);
+  const predictionId = await openPrediction(req, apiKeyId);
   const diagnosis = await diagnoseStructured({
     vehicle: toOnceVehicle(req),
     symptom: req.symptom,
@@ -115,8 +118,30 @@ export const diagnose: BrainService["diagnose"] = async (req) => {
 /** Close the loop: stamp the mechanic's confirmed outcome onto the prediction
  *  row by predictionId. Idempotent — re-recording overwrites. Never throws
  *  (callers fire-and-forget on the order-save path); a missing prediction row
- *  is logged, not raised, so a stale/wrong id can't be silently swallowed. */
-export const recordOutcome: BrainService["recordOutcome"] = async (req) => {
+ *  is logged, not raised, so a stale/wrong id can't be silently swallowed.
+ *
+ *  callerKeyId: when set (MCP path), ownership is enforced — a prediction that
+ *  was opened by a different key is rejected (logged + no write). NULL-owner
+ *  predictions (in-process/legacy) always fall through unchanged. */
+export async function recordOutcome(req: OutcomeRequest, callerKeyId?: string): Promise<void> {
+  // Ownership check: fetch the prediction's apiKeyId before writing.
+  const rows = await db
+    .select({ apiKeyId: schema.fixoPredictions.apiKeyId })
+    .from(schema.fixoPredictions)
+    .where(eq(schema.fixoPredictions.id, req.predictionId));
+
+  if (rows.length > 0) {
+    const ownerKeyId = rows[0].apiKeyId;
+    if (ownerKeyId !== null && ownerKeyId !== undefined && ownerKeyId !== callerKeyId) {
+      logger.warn("record_outcome ownership mismatch", {
+        predictionId: req.predictionId,
+        ownerKeyId,
+        callerKeyId,
+      });
+      return;
+    }
+  }
+
   const updated = await db
     .update(schema.fixoPredictions)
     .set({
@@ -132,7 +157,7 @@ export const recordOutcome: BrainService["recordOutcome"] = async (req) => {
       predictionId: req.predictionId,
     });
   }
-};
+}
 
 /** Attach the priced estimate to a prediction row for estimate-vs-actual
  *  calibration. Pricing is the shared OLP engine (skills/estimate/pricing.ts);

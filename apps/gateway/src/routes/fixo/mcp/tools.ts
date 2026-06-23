@@ -27,7 +27,7 @@ export const fixoMcpTools: McpTool[] = [
       "once the real fix is confirmed) and a structured diagnosis (candidate systems, likely " +
       "root cause, recommended tests, safety flags, things to confirm).",
     inputSchema: diagnoseInput,
-    execute: async (args) => {
+    execute: async (args, ctx) => {
       const a = args as z.infer<typeof diagnoseInput>;
       // year coerced to string for VehicleInfo (deno check arbitrates if the
       // VehicleInfo.year type differs; coerce here to be safe).
@@ -35,7 +35,7 @@ export const fixoMcpTools: McpTool[] = [
         vehicle: { year: String(a.vehicle.year), make: a.vehicle.make, model: a.vehicle.model },
         symptom: a.symptom,
         dtcs: a.dtcs,
-      });
+      }, ctx?.apiKeyId);
       const out = { prediction_id: predictionId, diagnosis };
       return { content: [{ type: "text", text: JSON.stringify(out) }], structuredContent: out };
     },
@@ -45,13 +45,13 @@ export const fixoMcpTools: McpTool[] = [
     description: "Close the diagnostic loop: report what the repair actually was, keyed by the " +
       "prediction_id returned from diagnose. Feeds Fixo's calibration data.",
     inputSchema: recordOutcomeInput,
-    execute: async (args) => {
+    execute: async (args, ctx) => {
       const a = args as z.infer<typeof recordOutcomeInput>;
       await recordOutcome({
         predictionId: a.prediction_id,
         confirmedDiagnosis: a.confirmed_diagnosis,
         actualCostCents: a.actual_cost_cents,
-      });
+      }, ctx?.apiKeyId);
       const out = { ok: true };
       return { content: [{ type: "text", text: JSON.stringify(out) }], structuredContent: out };
     },
