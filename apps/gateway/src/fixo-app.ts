@@ -14,6 +14,7 @@ import { vehicleRoutes } from "./routes/fixo/vehicles.ts";
 import { funnel } from "./routes/fixo/funnel.ts";
 import { fixoApi } from "./routes/fixo/api.ts";
 import { fixoMcp } from "./routes/fixo/mcp/route.ts";
+import { keys } from "./routes/fixo/keys.ts";
 import { type ApiKeyContext, authenticateApiKey } from "./middleware/fixo/api-key.ts";
 
 const DEV_MODE = Deno.env.get("DEV_MODE") === "true";
@@ -109,6 +110,8 @@ export function createFixoApp() {
   app.use("/billing/portal", requireAuth);
   app.use("/vehicles", requireAuth);
   app.use("/vehicles/*", requireAuth);
+  app.use("/keys", requireAuth);
+  app.use("/keys/*", requireAuth);
   app.use("/task", async (c, next) => {
     if (DEV_MODE) {
       logger.info("DEV_MODE: skipping auth");
@@ -133,6 +136,7 @@ export function createFixoApp() {
   app.route("/sessions", complete);
   app.route("/task", chat);
   app.route("/vehicles", vehicleRoutes);
+  app.route("/keys", keys);
   app.route("/billing", billing);
   app.route("/billing/webhook", webhookHandler);
   // /funnel/track is intentionally PUBLIC (no requireAuth) — SEO and

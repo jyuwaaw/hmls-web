@@ -6,7 +6,7 @@
 // lands in fixo_api_keys, looked up by its unique index.
 
 import { createHash, randomBytes } from "node:crypto";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 import { db, schema } from "../../db/client.ts";
 
 const KEY_PREFIX = "fixo_sk_";
@@ -43,4 +43,47 @@ export async function verifyApiKey(
     .set({ lastUsedAt: new Date() })
     .where(eq(schema.fixoApiKeys.id, row.id));
   return row;
+}
+
+export async function createApiKeyForUser(
+  userId: string,
+  label?: string,
+): Promise<{ id: string; key: string; label: string | null }> {
+  const { key, hash } = generateApiKey();
+  const [row] = await db.insert(schema.fixoApiKeys)
+    .values({ keyHash: hash, label: label ?? null, userId })
+    .returning({ id: schema.fixoApiKeys.id, label: schema.fixoApiKeys.label });
+  return { id: row.id, key, label: row.label };
+}
+
+export async function listApiKeysForUser(userId: string) {
+  const rows = await db.select({
+    id: schema.fixoApiKeys.id,
+    label: schema.fixoApiKeys.label,
+    createdAt: schema.fixoApiKeys.createdAt,
+    lastUsedAt: schema.fixoApiKeys.lastUsedAt,
+    revokedAt: schema.fixoApiKeys.revokedAt,
+  }).from(schema.fixoApiKeys)
+    .where(eq(schema.fixoApiKeys.userId, userId))
+    .orderBy(desc(schema.fixoApiKeys.createdAt));
+  return rows.map((r) => ({
+    id: r.id,
+    label: r.label,
+    createdAt: r.createdAt,
+    lastUsedAt: r.lastUsedAt,
+    revoked: r.revokedAt !== null,
+  }));
+}
+
+/** Revoke only if the key belongs to userId AND is not already revoked. */
+export async function revokeApiKeyForUser(userId: string, id: string): Promise<boolean> {
+  const updated = await db.update(schema.fixoApiKeys)
+    .set({ revokedAt: new Date() })
+    .where(and(
+      eq(schema.fixoApiKeys.id, id),
+      eq(schema.fixoApiKeys.userId, userId),
+      isNull(schema.fixoApiKeys.revokedAt),
+    ))
+    .returning({ id: schema.fixoApiKeys.id });
+  return updated.length > 0;
 }
