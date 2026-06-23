@@ -12,6 +12,7 @@ import {
   numeric,
   pgEnum,
   pgTable,
+  primaryKey,
   serial,
   text,
   timestamp,
@@ -788,6 +789,8 @@ export const fixoPredictions = pgTable("fixo_predictions", {
   actualCostCents: integer("actual_cost_cents"),
   outcomeAt: timestamp("outcome_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  // Which key created a prediction (NULL for in-process/legacy predictions).
+  apiKeyId: uuid("api_key_id").references(() => fixoApiKeys.id),
 });
 
 // --- Fixo public-API keys (external callers of the diagnose/estimate API) ---
@@ -802,7 +805,15 @@ export const fixoApiKeys = pgTable("fixo_api_keys", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   revokedAt: timestamp("revoked_at", { withTimezone: true }),
   lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  // Owner of a self-serve key (NULL for operator/manually-minted keys).
+  userId: uuid("user_id").references(() => userProfiles.id),
 });
+
+export const fixoRateLimit = pgTable("fixo_rate_limit", {
+  keyId: uuid("key_id").notNull(),
+  bucket: text("bucket").notNull(),
+  count: integer("count").notNull().default(0),
+}, (t) => [primaryKey({ columns: [t.keyId, t.bucket] })]);
 
 // Fixo types
 export type UserProfile = typeof userProfiles.$inferSelect;
@@ -833,3 +844,5 @@ export type FixoPrediction = typeof fixoPredictions.$inferSelect;
 export type NewFixoPrediction = typeof fixoPredictions.$inferInsert;
 export type FixoApiKey = typeof fixoApiKeys.$inferSelect;
 export type NewFixoApiKey = typeof fixoApiKeys.$inferInsert;
+export type FixoRateLimit = typeof fixoRateLimit.$inferSelect;
+export type NewFixoRateLimit = typeof fixoRateLimit.$inferInsert;
