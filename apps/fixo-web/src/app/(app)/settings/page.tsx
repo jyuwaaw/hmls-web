@@ -3,12 +3,14 @@
 import {
   ChevronRight,
   ExternalLink,
+  Key,
   LogOut,
   Monitor,
   Moon,
   Sun,
   Zap,
 } from "lucide-react";
+import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
@@ -353,6 +355,25 @@ export default function SettingsPage() {
                   {label}
                 </button>
               ))}
+            </div>
+          </section>
+
+          {/* Developer */}
+          <section>
+            <h2 className="mb-2.5 px-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+              Developer
+            </h2>
+            <div className="divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+              <Link
+                href="/settings/api-keys"
+                className="flex items-center justify-between px-4 py-3 text-sm transition-colors hover:bg-muted"
+              >
+                <span className="flex items-center gap-2">
+                  <Key className="h-3.5 w-3.5 text-muted-foreground" />
+                  API keys
+                </span>
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+              </Link>
             </div>
           </section>
 
