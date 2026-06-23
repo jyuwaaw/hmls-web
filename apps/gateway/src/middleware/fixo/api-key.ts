@@ -1,6 +1,6 @@
 // Fixo public-API key auth. Validates the key from `Authorization: Bearer <key>`
 // or `X-API-Key` against fixo_api_keys (hash lookup, see @hmls/agent api-keys).
-// Internal/dogfood for now; rate limiting lands before external keys go out.
+// Keys are rate-limited per-key (see checkRateLimit); external self-serve keys are now issued.
 // Pure header parsing lives in api-key-parse.ts (unit-testable in isolation).
 
 import { checkRateLimit, verifyApiKey } from "@hmls/agent";
