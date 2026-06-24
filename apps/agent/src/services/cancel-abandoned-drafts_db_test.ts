@@ -1,27 +1,29 @@
-// L2 — hits real Postgres. Skips if no DATABASE_URL.
+// L2 — hits real Postgres. DESTRUCTIVE: opt-in only.
 //
 // Exercises the `cancel_abandoned_drafts` SQL function (migration 0034) that the
-// gateway's Deno.cron drives daily. The whole test runs inside ONE transaction
-// that is rolled back at the end, so it never cancels real prod drafts.
+// gateway's Deno.cron drives daily. The function is table-wide, so to make a
+// fresh fixture eligible (the compute_blocked_range trigger force-sets
+// updated_at = now() on every write, blocking backdating) we call it with a
+// negative threshold — which matches EVERY unscheduled draft in the database,
+// not just our fixture. We run inside ONE transaction that is rolled back, so
+// nothing is committed, but the UPDATE still takes row locks on those drafts for
+// the duration. That's unsafe against a shared/prod DB, so this test is gated
+// behind ALLOW_DESTRUCTIVE_DB_TEST=1 and should target an isolated DB.
 //
-// Why stale_days = -1: the compute_blocked_range BEFORE trigger force-sets
-// updated_at = now() on every write, so a fixture can't be backdated. Passing a
-// negative threshold pushes `cutoff` one day into the future, making the
-// `updated_at < cutoff` time predicate true for a freshly-inserted row. That
-// isolates what we actually want to verify: the status='draft' AND
-// scheduled_at IS NULL guards, and the status_history + order_events audit writes.
+//   ALLOW_DESTRUCTIVE_DB_TEST=1 DATABASE_URL=... deno test src/services/cancel-abandoned-drafts_db_test.ts
 import { assertEquals } from "@std/assert";
 import { db, schema } from "../db/client.ts";
 import { eq, sql } from "drizzle-orm";
 
 const DATABASE_URL = Deno.env.get("DATABASE_URL");
+const ALLOW_DESTRUCTIVE = Deno.env.get("ALLOW_DESTRUCTIVE_DB_TEST") === "1";
 const MARK = "[cancel-drafts-l2]";
 
 class Rollback extends Error {}
 
 Deno.test({
   name: "cancel_abandoned_drafts cancels eligible drafts only, with audit trail",
-  ignore: !DATABASE_URL,
+  ignore: !DATABASE_URL || !ALLOW_DESTRUCTIVE,
   sanitizeResources: false,
   sanitizeOps: false,
   fn: async () => {
