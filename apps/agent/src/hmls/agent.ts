@@ -38,6 +38,8 @@ export async function runHmlsAgent(options: RunAgentOptions) {
   const apiKey = Deno.env.get("DEEPSEEK_API_KEY");
   if (!apiKey) throw new Error("DEEPSEEK_API_KEY is required");
   const modelId = Deno.env.get("HMLS_AGENT_MODEL") || DEFAULT_MODEL;
+  // ponytail: DeepSeek is text-only — any in-chat image part is silently dropped.
+  // HMLS chat is text-only today (intake photos ride on the order, not the stream).
   const deepseek = createDeepSeek({ apiKey });
 
   const skills = await SKILLS_PROMISE;

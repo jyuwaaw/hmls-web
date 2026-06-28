@@ -48,7 +48,18 @@ staffChat.post("/", async (c) => {
       shopId,
     });
 
-    const response = result.toUIMessageStreamResponse();
+    // onError logs the real provider failure; without it AI SDK masks every
+    // mid-stream error (DeepSeek 429/402/context-length) as a generic string
+    // with nothing in the logs. Return value is the (unchanged) client message.
+    const response = result.toUIMessageStreamResponse({
+      onError: (error) => {
+        logger.error("Agent stream error", {
+          userId: authUser.id,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return "An error occurred.";
+      },
+    });
     const duration = Date.now() - startTime;
     logger.info("Request finished", {
       userId: authUser.id,

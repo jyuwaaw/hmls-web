@@ -38,6 +38,8 @@ export async function runStaffAgent(options: RunStaffAgentOptions) {
   const apiKey = Deno.env.get("DEEPSEEK_API_KEY");
   if (!apiKey) throw new Error("DEEPSEEK_API_KEY is required");
   const modelId = Deno.env.get("HMLS_AGENT_MODEL") || DEFAULT_MODEL;
+  // ponytail: DeepSeek is text-only — any in-chat image part is silently dropped.
+  // Staff chat is text-only today.
   const deepseek = createDeepSeek({ apiKey });
 
   const skills = await SKILLS_PROMISE;
