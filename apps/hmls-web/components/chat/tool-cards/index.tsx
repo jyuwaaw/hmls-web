@@ -45,6 +45,18 @@ export function renderToolCard(
   const state = toolPart.state;
   const mode = opts.mode ?? "staff";
 
+  if (toolName === "load_skill") {
+    // Backstage tool — never render the raw skill body (it's a ~350-line
+    // markdown dump). Customer: hidden. Staff: a one-line chip.
+    if (mode === "customer") return null;
+    const skill = (toolPart as { input?: { name?: string } }).input?.name;
+    return (
+      <div className="rounded-lg border border-border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground">
+        📚 Loaded {skill ?? "skill"} playbook
+      </div>
+    );
+  }
+
   if (toolName === "ask_user_question") {
     const input = (toolPart as { input?: unknown }).input as
       | {

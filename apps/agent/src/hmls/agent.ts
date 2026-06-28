@@ -2,7 +2,7 @@ import { hasToolCall, type ModelMessage, stepCountIs, streamText } from "ai";
 import { createDeepSeek } from "@ai-sdk/deepseek";
 import { getLogger } from "@logtape/logtape";
 import { SYSTEM_PROMPT } from "./system-prompt.ts";
-import { loadSkills } from "./load-skills.ts";
+import { loadSkillTools } from "../common/tools/load-skill.ts";
 import { schedulingTools } from "./tools/scheduling.ts";
 import { orderOpsTools } from "./tools/order-ops.ts";
 import { customerOrderActionTools } from "./tools/customer-order-actions.ts";
@@ -29,12 +29,7 @@ export interface RunAgentOptions {
   shopId?: string;
 }
 
-// Skill bodies inlined into the system prompt at boot. The customer agent
-// needs the order pricing reference + the scheduling state machine; both
-// live in `.skills/<name>/skill.md` as the single source of truth.
-const SKILLS_PROMISE = loadSkills(["order", "scheduling"]);
-
-export async function runHmlsAgent(options: RunAgentOptions) {
+export function runHmlsAgent(options: RunAgentOptions) {
   const { messages, userContext, shopId } = options;
   const apiKey = Deno.env.get("DEEPSEEK_API_KEY");
   if (!apiKey) throw new Error("DEEPSEEK_API_KEY is required");
@@ -43,9 +38,7 @@ export async function runHmlsAgent(options: RunAgentOptions) {
   // HMLS chat is text-only today (intake photos ride on the order, not the stream).
   const deepseek = createDeepSeek({ apiKey });
 
-  const skills = await SKILLS_PROMISE;
   const parts = [SYSTEM_PROMPT];
-  if (skills) parts.push(skills);
   if (userContext) parts.push(formatUserContext(userContext));
   const systemPrompt = parts.join("\n\n");
 
@@ -62,6 +55,7 @@ export async function runHmlsAgent(options: RunAgentOptions) {
     ...diagnoseSymptomTools,
     ...askUserQuestionTools,
     ...collectContactTools,
+    ...loadSkillTools,
     ...orderTools,
     ...schedulingTools,
     ...scheduleTools,

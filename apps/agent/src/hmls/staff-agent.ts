@@ -2,7 +2,7 @@ import { hasToolCall, type ModelMessage, stepCountIs, streamText } from "ai";
 import { createDeepSeek } from "@ai-sdk/deepseek";
 import { getLogger } from "@logtape/logtape";
 import { STAFF_SYSTEM_PROMPT } from "./staff-system-prompt.ts";
-import { loadSkills } from "./load-skills.ts";
+import { loadSkillTools } from "../common/tools/load-skill.ts";
 import { schedulingTools } from "./tools/scheduling.ts";
 import { orderOpsTools } from "./tools/order-ops.ts";
 import { adminOrderTools } from "./tools/admin-order-tools.ts";
@@ -29,11 +29,7 @@ export interface RunStaffAgentOptions {
   shopId?: string;
 }
 
-// Same skill bundle as the customer agent — staff also needs the
-// pricing reference + state machine.
-const SKILLS_PROMISE = loadSkills(["order", "scheduling"]);
-
-export async function runStaffAgent(options: RunStaffAgentOptions) {
+export function runStaffAgent(options: RunStaffAgentOptions) {
   const { messages, adminEmail, shopId } = options;
   const apiKey = Deno.env.get("DEEPSEEK_API_KEY");
   if (!apiKey) throw new Error("DEEPSEEK_API_KEY is required");
@@ -42,11 +38,11 @@ export async function runStaffAgent(options: RunStaffAgentOptions) {
   // Staff chat is text-only today.
   const deepseek = createDeepSeek({ apiKey });
 
-  const skills = await SKILLS_PROMISE;
-  const systemPrompt = skills ? `${STAFF_SYSTEM_PROMPT}\n\n${skills}` : STAFF_SYSTEM_PROMPT;
+  const systemPrompt = STAFF_SYSTEM_PROMPT;
 
   const allTools: LegacyTool[] = [
     ...askUserQuestionTools,
+    ...loadSkillTools,
     ...orderTools,
     ...schedulingTools,
     ...scheduleTools,
