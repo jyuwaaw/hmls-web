@@ -46,65 +46,78 @@ export function ItemEditor({
       {editItems.map((item, idx) => (
         <div
           key={item.id}
-          className="grid grid-cols-1 sm:grid-cols-[auto_1fr_auto_auto_auto_auto] items-center gap-2 border-b border-border pb-2 last:border-0"
+          className="space-y-1.5 border-b border-border pb-2 last:border-0"
         >
-          <select
-            value={item.category}
-            onChange={(e) =>
-              updateItem(idx, {
-                category: e.target.value as OrderItem["category"],
-              })
-            }
-            className="text-xs h-8 rounded-md border border-input bg-transparent px-2 py-1.5"
-          >
-            <option value="labor">Labor</option>
-            <option value="parts">Parts</option>
-            <option value="fee">Fee</option>
-            <option value="discount">Discount</option>
-          </select>
+          <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr_auto_auto_auto_auto] items-center gap-2">
+            <select
+              value={item.category}
+              onChange={(e) =>
+                updateItem(idx, {
+                  category: e.target.value as OrderItem["category"],
+                })
+              }
+              className="text-xs h-8 rounded-md border border-input bg-transparent px-2 py-1.5"
+            >
+              <option value="labor">Labor</option>
+              <option value="parts">Parts</option>
+              <option value="fee">Fee</option>
+              <option value="discount">Discount</option>
+            </select>
+            <Input
+              type="text"
+              placeholder="Name"
+              value={item.name}
+              onChange={(e) => updateItem(idx, { name: e.target.value })}
+              className="min-w-0 text-xs h-8"
+            />
+            <Input
+              type="number"
+              min={1}
+              value={item.quantity}
+              onChange={(e) =>
+                updateItem(idx, { quantity: Number(e.target.value) || 1 })
+              }
+              className="w-full sm:w-14 text-xs h-8 text-right"
+            />
+            <Input
+              type="number"
+              min={0}
+              step={0.01}
+              placeholder="$"
+              value={(item.unitPriceCents / 100).toFixed(2)}
+              onChange={(e) =>
+                updateItem(idx, {
+                  unitPriceCents: Math.round(
+                    (Number(e.target.value) || 0) * 100,
+                  ),
+                })
+              }
+              className="w-full sm:w-24 text-xs h-8 text-right"
+            />
+            <span className="text-xs text-muted-foreground w-16 text-right">
+              {formatCents(item.quantity * item.unitPriceCents)}
+            </span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              onClick={() =>
+                setEditItems((prev) => prev.filter((_, i) => i !== idx))
+              }
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          </div>
           <Input
             type="text"
-            placeholder="Name"
-            value={item.name}
-            onChange={(e) => updateItem(idx, { name: e.target.value })}
-            className="min-w-0 text-xs h-8"
-          />
-          <Input
-            type="number"
-            min={1}
-            value={item.quantity}
+            placeholder="Description (optional — shown on the estimate)"
+            value={item.description ?? ""}
             onChange={(e) =>
-              updateItem(idx, { quantity: Number(e.target.value) || 1 })
+              updateItem(idx, { description: e.target.value || undefined })
             }
-            className="w-full sm:w-14 text-xs h-8 text-right"
+            className="w-full text-xs h-8"
           />
-          <Input
-            type="number"
-            min={0}
-            step={0.01}
-            placeholder="$"
-            value={(item.unitPriceCents / 100).toFixed(2)}
-            onChange={(e) =>
-              updateItem(idx, {
-                unitPriceCents: Math.round((Number(e.target.value) || 0) * 100),
-              })
-            }
-            className="w-full sm:w-24 text-xs h-8 text-right"
-          />
-          <span className="text-xs text-muted-foreground w-16 text-right">
-            {formatCents(item.quantity * item.unitPriceCents)}
-          </span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            onClick={() =>
-              setEditItems((prev) => prev.filter((_, i) => i !== idx))
-            }
-            className="text-destructive hover:text-destructive"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-          </Button>
         </div>
       ))}
 
