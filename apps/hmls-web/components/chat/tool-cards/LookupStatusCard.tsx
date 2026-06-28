@@ -81,7 +81,11 @@ export function LookupStatusCard({
   const showRunning = isRunning || holdRunning;
 
   return (
-    <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-alt px-3 py-1 text-xs text-text-secondary">
+    <div
+      className={`inline-flex items-center gap-2 rounded-full border border-border bg-surface-alt px-3 py-1 text-xs text-text-secondary${
+        showRunning ? " chip-shimmer" : ""
+      }`}
+    >
       {showRunning ? (
         <Loader2 className="w-3.5 h-3.5 animate-spin text-red-primary" />
       ) : (
