@@ -37,7 +37,7 @@ export async function runStaffAgent(options: RunStaffAgentOptions) {
   const { messages, adminEmail, shopId } = options;
   const apiKey = Deno.env.get("DEEPSEEK_API_KEY");
   if (!apiKey) throw new Error("DEEPSEEK_API_KEY is required");
-  const modelId = Deno.env.get("AGENT_MODEL") || DEFAULT_MODEL;
+  const modelId = Deno.env.get("HMLS_AGENT_MODEL") || DEFAULT_MODEL;
   const deepseek = createDeepSeek({ apiKey });
 
   const skills = await SKILLS_PROMISE;

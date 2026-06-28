@@ -6,12 +6,14 @@
 // jargon (candidate-system / root-cause terms); (3) maintenance → diagnose_symptom
 // is NOT called. Real model + OLP DB.
 //
-// Model switch: set AGENT_MODEL to A/B DeepSeek models (deepseek-v4-flash vs
-// deepseek-v4-pro) — the agent reads it from env. The HMLS agent is DeepSeek-only
-// now; a Gemini id would 404. Rolling back to Gemini is a code change in agent.ts.
+// Model switch: set HMLS_AGENT_MODEL to A/B DeepSeek models (deepseek-v4-flash vs
+// deepseek-v4-pro) — the HMLS agent reads it from env, separate from Fixo's
+// AGENT_MODEL so the two providers never share a model id. The HMLS agent is
+// DeepSeek-only now; a Gemini id would 404. Rolling back to Gemini is a code
+// change in agent.ts.
 //
 // Run: infisical run --env=dev -- deno run -A apps/agent/src/scripts/intake-eval.ts
-//      AGENT_MODEL=deepseek-v4-pro infisical run --env=dev -- deno run -A apps/agent/src/scripts/intake-eval.ts
+//      HMLS_AGENT_MODEL=deepseek-v4-pro infisical run --env=dev -- deno run -A apps/agent/src/scripts/intake-eval.ts
 import { runHmlsAgent } from "../hmls/agent.ts";
 
 // Agent needs DEEPSEEK_API_KEY; diagnose_symptom (Fixo brain) still needs GOOGLE_API_KEY.
@@ -21,7 +23,7 @@ for (const k of ["DEEPSEEK_API_KEY", "GOOGLE_API_KEY"]) {
     Deno.exit(2);
   }
 }
-const agentModel = Deno.env.get("AGENT_MODEL") || undefined;
+const agentModel = Deno.env.get("HMLS_AGENT_MODEL") || undefined;
 console.log(`model: ${agentModel ?? "(default) deepseek-v4-pro"}\n`);
 
 interface Trace {
