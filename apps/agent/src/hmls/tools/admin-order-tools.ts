@@ -153,11 +153,43 @@ const searchCustomersTool = {
 // patchItems via revisionNumber.
 const executedKeys = new Set<string>();
 
+type ItemUpdate = {
+  name?: string;
+  description?: string;
+  intent?: "replace" | "inspect" | "optional" | "note";
+};
+
+/** Field-level merge for update_order_items — label / description / intent only.
+ *  Preserves every other field (price, partNumber, tier, laborHours). Pricing is
+ *  intentionally NOT editable here: update_order_items is the "doesn't re-run
+ *  pricing" patch path (the staff prompt says so); re-pricing goes through
+ *  create_order's full engine. Editing price inline here previously flipped a
+ *  negative discount line into a charge and broke the unitPrice×qty invariant.
+ *  This also fixes a prior rebuild that wrote `description` into `name`. */
+export function mergeItemUpdate(existing: OrderItem, upd: ItemUpdate): OrderItem {
+  const merged: OrderItem = { ...existing };
+  if (upd.name !== undefined) merged.name = upd.name;
+  if (upd.description !== undefined) {
+    merged.description = upd.description === "" ? undefined : upd.description;
+  }
+  if (upd.intent !== undefined) {
+    const meta = {
+      ...((existing as unknown as { metadata?: Record<string, unknown> }).metadata ?? {}),
+      intent: upd.intent,
+    };
+    (merged as unknown as { metadata: Record<string, unknown> }).metadata = meta;
+    merged.taxable = upd.intent !== "note";
+    merged.category = upd.intent === "note" ? "fee" : existing.category;
+  }
+  return merged;
+}
+
 const updateOrderItemsTool = {
   name: "update_order_items",
   description: "Update line items on a draft, revised, or estimated order using PATCH semantics. " +
     "Only works on orders in 'draft', 'revised', or 'estimated' status. " +
     "Operations: add new items, update existing by itemId, or remove by itemId. " +
+    "Get each item's itemId from get_order (item.id). " +
     "Use idempotencyKey to prevent duplicate operations on retry. " +
     "ExpectedVersion ensures no concurrent-overwrite conflicts.",
   schema: z.object({
@@ -194,10 +226,12 @@ const updateOrderItemsTool = {
     updateItems: z
       .array(
         z.object({
-          itemId: z.string().describe("Existing item ID to update"),
-          description: z.string().optional().describe("New description"),
-          labor_hours: z.number().optional().describe("New labor hours"),
-          parts_cost: z.number().optional().describe("New parts cost"),
+          itemId: z.string().describe("Existing item ID to update (from get_order's item.id)"),
+          name: z.string().optional().describe("New display name/label for the line item"),
+          description: z
+            .string()
+            .optional()
+            .describe('New secondary description. Pass "" (empty string) to clear it.'),
           intent: z
             .enum(["replace", "inspect", "optional", "note"])
             .optional()
@@ -205,7 +239,10 @@ const updateOrderItemsTool = {
         }),
       )
       .optional()
-      .describe("Items to update by itemId"),
+      .describe(
+        "Edit existing items by itemId — label / description / intent only; does NOT re-price. " +
+          "Only the fields you pass change. To change labor/parts pricing, use create_order.",
+      ),
     removeItemIds: z
       .array(z.string())
       .optional()
@@ -237,9 +274,8 @@ const updateOrderItemsTool = {
       }>;
       updateItems?: Array<{
         itemId: string;
+        name?: string;
         description?: string;
-        labor_hours?: number;
-        parts_cost?: number;
         intent?: "replace" | "inspect" | "optional" | "note";
       }>;
       removeItemIds?: string[];
@@ -375,24 +411,7 @@ const updateOrderItemsTool = {
         if (!existing) {
           return toolResult({ success: false, error: `Item ${upd.itemId} not found` });
         }
-        const existingLaborHours = (existing as unknown as { laborHours?: number }).laborHours ?? 0;
-        const existingLaborCents = Math.round(existingLaborHours * 140 * 100);
-        const existingPartsCents = Math.max(0, existing.totalCents - existingLaborCents);
-        const existingPartsCost = existingPartsCents / 100;
-        const rebuilt = await buildItem(
-          upd.description ?? existing.name,
-          upd.labor_hours ?? existingLaborHours,
-          upd.parts_cost ?? existingPartsCost,
-          upd.intent ??
-            (existing as unknown as { metadata?: { intent?: string } }).metadata?.intent as
-              | "replace"
-              | "inspect"
-              | "optional"
-              | "note" ??
-            "replace",
-          upd.itemId,
-        );
-        itemsMap.set(upd.itemId, rebuilt);
+        itemsMap.set(upd.itemId, mergeItemUpdate(existing, upd));
       }
     }
 

@@ -604,8 +604,11 @@ export const createOrderTool = {
         version: row.revisionNumber,
         vehicle: `${params.vehicle.year} ${params.vehicle.make} ${params.vehicle.model}`,
         items: items.map((i) => ({
+          // id is the stable itemId — update_order_items targets line items by
+          // it. Without it the agent can't edit/remove existing items.
+          id: i.id,
           name: i.name,
-          description: i.description,
+          description: i.description ?? null,
           unitPriceCents: i.unitPriceCents,
           totalCents: i.totalCents,
           quantity: i.quantity,
@@ -842,8 +845,9 @@ export const createOrderTool = {
       vehicle: `${params.vehicle.year} ${params.vehicle.make} ${params.vehicle.model}`,
       customerName: customer?.name ?? null,
       items: items.map((i) => ({
+        id: i.id,
         name: i.name,
-        description: i.description,
+        description: i.description ?? null,
         unitPriceCents: i.unitPriceCents,
         totalCents: i.totalCents,
         quantity: i.quantity,
@@ -896,8 +900,11 @@ export const getOrderTool = {
         id: order.id,
         status: order.status,
         items: items.map((i) => ({
+          // id is the stable itemId — update_order_items targets line items by
+          // it. Without it the agent can't edit/remove existing items.
+          id: i.id,
           name: i.name,
-          description: i.description,
+          description: i.description ?? null,
           unitPriceCents: i.unitPriceCents,
           totalCents: i.totalCents,
           quantity: i.quantity,
