@@ -9,13 +9,9 @@ import { admin } from "./routes/admin.ts";
 import { adminMechanics } from "./routes/admin-mechanics.ts";
 import { mechanic } from "./routes/mechanic.ts";
 import { orders, ordersPdf } from "./routes/orders.ts";
-import { chat, initChat } from "./routes/chat.ts";
-import { initStaffChat, staffChat } from "./routes/staff-chat.ts";
+import { chat } from "./routes/chat.ts";
+import { staffChat } from "./routes/staff-chat.ts";
 import { createWebhookRoute } from "./routes/webhook.ts";
-
-interface HmlsAppOptions {
-  googleApiKey: string;
-}
 
 const logger = getLogger(["hmls", "gateway", "app"]);
 
@@ -33,17 +29,7 @@ const adminApp = new Hono()
 const portalApp = portal;
 const mechanicApp = mechanic;
 
-export function createHmlsApp(options: HmlsAppOptions) {
-  const { googleApiKey } = options;
-
-  // Initialize chat agent configs (customer + staff)
-  const agentConfig = {
-    googleApiKey,
-    agentModel: Deno.env.get("AGENT_MODEL"),
-  };
-  initChat(agentConfig);
-  initStaffChat(agentConfig);
-
+export function createHmlsApp() {
   const app = new Hono();
 
   app.use(

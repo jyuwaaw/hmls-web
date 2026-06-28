@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { convertToModelMessages } from "ai";
 import { eq } from "drizzle-orm";
-import { type AgentConfig, runHmlsAgent, type UserContext } from "@hmls/agent";
+import { runHmlsAgent, type UserContext } from "@hmls/agent";
 import { db, schema } from "@hmls/agent/db";
 import { routeOrderToShop } from "@hmls/agent/common/shop-routing";
 import { Errors } from "@hmls/shared/errors";
@@ -9,12 +9,6 @@ import { getLogger } from "@logtape/logtape";
 import { type AuthUserEnv, requireAuthUser } from "../middleware/auth.ts";
 
 const logger = getLogger(["hmls", "gateway", "chat"]);
-
-let _config: AgentConfig;
-
-export function initChat(config: AgentConfig) {
-  _config = config;
-}
 
 /** Look up customer by authUserId (preferred) or unique email, or create one if not found.
  *  Returns the customer context AND their shopId (resolved from the DB row,
@@ -148,7 +142,6 @@ chat.post("/", requireAuthUser, async (c) => {
 
     const result = await runHmlsAgent({
       messages: modelMessages,
-      config: _config,
       userContext,
       shopId,
     });

@@ -1,5 +1,5 @@
 import { hasToolCall, type ModelMessage, stepCountIs, streamText } from "ai";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createDeepSeek } from "@ai-sdk/deepseek";
 import { getLogger } from "@logtape/logtape";
 import { STAFF_SYSTEM_PROMPT } from "./staff-system-prompt.ts";
 import { loadSkills } from "./load-skills.ts";
@@ -12,15 +12,13 @@ import { laborLookupTools } from "../common/tools/labor-lookup.ts";
 import { partsLookupTools } from "../common/tools/parts-lookup.ts";
 import { orderTools } from "../common/tools/order.ts";
 import { scheduleTools } from "../common/tools/schedule.ts";
-import type { AgentConfig } from "./agent.ts";
 
 const logger = getLogger(["hmls", "agent", "staff"]);
 
-const DEFAULT_MODEL = "gemini-3.1-flash-lite";
+const DEFAULT_MODEL = "deepseek-v4-pro";
 
 export interface RunStaffAgentOptions {
   messages: ModelMessage[];
-  config: AgentConfig;
   /** Admin identity for audit trails. Threaded into every tool as
    *  ctx.adminEmail so the order-state harness can stamp events with the
    *  acting admin, not a generic "staff_agent" string. */
@@ -36,10 +34,12 @@ export interface RunStaffAgentOptions {
 const SKILLS_PROMISE = loadSkills(["order", "scheduling"]);
 
 export async function runStaffAgent(options: RunStaffAgentOptions) {
-  const { messages, config, adminEmail, shopId } = options;
-  const modelId = config.agentModel || DEFAULT_MODEL;
+  const { messages, adminEmail, shopId } = options;
+  const apiKey = Deno.env.get("DEEPSEEK_API_KEY");
+  if (!apiKey) throw new Error("DEEPSEEK_API_KEY is required");
+  const modelId = Deno.env.get("AGENT_MODEL") || DEFAULT_MODEL;
+  const deepseek = createDeepSeek({ apiKey });
 
-  const google = createGoogleGenerativeAI({ apiKey: config.googleApiKey });
   const skills = await SKILLS_PROMISE;
   const systemPrompt = skills ? `${STAFF_SYSTEM_PROMPT}\n\n${skills}` : STAFF_SYSTEM_PROMPT;
 
@@ -62,7 +62,7 @@ export async function runStaffAgent(options: RunStaffAgentOptions) {
   logger.info("Initializing staff agent", { model: modelId, toolCount });
 
   return streamText({
-    model: google(modelId),
+    model: deepseek(modelId),
     system: systemPrompt,
     messages,
     tools,

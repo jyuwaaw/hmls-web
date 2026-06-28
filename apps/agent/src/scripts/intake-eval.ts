@@ -6,22 +6,23 @@
 // jargon (candidate-system / root-cause terms); (3) maintenance → diagnose_symptom
 // is NOT called. Real model + OLP DB.
 //
-// Model switch: set AGENT_MODEL to A/B Gemini models (e.g. gemini-3.1-flash-lite
-// vs gemini-3-flash-preview) without code changes — it threads into config.agentModel.
-// (Off-family providers (DeepSeek/GLM/Qwen) would need a provider swap in agent.ts,
-// not just this env var — that's a separate change.)
+// Model switch: set AGENT_MODEL to A/B DeepSeek models (deepseek-v4-flash vs
+// deepseek-v4-pro) — the agent reads it from env. The HMLS agent is DeepSeek-only
+// now; a Gemini id would 404. Rolling back to Gemini is a code change in agent.ts.
 //
 // Run: infisical run --env=dev -- deno run -A apps/agent/src/scripts/intake-eval.ts
-//      AGENT_MODEL=gemini-3.1-flash-lite infisical run --env=dev -- deno run -A apps/agent/src/scripts/intake-eval.ts
+//      AGENT_MODEL=deepseek-v4-pro infisical run --env=dev -- deno run -A apps/agent/src/scripts/intake-eval.ts
 import { runHmlsAgent } from "../hmls/agent.ts";
 
-const apiKey = Deno.env.get("GOOGLE_API_KEY");
-if (!apiKey) {
-  console.error("GOOGLE_API_KEY required (run via infisical).");
-  Deno.exit(2);
+// Agent needs DEEPSEEK_API_KEY; diagnose_symptom (Fixo brain) still needs GOOGLE_API_KEY.
+for (const k of ["DEEPSEEK_API_KEY", "GOOGLE_API_KEY"]) {
+  if (!Deno.env.get(k)) {
+    console.error(`${k} required (run via infisical).`);
+    Deno.exit(2);
+  }
 }
 const agentModel = Deno.env.get("AGENT_MODEL") || undefined;
-console.log(`model: ${agentModel ?? "(default) gemini-3.1-flash-lite"}\n`);
+console.log(`model: ${agentModel ?? "(default) deepseek-v4-pro"}\n`);
 
 interface Trace {
   toolOrder: string[];
@@ -31,7 +32,6 @@ interface Trace {
 async function runTurn(prompt: string): Promise<Trace> {
   const result = await runHmlsAgent({
     messages: [{ role: "user", content: prompt }],
-    config: { googleApiKey: apiKey!, agentModel },
   });
   const toolOrder: string[] = [];
   let text = "";

@@ -11,12 +11,16 @@ const serverLogger = getLogger(["hmls", "gateway", "server"]);
 // ── Fail fast on required env vars ──
 const DATABASE_URL = Deno.env.get("DATABASE_URL");
 const GOOGLE_API_KEY = Deno.env.get("GOOGLE_API_KEY");
+const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY");
 
 if (!DATABASE_URL) {
   throw new Error("DATABASE_URL is required but not set");
 }
 if (!GOOGLE_API_KEY) {
   throw new Error("GOOGLE_API_KEY is required but not set");
+}
+if (!DEEPSEEK_API_KEY) {
+  throw new Error("DEEPSEEK_API_KEY is required but not set");
 }
 
 // Warn on optional vars
@@ -33,7 +37,7 @@ for (
   }
 }
 
-const mainApp = createHmlsApp({ googleApiKey: GOOGLE_API_KEY });
+const mainApp = createHmlsApp();
 const fixoApp = createFixoApp();
 
 // ── Subdomain dispatch ──

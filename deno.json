@@ -4,6 +4,7 @@
   "imports": {
     "ai": "npm:ai@^6.0.169",
     "@ai-sdk/google": "npm:@ai-sdk/google@^3.0.65",
+    "@ai-sdk/deepseek": "npm:@ai-sdk/deepseek@^2.0.42",
     "hono": "npm:hono@^4.12.14",
     "@hono/zod-validator": "npm:@hono/zod-validator@^0.4.3",
     "zod": "npm:zod@^4.3.6",

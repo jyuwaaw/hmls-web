@@ -1,5 +1,5 @@
 import { hasToolCall, type ModelMessage, stepCountIs, streamText } from "ai";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createDeepSeek } from "@ai-sdk/deepseek";
 import { getLogger } from "@logtape/logtape";
 import { SYSTEM_PROMPT } from "./system-prompt.ts";
 import { loadSkills } from "./load-skills.ts";
@@ -18,16 +18,10 @@ import { diagnoseSymptomTools } from "./tools/diagnose-symptom.ts";
 
 const logger = getLogger(["hmls", "agent", "hmls"]);
 
-const DEFAULT_MODEL = "gemini-3.1-flash-lite";
-
-export interface AgentConfig {
-  googleApiKey: string;
-  agentModel?: string;
-}
+const DEFAULT_MODEL = "deepseek-v4-pro";
 
 export interface RunAgentOptions {
   messages: ModelMessage[];
-  config: AgentConfig;
   userContext?: UserContext;
   /** Multi-tenancy: the shop the customer belongs to (stamped at first-contact
    *  upsert). Threads into every tool so order/customer reads are shop-scoped. */
@@ -40,10 +34,11 @@ export interface RunAgentOptions {
 const SKILLS_PROMISE = loadSkills(["order", "scheduling"]);
 
 export async function runHmlsAgent(options: RunAgentOptions) {
-  const { messages, config, userContext, shopId } = options;
-  const modelId = config.agentModel || DEFAULT_MODEL;
-
-  const google = createGoogleGenerativeAI({ apiKey: config.googleApiKey });
+  const { messages, userContext, shopId } = options;
+  const apiKey = Deno.env.get("DEEPSEEK_API_KEY");
+  if (!apiKey) throw new Error("DEEPSEEK_API_KEY is required");
+  const modelId = Deno.env.get("AGENT_MODEL") || DEFAULT_MODEL;
+  const deepseek = createDeepSeek({ apiKey });
 
   const skills = await SKILLS_PROMISE;
   const parts = [SYSTEM_PROMPT];
@@ -79,7 +74,7 @@ export async function runHmlsAgent(options: RunAgentOptions) {
   logger.info("Initializing HMLS agent", { model: modelId, toolCount });
 
   return streamText({
-    model: google(modelId),
+    model: deepseek(modelId),
     system: systemPrompt,
     messages,
     tools,

@@ -1,18 +1,12 @@
 import { Hono } from "hono";
 import { convertToModelMessages } from "ai";
-import { type AgentConfig, runStaffAgent } from "@hmls/agent";
+import { runStaffAgent } from "@hmls/agent";
 import { Errors } from "@hmls/shared/errors";
 import { getLogger } from "@logtape/logtape";
 import { type AdminEnv, requireAdmin } from "../middleware/admin.ts";
 import { requireShopContext, type WithShop } from "../middleware/shop-context.ts";
 
 const logger = getLogger(["hmls", "gateway", "staff-chat"]);
-
-let _config: AgentConfig;
-
-export function initStaffChat(config: AgentConfig) {
-  _config = config;
-}
 
 const staffChat = new Hono<WithShop<AdminEnv>>();
 
@@ -50,7 +44,6 @@ staffChat.post("/", async (c) => {
 
     const result = await runStaffAgent({
       messages: modelMessages,
-      config: _config,
       adminEmail: authUser.email ?? undefined,
       shopId,
     });
