@@ -21,6 +21,22 @@ function stripFrontmatter(md: string): string {
   return md.slice(end + 4).replace(/^\n+/, "");
 }
 
+/** Skills the agents may pull on demand via the `load_skill` tool. v1 = the two
+ *  heavy bodies that used to be inlined at boot. Diagnosis skills stay Fixo-only. */
+export const LOADABLE_SKILLS = ["order", "scheduling"] as const;
+export type LoadableSkill = (typeof LOADABLE_SKILLS)[number];
+
+/** Read one skill's body (frontmatter stripped). null if missing or empty. */
+export async function readSkillBody(name: string): Promise<string | null> {
+  try {
+    const raw = await Deno.readTextFile(new URL(`${name}/skill.md`, SKILLS_DIR));
+    const body = stripFrontmatter(raw).trim();
+    return body || null;
+  } catch {
+    return null;
+  }
+}
+
 /** Read the named skills' bodies and return a single concatenated string
  *  ready to drop after the static system prompt. Skills are emitted in
  *  the order requested. Missing files are skipped silently — adding a
