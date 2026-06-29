@@ -97,3 +97,27 @@ jobs:
 
       - name: Test API
         run: deno task test
+
+  schema:
+    name: Schema drift
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      # Build the DB from schema.ts + local-seed.sql on a clean Postgres, then
+      # assert a second `db:push` reports no changes. Fails if schema.ts won't
+      # build, local-seed.sql rot, or the two disagree.
+      - name: Rebuild from code + drift check
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+        run: scripts/db-local-reset.sh check
