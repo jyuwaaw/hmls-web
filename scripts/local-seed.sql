@@ -126,6 +126,19 @@ BEGIN
   END IF;
 END $$;
 
+-- GoTrue calls the custom_access_token hook as supabase_auth_admin. The function
+-- is STABLE (not SECURITY DEFINER), so it runs with that role's privileges and
+-- must be able to read public.customers — EXECUTE alone makes login 500. Guarded:
+-- the role only exists in Supabase.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'supabase_auth_admin') THEN
+    GRANT USAGE ON SCHEMA public TO supabase_auth_admin;
+    GRANT EXECUTE ON FUNCTION public.custom_access_token_hook(jsonb) TO supabase_auth_admin;
+    GRANT SELECT ON public.customers TO supabase_auth_admin;
+  END IF;
+END $$;
+
 -- ponytail: prod has an EXCLUDE no-overlap on provider_availability, skipped
 -- locally. It needs `time` columns (a gist tsrange), but schema.ts deliberately
 -- types start_time/end_time as varchar (see its line-81 comment), and casting
