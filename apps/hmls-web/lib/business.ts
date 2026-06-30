@@ -102,6 +102,8 @@ export type RegionId = "oc" | "sj";
 
 export interface Region {
   id: RegionId;
+  /** The DB shops.slug this marketing region maps to (apps/agent shops table). */
+  shopSlug: string;
   /** Metro display name, e.g. "Orange County". */
   label: string;
   /** Home-base city — rendered as "~N min from {baseCity} base". */
@@ -128,6 +130,7 @@ export interface Region {
 export const REGIONS: Record<RegionId, Region> = {
   oc: {
     id: "oc",
+    shopSlug: "orange-county",
     label: "Orange County",
     baseCity: "Irvine",
     phone: BUSINESS.phone,
@@ -139,6 +142,7 @@ export const REGIONS: Record<RegionId, Region> = {
   },
   sj: {
     id: "sj",
+    shopSlug: "san-jose",
     label: "San Jose",
     baseCity: "San Jose",
     // Shared line for now — swap in a local 408 number when SJ gets one.
