@@ -49,7 +49,9 @@ function rolesFromSession(session: Session | null) {
   const claims = decodeJwt(session?.access_token);
   const role = claims.user_role as string | undefined;
   return {
-    isAdmin: role === "admin",
+    // owner is a cross-shop admin — it must unlock the admin UI too. The
+    // owner-only extra (shop switcher) keys off isOwner below.
+    isAdmin: role === "admin" || role === "owner",
     isMechanic: role === "mechanic",
     isOwner: role === "owner",
   };
