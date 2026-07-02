@@ -1,3 +1,4 @@
+import { ACTIVE_SHOP_KEY } from "./active-shop";
 import { AGENT_URL } from "./config";
 
 export class ApiError extends Error {
@@ -45,6 +46,20 @@ export function createApiClient(
       const payload = (await res.json().catch(() => null)) as {
         error?: { code?: string; message?: string };
       } | null;
+      // Self-heal a stale shop selection: if the persisted X-Shop-Id no longer
+      // names a real shop, the gateway rejects EVERY admin request with
+      // BAD_SHOP — including /api/admin/shops, so the owner can't use the
+      // switcher to fix it (hard lockout). Clear the bad value and reload to
+      // fall back to all-shops. Guarded on the key being set so this can't loop.
+      if (
+        res.status === 403 &&
+        payload?.error?.code === "BAD_SHOP" &&
+        typeof window !== "undefined" &&
+        window.localStorage.getItem(ACTIVE_SHOP_KEY)
+      ) {
+        window.localStorage.removeItem(ACTIVE_SHOP_KEY);
+        window.location.reload();
+      }
       const message =
         payload?.error?.message ?? `Request failed (${res.status})`;
       throw new ApiError(res.status, message, payload);
