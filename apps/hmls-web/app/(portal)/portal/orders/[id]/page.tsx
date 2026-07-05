@@ -14,6 +14,7 @@ import { Spinner } from "@/components/ui/Spinner";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useApi } from "@/hooks/useApi";
 import { usePortalOrder } from "@/hooks/usePortal";
+import { ApiError } from "@/lib/api-client";
 import { portalPaths } from "@/lib/api-paths";
 import { formatCents } from "@/lib/format";
 import { isTentativeBooking, statusDisplay } from "@/lib/status-display";
@@ -227,6 +228,8 @@ export default function PortalOrderDetailPage() {
   const orderId = params.id as string;
   const { data, isLoading, isError, mutate } = usePortalOrder(orderId);
   const [actionLoading, setActionLoading] = useState(false);
+  const [addressInput, setAddressInput] = useState("");
+  const [showAddress, setShowAddress] = useState(false);
 
   if (isLoading) {
     return (
@@ -286,9 +289,24 @@ export default function PortalOrderDetailPage() {
         action === "approve"
           ? portalPaths.approve(order.id)
           : portalPaths.decline(order.id);
-      await api.post(path, reason ? { reason } : {});
+      const body =
+        action === "approve"
+          ? addressInput.trim()
+            ? { address: addressInput.trim() }
+            : {}
+          : reason
+            ? { reason }
+            : {};
+      await api.post(path, body);
       mutate();
     } catch (e) {
+      const payload =
+        e instanceof ApiError
+          ? (e.payload as { error?: { code?: string } })
+          : null;
+      if (payload?.error?.code === "ADDRESS_REQUIRED") {
+        setShowAddress(true);
+      }
       toast.error(e instanceof Error ? e.message : `Failed to ${action} order`);
     } finally {
       setActionLoading(false);
@@ -547,10 +565,33 @@ export default function PortalOrderDetailPage() {
                   Please review the services above and approve or decline this
                   estimate.
                 </p>
+                {showAddress && (
+                  <div className="mb-3">
+                    <label
+                      htmlFor="approve-service-address"
+                      className="block text-sm mb-1"
+                    >
+                      Service address (street, city, state)
+                    </label>
+                    <input
+                      id="approve-service-address"
+                      className="w-full rounded border px-3 py-2"
+                      value={addressInput}
+                      onChange={(e) => setAddressInput(e.target.value)}
+                      placeholder="123 Main St, San Jose, CA 95112"
+                    />
+                  </div>
+                )}
                 <div className="flex flex-col gap-2">
                   <button
                     type="button"
-                    onClick={() => handleAction("approve")}
+                    onClick={() => {
+                      if (data.needsAddress && !addressInput.trim()) {
+                        setShowAddress(true);
+                        return;
+                      }
+                      handleAction("approve");
+                    }}
                     disabled={actionLoading}
                     className="flex items-center justify-center gap-1.5 text-xs font-medium px-4 py-2.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50"
                   >

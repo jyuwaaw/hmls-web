@@ -1,4 +1,6 @@
 import { Hono } from "hono";
+import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
 import { db, dbAdmin, schema, withAdminScope, withTenantScope } from "@hmls/agent/db";
 import { and, eq } from "drizzle-orm";
 import { EstimatePdf } from "@hmls/agent";
@@ -7,6 +9,13 @@ import { Errors } from "@hmls/shared/errors";
 import { type AuthEnv, requireAuth } from "../middleware/auth.ts";
 import { sendOrderStateResult } from "../lib/order-state-http.ts";
 import { pdfResponse } from "../lib/pdf-response.ts";
+import { geocodeAddress } from "@hmls/agent/common/shop-routing";
+
+const ZIP_ONLY = /^\d{5}(-\d{4})?$/;
+/** An estimate whose stored location is a bare ZIP still needs a street address before approval. */
+function needsAddress(order: { status: string; location: string | null }): boolean {
+  return order.status === "estimated" && !!order.location && ZIP_ONLY.test(order.location.trim());
+}
 
 // After Layer 3 "estimate" is a VIEW on the `orders` table — there is no
 // separate `estimates` table anymore. The routes below still live under
@@ -152,6 +161,7 @@ estimates.get("/:id/review", async (c) => {
     customerName: order.contactName,
     orderId: order.id,
     orderStatus: order.status,
+    needsAddress: needsAddress(order),
   });
 });
 
@@ -172,16 +182,55 @@ async function assertTokenValid(
   return row != null;
 }
 
+const approveInput = z.object({ address: z.string().min(3).optional() });
+
 // POST /estimates/:id/approve — share-token approval
-estimates.post("/:id/approve", async (c) => {
+estimates.post("/:id/approve", zValidator("json", approveInput), async (c) => {
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id) || id <= 0) {
     return c.json({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
   }
   const token = c.req.query("token");
-  if (!(await assertTokenValid(id, token))) {
+  const { address } = c.req.valid("json");
+
+  // dbAdmin: public share-token route (no requireShopContext on this router,
+  // so no tenant GUC would be set). The token-match WHERE clause below is the
+  // authorization proof (replaces the separate assertTokenValid existence check
+  // — we need the full row anyway for the address gate below).
+  const [order] = await dbAdmin
+    .select()
+    .from(schema.orders)
+    .where(and(eq(schema.orders.id, id), eq(schema.orders.shareToken, token ?? "")))
+    .limit(1);
+  if (!order) {
     return c.json({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
   }
+
+  // Zip-only estimate must gain a street address before approval — otherwise
+  // staff would dispatch on centroid-only precision. Same gate as the
+  // authenticated portal approve route (portal.ts).
+  if (needsAddress(order)) {
+    if (!address) {
+      return c.json(
+        {
+          error: { code: "ADDRESS_REQUIRED", message: "A service address is required to approve." },
+        },
+        400,
+      );
+    }
+    const coords = await geocodeAddress(address);
+    const outOfArea = !coords; // best-effort; a miss just flags for staff, never blocks
+    await dbAdmin.update(schema.orders).set({
+      location: address,
+      locationLat: coords ? String(coords.lat) : order.locationLat,
+      locationLng: coords ? String(coords.lng) : order.locationLng,
+      adminNotes: outOfArea
+        ? [order.adminNotes, "⚠ Approval address did not geocode — verify before dispatch."]
+          .filter(Boolean).join("\n")
+        : order.adminNotes,
+    }).where(and(eq(schema.orders.id, id), eq(schema.orders.shareToken, token ?? ""))); // tenant-ok: share-token capability re-checked in the WHERE clause
+  }
+
   // withAdminScope: share-token caller has no shop context, so transition()'s
   // internal reads/writes would be denied under fail-closed RLS. The token was
   // just validated above; run the state change on the admin (bypass) connection.

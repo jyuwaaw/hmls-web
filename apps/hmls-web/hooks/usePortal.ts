@@ -22,6 +22,7 @@ export type PortalOrderDetail = {
   order: Order;
   intake: OrderIntake | null;
   events: OrderEvent[];
+  needsAddress: boolean;
 };
 
 export function usePortalCustomer() {

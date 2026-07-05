@@ -9,6 +9,20 @@ export interface Coords {
   lng: number;
 }
 
+import zipCentroids from "./data/zip-centroids.json" with { type: "json" };
+
+const ZIP_TABLE = zipCentroids as unknown as Record<string, [number, number]>;
+
+/** Map a US ZIP (5-digit or ZIP+4) to its ZCTA centroid, or null on miss.
+ *  Precision is centroid-level — enough to route to the nearest shop, not to
+ *  dispatch a mechanic. */
+export function zipToCoords(zip: string): Coords | null {
+  const m = /^(\d{5})/.exec(zip.trim());
+  if (!m) return null;
+  const hit = ZIP_TABLE[m[1]];
+  return hit ? { lat: hit[0], lng: hit[1] } : null;
+}
+
 /** Equirectangular distance in km — fine for picking among shops. */
 function km(a: Coords, b: Coords): number {
   const dLat = a.lat - b.lat;
@@ -56,13 +70,26 @@ export async function geocodeAddress(address: string): Promise<Coords | null> {
   }
 }
 
+/** Resolve routing coords: a geocodable address wins; else the ZIP centroid;
+ *  else null. Best-effort, never throws. */
+export async function resolveRoutingCoords(
+  address: string | null,
+  zip?: string | null,
+): Promise<Coords | null> {
+  const fromAddr = address ? await geocodeAddress(address) : null;
+  if (fromAddr) return fromAddr;
+  return zip ? zipToCoords(zip) : null;
+}
+
 /**
- * Resolve which shop an order belongs to from its service address.
+ * Resolve which shop an order belongs to from its service address (or, if no
+ * address geocodes, its ZIP centroid).
  * Best-effort: geocode failure or no match falls back to the primary shop
  * (san-jose) with autoRouted=false so staff can review.
  */
 export async function routeOrderToShop(
   address: string | null,
+  zip?: string | null,
 ): Promise<{ shopId: string; coords: Coords | null; autoRouted: boolean }> {
   const shops = await db.select({
     id: schema.shops.id,
@@ -75,7 +102,7 @@ export async function routeOrderToShop(
   const primary = shops.find((s) => s.slug === "san-jose") ?? shops[0];
   if (!primary) throw new Error("No shops configured in database");
 
-  const coords = address ? await geocodeAddress(address) : null;
+  const coords = await resolveRoutingCoords(address, zip);
   const matchedId = coords ? nearestShop(coords, shops) : null;
   if (matchedId) return { shopId: matchedId, coords, autoRouted: true };
   return { shopId: primary.id, coords, autoRouted: false };

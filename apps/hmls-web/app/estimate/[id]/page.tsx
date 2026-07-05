@@ -30,6 +30,7 @@ interface EstimateReview {
   customerName: string | null;
   orderId: number | null;
   orderStatus: string | null;
+  needsAddress: boolean;
 }
 
 function formatCents(cents: number): string {
@@ -52,6 +53,8 @@ export default function EstimateReviewPage() {
 
   const [actionLoading, setActionLoading] = useState(false);
   const [result, setResult] = useState<"approved" | "declined" | null>(null);
+  const [addressInput, setAddressInput] = useState("");
+  const [showAddress, setShowAddress] = useState(false);
 
   const swrKey = token
     ? `${AGENT_URL}/api/estimates/${id}/review?token=${encodeURIComponent(token)}`
@@ -88,6 +91,11 @@ export default function EstimateReviewPage() {
       if (!confirmed) return;
     }
 
+    const body =
+      action === "approve" && addressInput.trim()
+        ? { address: addressInput.trim() }
+        : {};
+
     setActionLoading(true);
     try {
       const res = await fetch(
@@ -95,12 +103,15 @@ export default function EstimateReviewPage() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({}),
+          body: JSON.stringify(body),
         },
       );
       if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        toast.error(body?.error?.message ?? `Failed to ${action}`);
+        const errBody = await res.json().catch(() => null);
+        if (errBody?.error?.code === "ADDRESS_REQUIRED") {
+          setShowAddress(true);
+        }
+        toast.error(errBody?.error?.message ?? `Failed to ${action}`);
         return;
       }
       setResult(action === "approve" ? "approved" : "declined");
@@ -135,7 +146,7 @@ export default function EstimateReviewPage() {
 
   if (!data) return null;
 
-  const { estimate, customerName, orderStatus } = data;
+  const { estimate, customerName, orderStatus, needsAddress } = data;
   const items = estimate.items as LineItem[];
   const vehicle = estimate.vehicleInfo;
   const expired = new Date(estimate.expiresAt) < new Date();
@@ -294,25 +305,50 @@ export default function EstimateReviewPage() {
           <FixoCtaBanner channelDetail="estimate_expired" />
         </div>
       ) : (
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => handleAction("approve")}
-            disabled={actionLoading}
-            className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-green-600 text-white font-semibold text-sm hover:bg-green-700 transition-colors disabled:opacity-50"
-          >
-            <Check className="w-4 h-4" />
-            Approve
-          </button>
-          <button
-            type="button"
-            onClick={() => handleAction("decline")}
-            disabled={actionLoading}
-            className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-border text-text-secondary font-medium text-sm hover:bg-surface-alt transition-colors disabled:opacity-50"
-          >
-            <XIcon className="w-4 h-4" />
-            Decline
-          </button>
+        <div className="space-y-3">
+          {showAddress && (
+            <div>
+              <label
+                htmlFor="approve-service-address"
+                className="block text-sm mb-1 text-text"
+              >
+                Service address (street, city, state)
+              </label>
+              <input
+                id="approve-service-address"
+                className="w-full rounded-xl border border-border px-3 py-2 text-sm bg-surface text-text"
+                value={addressInput}
+                onChange={(e) => setAddressInput(e.target.value)}
+                placeholder="123 Main St, San Jose, CA 95112"
+              />
+            </div>
+          )}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                if (needsAddress && !addressInput.trim()) {
+                  setShowAddress(true);
+                  return;
+                }
+                handleAction("approve");
+              }}
+              disabled={actionLoading}
+              className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-green-600 text-white font-semibold text-sm hover:bg-green-700 transition-colors disabled:opacity-50"
+            >
+              <Check className="w-4 h-4" />
+              Approve
+            </button>
+            <button
+              type="button"
+              onClick={() => handleAction("decline")}
+              disabled={actionLoading}
+              className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-border text-text-secondary font-medium text-sm hover:bg-surface-alt transition-colors disabled:opacity-50"
+            >
+              <XIcon className="w-4 h-4" />
+              Decline
+            </button>
+          </div>
         </div>
       )}
     </main>

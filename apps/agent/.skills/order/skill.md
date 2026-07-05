@@ -74,6 +74,9 @@ Before creating an order:
 1. Confirm vehicle info (year, make, model) — needed for labor lookup AND parts lookup
 2. Clarify the scope of services needed
 3. (Staff only) Look up the customer with `search_customers` if a name is mentioned
+4. (Customer only) Collect a 5-digit ZIP for the service location — enough to price + route the
+   estimate. Tell the customer the full street address is collected later at booking. Pass it as
+   `customerInfo.serviceZip` (or `customerInfo.address` if they volunteer the full address).
 
 ## Order Flow
 

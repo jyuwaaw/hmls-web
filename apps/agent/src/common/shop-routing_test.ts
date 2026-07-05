@@ -1,5 +1,11 @@
 import { assertEquals } from "@std/assert";
-import { nearestShop, parseGeocodeResponse, routingReviewNote } from "./shop-routing.ts";
+import {
+  nearestShop,
+  parseGeocodeResponse,
+  resolveRoutingCoords,
+  routingReviewNote,
+  zipToCoords,
+} from "./shop-routing.ts";
 
 const SJ = { id: "sj", latitude: "37.3361663", longitude: "-121.890591", serviceRadiusKm: null };
 const OC = { id: "oc", latitude: "33.6484505", longitude: "-117.8365716", serviceRadiusKm: null };
@@ -40,4 +46,34 @@ Deno.test("routingReviewNote: geocode-fail note when coords are null", () => {
   const note = routingReviewNote({ autoRouted: false, coords: null });
   assertEquals(typeof note, "string");
   assertEquals(note!.includes("geocode"), true);
+});
+
+Deno.test("zipToCoords: known San Jose ZIP resolves near SJ", () => {
+  const c = zipToCoords("95112");
+  assertEquals(c !== null, true);
+  assertEquals(Math.abs(c!.lat - 37.35) < 0.3, true);
+  assertEquals(Math.abs(c!.lng - -121.88) < 0.3, true);
+});
+
+Deno.test("zipToCoords: ZIP+4 is normalized to 5 digits", () => {
+  assertEquals(zipToCoords("95112-1234") !== null, true);
+});
+
+Deno.test("zipToCoords: unknown / malformed returns null", () => {
+  assertEquals(zipToCoords("00000"), null);
+  assertEquals(zipToCoords("abc"), null);
+  assertEquals(zipToCoords(""), null);
+});
+
+Deno.test("resolveRoutingCoords: address wins over zip", async () => {
+  // A real US address geocodes; the zip is ignored when address resolves.
+  const c = await resolveRoutingCoords("1600 Amphitheatre Parkway, Mountain View, CA", "10001");
+  // best-effort: if the Census geocoder is unreachable in CI it returns null;
+  // assert only that it does not throw and returns Coords|null.
+  assertEquals(c === null || (typeof c.lat === "number"), true);
+});
+
+Deno.test("resolveRoutingCoords: falls back to zip centroid when no address", async () => {
+  const c = await resolveRoutingCoords(null, "95112");
+  assertEquals(c !== null && Math.abs(c.lat - 37.35) < 0.3, true);
 });

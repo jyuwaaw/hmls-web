@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import { db, schema } from "@hmls/agent/db";
 import { and, desc, eq } from "drizzle-orm";
@@ -8,6 +9,7 @@ import { requireShopContext, type WithShop } from "../middleware/shop-context.ts
 import { withTenantTx } from "../middleware/with-tenant-tx.ts";
 import { transition } from "@hmls/agent/order-state";
 import { sendOrderStateResult } from "../lib/order-state-http.ts";
+import { geocodeAddress } from "@hmls/agent/common/shop-routing";
 import { orderReasonInput, updateProfileInput } from "@hmls/shared/api/contracts/portal";
 import type {
   CustomerRow,
@@ -18,6 +20,12 @@ import type {
 } from "@hmls/shared/db/types";
 
 type ApiError = { error: { code: string; message: string } };
+
+const ZIP_ONLY = /^\d{5}(-\d{4})?$/;
+/** An estimate whose stored location is a bare ZIP still needs a street address before approval. */
+function needsAddress(order: { status: string; location: string | null }): boolean {
+  return order.status === "estimated" && !!order.location && ZIP_ONLY.test(order.location.trim());
+}
 
 const portal = new Hono<WithShop<AuthEnv>>();
 
@@ -105,7 +113,6 @@ portal.get("/me/orders", async (c) => {
 // GET /me/orders/:id — single order detail with events (customer-scoped)
 portal.get("/me/orders/:id", async (c) => {
   const customerId = c.get("customerId");
-  const shopId = c.get("shopId");
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id) || id <= 0) {
     return c.json<ApiError>({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
@@ -114,7 +121,7 @@ portal.get("/me/orders/:id", async (c) => {
   const [order] = await db
     .select()
     .from(schema.orders)
-    .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
+    .where(eq(schema.orders.id, id)) // tenant-ok: customer-owned row; ownership asserted below, RLS app.customer_id scopes it
     .limit(1);
 
   if (!order || order.customerId !== customerId) {
@@ -135,10 +142,18 @@ portal.get("/me/orders/:id", async (c) => {
       .then((r) => r[0] ?? null),
   ]);
 
-  return c.json<{ order: OrderRow; intake: OrderIntakeRow | null; events: OrderEventRow[] }>({
+  return c.json<
+    {
+      order: OrderRow;
+      intake: OrderIntakeRow | null;
+      events: OrderEventRow[];
+      needsAddress: boolean;
+    }
+  >({
     order,
     intake,
     events,
+    needsAddress: needsAddress(order),
   });
 });
 
@@ -173,24 +188,49 @@ portal.get("/me/quotes", async (c) => {
 // inline in each route below — a short SELECT is cheaper than plumbing
 // ownership through the harness.
 
+const approveInput = z.object({ address: z.string().min(3).optional() });
+
 // POST /me/orders/:id/approve — customer approves estimate (estimated → approved)
-portal.post("/me/orders/:id/approve", async (c) => {
+portal.post("/me/orders/:id/approve", zValidator("json", approveInput), async (c) => {
   const customerId = c.get("customerId");
-  const shopId = c.get("shopId");
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id) || id <= 0) {
     return c.json<ApiError>({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
   }
+  const { address } = c.req.valid("json");
 
   // Ownership check — harness handles role-based permission, we handle
-  // "this customer owns this row". Belt-and-suspenders: also assert shopId.
+  // "this customer owns this row" (ownership is by customerId, cross-shop by design).
   const [order] = await db
-    .select({ id: schema.orders.id, customerId: schema.orders.customerId })
+    .select() // tenant-ok: customer-owned row; ownership asserted below, RLS app.customer_id scopes it
     .from(schema.orders)
-    .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
+    .where(eq(schema.orders.id, id))
     .limit(1);
   if (!order || order.customerId !== customerId) {
     return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
+  }
+
+  // Zip-only estimate must gain a street address before approval.
+  if (needsAddress(order)) {
+    if (!address) {
+      return c.json<ApiError>(
+        {
+          error: { code: "ADDRESS_REQUIRED", message: "A service address is required to approve." },
+        },
+        400,
+      );
+    }
+    const coords = await geocodeAddress(address);
+    const outOfArea = !coords; // best-effort; a miss just flags for staff, never blocks
+    await db.update(schema.orders).set({
+      location: address,
+      locationLat: coords ? String(coords.lat) : order.locationLat,
+      locationLng: coords ? String(coords.lng) : order.locationLng,
+      adminNotes: outOfArea
+        ? [order.adminNotes, "⚠ Approval address did not geocode — verify before dispatch."]
+          .filter(Boolean).join("\n")
+        : order.adminNotes,
+    }).where(eq(schema.orders.id, id)); // tenant-ok: customer-owned row; ownership asserted above
   }
 
   const result = await transition(id, "approved", { kind: "customer", customerId });
@@ -200,16 +240,15 @@ portal.post("/me/orders/:id/approve", async (c) => {
 // POST /me/orders/:id/decline — customer declines estimate (estimated → declined)
 portal.post("/me/orders/:id/decline", zValidator("json", orderReasonInput), async (c) => {
   const customerId = c.get("customerId");
-  const shopId = c.get("shopId");
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id) || id <= 0) {
     return c.json<ApiError>({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
   }
 
   const [order] = await db
-    .select({ id: schema.orders.id, customerId: schema.orders.customerId })
+    .select({ id: schema.orders.id, customerId: schema.orders.customerId }) // tenant-ok: customer-owned row; ownership asserted below, RLS app.customer_id scopes it
     .from(schema.orders)
-    .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
+    .where(eq(schema.orders.id, id))
     .limit(1);
   if (!order || order.customerId !== customerId) {
     return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
@@ -229,16 +268,15 @@ portal.post(
   zValidator("json", orderReasonInput),
   async (c) => {
     const customerId = c.get("customerId");
-    const shopId = c.get("shopId");
     const id = Number(c.req.param("id"));
     if (!Number.isInteger(id) || id <= 0) {
       return c.json<ApiError>({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
     }
 
     const [order] = await db
-      .select({ id: schema.orders.id, customerId: schema.orders.customerId })
+      .select({ id: schema.orders.id, customerId: schema.orders.customerId }) // tenant-ok: customer-owned row; ownership asserted below, RLS app.customer_id scopes it
       .from(schema.orders)
-      .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
+      .where(eq(schema.orders.id, id))
       .limit(1);
     if (!order || order.customerId !== customerId) {
       return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
@@ -258,16 +296,15 @@ portal.post(
 // `cancel-booking` above is the Bookings-page equivalent for scheduled orders.
 portal.post("/me/orders/:id/cancel", zValidator("json", orderReasonInput), async (c) => {
   const customerId = c.get("customerId");
-  const shopId = c.get("shopId");
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id) || id <= 0) {
     return c.json<ApiError>({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
   }
 
   const [order] = await db
-    .select({ id: schema.orders.id, customerId: schema.orders.customerId })
+    .select({ id: schema.orders.id, customerId: schema.orders.customerId }) // tenant-ok: customer-owned row; ownership asserted below, RLS app.customer_id scopes it
     .from(schema.orders)
-    .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
+    .where(eq(schema.orders.id, id))
     .limit(1);
   if (!order || order.customerId !== customerId) {
     return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);

@@ -23,7 +23,11 @@
     "lineWidth": 100,
     "semiColons": true,
     "singleQuote": false,
-    "exclude": ["apps/hmls-web/", "apps/fixo-web/"]
+    "exclude": [
+      "apps/hmls-web/",
+      "apps/fixo-web/",
+      "apps/agent/src/common/data/zip-centroids.json"
+    ]
   },
   "lint": {
     "exclude": ["apps/hmls-web/", "apps/fixo-web/"]
