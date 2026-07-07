@@ -6,12 +6,19 @@ export async function POST(req: NextRequest) {
   try {
     const json = await req.json();
     const authorization = req.headers.get("Authorization");
+    // Forward the tenant header so the staff/owner chat is scoped to the
+    // selected shop (matches api-client.ts CRUD requests). Without it an owner
+    // is always OWNER_ALL in chat and can't create orders / scope reads.
+    const shopId = req.headers.get("X-Shop-Id");
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
     if (authorization) {
       headers.Authorization = authorization;
+    }
+    if (shopId) {
+      headers["X-Shop-Id"] = shopId;
     }
 
     const upstream = await fetch(`${GATEWAY_URL}/api/admin/chat`, {

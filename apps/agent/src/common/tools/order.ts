@@ -643,8 +643,15 @@ export const createOrderTool = {
     //    with a concrete shop bound; an owner with no shop selected
     //    (ctx.shopId === OWNER_ALL_SHOPS) and the no-context case are rejected.
     const insertAccess: AccessCtx = { shopId: ctx?.shopId, customerId: ctx?.customerId };
-    if (!canWrite(insertAccess)) {
-      return toolResult({ success: false, error: "Select a shop before creating an order." });
+    // An owner with no shop selected (OWNER_ALL_SHOPS) may still create: the
+    // order routes to the shop nearest the service address (below), so we don't
+    // force a pre-pick. Reject only a truly context-less call.
+    const isOwnerAll = insertAccess.shopId === OWNER_ALL_SHOPS;
+    if (!canWrite(insertAccess) && !isOwnerAll) {
+      return toolResult({
+        success: false,
+        error: "No shop or customer context — cannot create an order.",
+      });
     }
 
     // 1. Address from the agent's input (before customer resolution) —
@@ -671,12 +678,17 @@ export const createOrderTool = {
     //    the staff member's own shop (unused on the customer path, where the
     //    id resolves and no guest is created) so a walk-in is never stamped
     //    with a foreign (address-routed) shop.
+    // Owner-all guest-create needs a concrete shop (never "__all__"): route the
+    // walk-in's home shop by the address they gave. ponytail: owner walk-in may
+    // geocode twice (here + order routing below) — negligible, rare path.
+    const ownerRouted = isOwnerAll ? await routeOrderToShop(addressIn, serviceZipIn) : null;
+
     const customer = await resolveCustomer(
       ctx?.customerId,
       params.customerId,
       params.customerInfo,
       insertAccess,
-      insertAccess.shopId, // concrete for staff; ignored for customer
+      ownerRouted ? ownerRouted.shopId : insertAccess.shopId, // concrete for staff/owner; ignored for customer
     );
 
     // 4. Per-order contact snapshot — what THIS order will carry. The agent's
@@ -695,7 +707,7 @@ export const createOrderTool = {
     let orderShopId: string;
     let coords: Coords | null;
     let routingNote: string | null = null;
-    if (isCustomerAgent) {
+    if (isCustomerAgent || isOwnerAll) {
       const routed = await routeOrderToShop(orderAddress, serviceZipIn);
       orderShopId = routed.shopId; // nearest shop wins
       coords = routed.coords;

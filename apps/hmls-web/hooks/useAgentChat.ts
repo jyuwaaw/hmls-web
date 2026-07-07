@@ -22,6 +22,7 @@ import {
   loadStoredChatMessages,
   useChatPersist,
 } from "@/hooks/useChatStorage";
+import { readActiveShop } from "@/lib/active-shop";
 import { CHAT_ENDPOINT } from "@/lib/config";
 
 interface UseAgentChatOptions {
@@ -86,7 +87,18 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
     () =>
       new DefaultChatTransport<UIMessage>({
         api: endpoint,
-        headers: () => headersRef.current,
+        headers: () => {
+          // Read the active shop fresh per send so an owner switching shops
+          // mid-chat is honored (matches api-client.ts CRUD scoping). Customer
+          // chat never sets an active shop → no header, resolved server-side.
+          const h = { ...headersRef.current };
+          const shopId =
+            typeof window === "undefined"
+              ? null
+              : readActiveShop(window.localStorage);
+          if (shopId) h["X-Shop-Id"] = shopId;
+          return h;
+        },
       }),
     [endpoint],
   );
