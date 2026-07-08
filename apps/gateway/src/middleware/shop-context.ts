@@ -1,7 +1,7 @@
 import type { Env } from "hono";
 import { createMiddleware } from "hono/factory";
 import { dbAdmin, schema } from "@hmls/agent/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { AuthUser } from "../lib/supabase.ts";
 
 /** Sentinel: an owner with no selected shop — reads span all shops, writes are blocked. */
@@ -73,8 +73,11 @@ export const requireShopContext = createMiddleware<ShopCtx>(async (c, next) => {
 
   let homeShopId: string | null = null;
   if (role === "mechanic") {
+    // isActive=true: a deactivated (fired) mechanic must resolve to no shop.
     const [p] = await dbAdmin.select({ shopId: schema.providers.shopId })
-      .from(schema.providers).where(eq(schema.providers.authUserId, user.id)).limit(1);
+      .from(schema.providers)
+      .where(and(eq(schema.providers.authUserId, user.id), eq(schema.providers.isActive, true)))
+      .limit(1);
     homeShopId = p?.shopId ?? null;
   } else if (role === "admin" || role === "customer") {
     // admin + customer are both `customers` rows. Match by auth_user_id, with an

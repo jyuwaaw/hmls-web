@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import { db, schema } from "@hmls/agent/db";
-import { and, desc, eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { Errors } from "@hmls/shared/errors";
 import { type AuthEnv, requireAuth } from "../middleware/auth.ts";
 import { requireShopContext, type WithShop } from "../middleware/shop-context.ts";
@@ -79,7 +79,6 @@ portal.put("/me", zValidator("json", updateProfileInput), async (c) => {
 // inline without a per-row roundtrip.
 portal.get("/me/bookings", async (c) => {
   const customerId = c.get("customerId");
-  const shopId = c.get("shopId");
   const rows = await db
     .select({ order: schema.orders, intake: schema.orderIntake })
     .from(schema.orders)
@@ -87,7 +86,7 @@ portal.get("/me/bookings", async (c) => {
       schema.orderIntake,
       eq(schema.orderIntake.orderId, schema.orders.id),
     )
-    .where(and(eq(schema.orders.customerId, customerId), eq(schema.orders.shopId, shopId)))
+    .where(eq(schema.orders.customerId, customerId)) // tenant-ok: customer-owned rows, scoped by customerId across shops; RLS app.customer_id backs it
     .orderBy(desc(schema.orders.scheduledAt));
 
   // Filter in JS so we still include orders without scheduled_at if none match
@@ -100,11 +99,10 @@ portal.get("/me/bookings", async (c) => {
 // GET /me/orders — customer's orders (unified — replaces estimates + quotes)
 portal.get("/me/orders", async (c) => {
   const customerId = c.get("customerId");
-  const shopId = c.get("shopId");
   const rows = await db
     .select()
     .from(schema.orders)
-    .where(and(eq(schema.orders.customerId, customerId), eq(schema.orders.shopId, shopId)))
+    .where(eq(schema.orders.customerId, customerId)) // tenant-ok: customer-owned rows, scoped by customerId across shops; RLS app.customer_id backs it
     .orderBy(desc(schema.orders.createdAt));
 
   return c.json<OrderRow[]>(rows);
@@ -160,11 +158,10 @@ portal.get("/me/orders/:id", async (c) => {
 // GET /me/estimates — backward compat redirect to orders
 portal.get("/me/estimates", async (c) => {
   const customerId = c.get("customerId");
-  const shopId = c.get("shopId");
   const rows = await db
     .select()
     .from(schema.orders)
-    .where(and(eq(schema.orders.customerId, customerId), eq(schema.orders.shopId, shopId)))
+    .where(eq(schema.orders.customerId, customerId)) // tenant-ok: customer-owned rows, scoped by customerId across shops; RLS app.customer_id backs it
     .orderBy(desc(schema.orders.createdAt));
 
   return c.json<OrderRow[]>(rows);
@@ -173,11 +170,10 @@ portal.get("/me/estimates", async (c) => {
 // GET /me/quotes — backward compat redirect to orders
 portal.get("/me/quotes", async (c) => {
   const customerId = c.get("customerId");
-  const shopId = c.get("shopId");
   const rows = await db
     .select()
     .from(schema.orders)
-    .where(and(eq(schema.orders.customerId, customerId), eq(schema.orders.shopId, shopId)))
+    .where(eq(schema.orders.customerId, customerId)) // tenant-ok: customer-owned rows, scoped by customerId across shops; RLS app.customer_id backs it
     .orderBy(desc(schema.orders.createdAt));
 
   return c.json<OrderRow[]>(rows);

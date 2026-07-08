@@ -31,14 +31,28 @@ if [ -z "$DOTENV" ]; then
   exit 1
 fi
 
+FAILED=0
 for k in $KEYS; do
   # Pull the value, strip surrounding quotes if any.
   v="$(printf '%s\n' "$DOTENV" | sed -n "s/^${k}=//p" | head -1 | sed -e 's/^"//' -e 's/"$//')"
   if [ -n "$v" ]; then
-    deno deploy env add "$k" "$v" --app "$APP" --org "$ORG" --secret >/dev/null 2>&1 &&
-      echo "  ✓ $k" || echo "  ! $k (deno deploy env add failed)"
+    # `add` errors if the key already exists; fall back to `update-value` so
+    # re-running this to propagate a rotated secret actually works.
+    if deno deploy env add "$k" "$v" --app "$APP" --org "$ORG" --secret >/dev/null 2>&1; then
+      echo "  ✓ $k (added)"
+    elif deno deploy env update-value "$k" "$v" --app "$APP" --org "$ORG" >/dev/null 2>&1; then
+      echo "  ✓ $k (updated)"
+    else
+      echo "  ✗ $k (add + update-value both failed)" >&2
+      FAILED=$((FAILED + 1))
+    fi
   else
     echo "  - $k (absent in Infisical/$ENV, skipped)"
   fi
 done
+
+if [ "$FAILED" -gt 0 ]; then
+  echo "Done with $FAILED failure(s) — see ✗ lines above." >&2
+  exit 1
+fi
 echo "Done. (Web secrets sync via Infisical's Vercel integration, not this script.)"

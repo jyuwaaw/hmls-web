@@ -4,6 +4,15 @@ import type { UIMessage } from "ai";
 import { useEffect } from "react";
 
 export const DEFAULT_CHAT_STORAGE_KEY = "hmls-chat-history";
+/** Admin/staff chat surface — kept distinct from customer chat so
+ * conversations don't cross-contaminate (see hooks/useAgentChat.ts). */
+export const STAFF_CHAT_STORAGE_KEY = "hmls-staff-chat-history";
+/** Every localStorage key any chat surface persists to. Add new surfaces
+ * here so sign-out (AuthProvider) keeps clearing all of them. */
+const ALL_CHAT_STORAGE_KEYS = [
+  DEFAULT_CHAT_STORAGE_KEY,
+  STAFF_CHAT_STORAGE_KEY,
+];
 const CHAT_STORAGE_VERSION = 1;
 const PERSIST_DEBOUNCE_MS = 250;
 
@@ -41,6 +50,16 @@ export function clearStoredChat(storageKey: string = DEFAULT_CHAT_STORAGE_KEY) {
     localStorage.removeItem(storageKey);
   } catch {
     /* ignore */
+  }
+}
+
+/** Clears every known chat surface's stored history. Called on sign-out so
+ * the next user on a shared shop terminal doesn't see the previous user's
+ * customer PII / pricing left in a stale transcript. */
+export function clearAllChatStorage(): void {
+  if (typeof window === "undefined") return;
+  for (const key of ALL_CHAT_STORAGE_KEYS) {
+    clearStoredChat(key);
   }
 }
 

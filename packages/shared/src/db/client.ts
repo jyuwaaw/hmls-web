@@ -11,6 +11,9 @@ import { AsyncLocalStorage } from "node:async_hooks";
 type Executor = any;
 const txStore = new AsyncLocalStorage<{ executor: Executor }>();
 
+// Logged at most once per process — see the fallback branch in tenantDb().
+let warnedTenantFallback = false;
+
 /** Decide which GUC a scoped transaction must set. Pure — unit tested.
  *  Customer identity wins (a customer sees own rows across shops); otherwise a
  *  concrete shopId scopes to that shop. Owner-all is NOT handled here — callers
@@ -35,11 +38,22 @@ export function createDbClient<T extends Record<string, unknown>>(schema: T) {
 
   function tenantDb() {
     if (!_tenant) {
-      // Prefer the restricted role; fall back to service_role until the role +
-      // TENANT_DATABASE_URL are provisioned (so rollout step 1 is behavior-neutral).
-      const url = Deno.env.get("TENANT_DATABASE_URL") ?? Deno.env.get("DATABASE_URL");
+      // Prefer the restricted role; fall back to service_role in envs where
+      // TENANT_DATABASE_URL isn't provisioned (local dev / CI / local-Supabase
+      // tests). A deployed env missing TENANT_DATABASE_URL is caught by the
+      // boot guard in apps/gateway/src/index.ts — this fallback existing here
+      // too is belt-and-suspenders for any other entrypoint.
+      const tenantUrl = Deno.env.get("TENANT_DATABASE_URL");
+      const url = tenantUrl ?? Deno.env.get("DATABASE_URL");
       if (!url) {
         throw new Error("TENANT_DATABASE_URL/DATABASE_URL environment variable is required");
+      }
+      if (!tenantUrl && !warnedTenantFallback) {
+        warnedTenantFallback = true;
+        console.warn(
+          "[db] tenant client falling back to DATABASE_URL — RLS not enforced at the app " +
+            "layer (expected only in local/dev/CI)",
+        );
       }
       // deno-lint-ignore no-explicit-any
       _tenant = drizzle(postgres(url) as any, { schema });
@@ -93,5 +107,31 @@ export function createDbClient<T extends Record<string, unknown>>(schema: T) {
     return await txStore.run({ executor: adminDb() }, fn);
   }
 
-  return { db, dbAdmin, withTenantScope, withAdminScope };
+  /** Best-effort boot check: confirm the tenant connection is NOT superuser/
+   *  BYPASSRLS. Deployed-only callers should invoke this after boot; a failed
+   *  query only logs (never throws) — a transient DB blip at boot shouldn't
+   *  crash the app. The hard gate for a missing TENANT_DATABASE_URL is the
+   *  env guard in apps/gateway/src/index.ts, not this check. */
+  async function assertTenantRole(): Promise<void> {
+    try {
+      const rows = await tenantDb().execute(sql`
+        select current_setting('is_superuser') as su,
+               (select rolbypassrls from pg_roles where rolname = current_user) as bypass
+      `);
+      const row = (rows as unknown as Array<{ su: string; bypass: boolean }>)[0];
+      if (!row) return;
+      const isSuperuser = row.su === "on";
+      if (isSuperuser || row.bypass) {
+        console.error(
+          "[db] ALARM: tenant DB role is " +
+            `${isSuperuser ? "superuser" : ""}${isSuperuser && row.bypass ? "+" : ""}` +
+            `${row.bypass ? "BYPASSRLS" : ""} — RLS is not enforced for the tenant connection`,
+        );
+      }
+    } catch (err) {
+      console.error("[db] tenant role check failed (non-fatal):", err);
+    }
+  }
+
+  return { db, dbAdmin, withTenantScope, withAdminScope, assertTenantRole };
 }

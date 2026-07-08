@@ -35,8 +35,8 @@ export const listOrdersQuery = z.object({
 
 export const orderItemInput = z.object({
   description: z.string(),
-  labor_hours: z.number().optional(),
-  parts_cost: z.number().optional(),
+  labor_hours: z.number().nonnegative().optional(),
+  parts_cost: z.number().nonnegative().optional(),
 });
 
 export const createOrderInput = z.object({

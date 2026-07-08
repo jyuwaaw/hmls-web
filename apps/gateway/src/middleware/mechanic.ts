@@ -1,6 +1,6 @@
 import type { Env } from "hono";
 import { createMiddleware } from "hono/factory";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { dbAdmin, schema } from "@hmls/agent/db";
 import { type AuthUser, verifyToken } from "../lib/supabase.ts";
 
@@ -59,11 +59,20 @@ export const requireMechanic = createMiddleware<MechanicEnv>(async (c, next) => 
     );
   }
 
+  // ponytail: an admin hitting a mechanic route resolves providerId from
+  // their OWN providers row below, which may belong to a different shop
+  // than shop-context.ts resolves for their admin identity. This can't
+  // leak — a shopId/providerId mismatch means downstream RLS-scoped queries
+  // match 0 rows (fail-closed), not another shop's data. Revisit only if
+  // dual-role admin+mechanic accounts become common enough to need a
+  // proper shared shop-resolution path.
+
   // Identity resolution before any shop scope exists — no tenant GUC set yet.
+  // isActive=true: a deactivated (fired) mechanic must resolve to no provider.
   const [row] = await dbAdmin
     .select({ id: schema.providers.id })
     .from(schema.providers)
-    .where(eq(schema.providers.authUserId, user.id))
+    .where(and(eq(schema.providers.authUserId, user.id), eq(schema.providers.isActive, true)))
     .limit(1);
 
   if (!row) {

@@ -27,6 +27,7 @@ import { ChatMessage } from "@/components/chat/ChatMessage";
 import { Button } from "@/components/ui/button";
 import { askConfirm } from "@/components/ui/ConfirmDialog";
 import { useAgentChat } from "@/hooks/useAgentChat";
+import { STAFF_CHAT_STORAGE_KEY } from "@/hooks/useChatStorage";
 import { STAFF_CHAT_ENDPOINT } from "@/lib/config";
 
 const STAFF_SUGGESTIONS = [
@@ -99,7 +100,7 @@ export default function AdminChatPage() {
   } = useAgentChat({
     accessToken: session?.access_token,
     endpoint: STAFF_CHAT_ENDPOINT,
-    storageKey: "hmls-staff-chat-history",
+    storageKey: STAFF_CHAT_STORAGE_KEY,
     inputRef,
   });
 

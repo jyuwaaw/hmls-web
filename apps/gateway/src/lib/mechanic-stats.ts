@@ -104,7 +104,15 @@ export function bookedMinutesForWeek(
 
   let minutes = 0;
   for (const b of bookings) {
-    if (b.status !== "confirmed" && b.status !== "completed") continue;
+    // order_status has no "confirmed" state — real booked/worked time is
+    // scheduled (locked in), in_progress (underway), or completed (done).
+    if (
+      b.status !== "scheduled" &&
+      b.status !== "in_progress" &&
+      b.status !== "completed"
+    ) {
+      continue;
+    }
     if (b.scheduledAt < start || b.scheduledAt >= end) continue;
     minutes += b.durationMinutes;
   }
@@ -122,7 +130,12 @@ export function computeUtilization(
 
 export function isOnJobNow(bookings: BookingRow[], now: Date): boolean {
   for (const b of bookings) {
-    if (b.status !== "confirmed") continue;
+    // ponytail: "on a job right now" == in_progress only. A `scheduled` job
+    // whose window includes `now` but that the mechanic hasn't started yet
+    // is arguably also "on it", but conflating the two would make a
+    // no-show/late-start look like active work — revisit if the UI needs
+    // to distinguish "should be working" from "is working".
+    if (b.status !== "in_progress") continue;
     const end = new Date(b.scheduledAt.getTime() + b.durationMinutes * 60_000);
     if (b.scheduledAt <= now && now < end) return true;
   }

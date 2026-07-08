@@ -44,5 +44,5 @@ else
   case "$CONFIRM" in y | Y | yes) ;; *) echo "aborted."; exit 1 ;; esac
 fi
 
-infisical run --env="$ENV" -- bash -c 'psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "'"$FILE"'"'
+infisical run --env="$ENV" -- bash -c 'psql "$DATABASE_URL" -v ON_ERROR_STOP=1 --single-transaction -f "'"$FILE"'"'
 echo "✓ applied $(basename "$FILE") to $ENV"

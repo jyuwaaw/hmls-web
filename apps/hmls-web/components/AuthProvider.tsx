@@ -3,6 +3,8 @@
 import type { AuthChangeEvent, Session, User } from "@supabase/supabase-js";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { useActiveShop } from "@/hooks/useActiveShop";
+import { clearAllChatStorage } from "@/hooks/useChatStorage";
+import { clearOrderDraft } from "@/lib/admin-create-order";
 import { type ApiClient, createApiClient } from "@/lib/api-client";
 import { createClient } from "@/lib/supabase/client";
 
@@ -80,8 +82,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(
-      (_event: AuthChangeEvent, session: Session | null) => {
+      (event: AuthChangeEvent, session: Session | null) => {
         if (cancelled) return;
+        // Shared shop terminals: wipe anything the previous user left in
+        // client storage (chat transcripts, walk-in order draft) so it
+        // doesn't leak to whoever signs in next.
+        if (event === "SIGNED_OUT") {
+          clearAllChatStorage();
+          clearOrderDraft();
+        }
         setSession(session);
         setUser(session?.user ?? null);
         setIsLoading(false);

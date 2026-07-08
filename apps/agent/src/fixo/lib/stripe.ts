@@ -89,8 +89,28 @@ const TIER_LOOKUP_KEYS = {
 
 // Two-way cache. Hit on every webhook + every checkout, miss only on
 // process startup / when Stripe rotates a Price under a lookup_key.
-const tierToPriceCache = new Map<Tier, string>();
-const priceToTierCache = new Map<string, Tier>();
+//
+// TTL'd so a Dashboard price rotation (the documented zero-deploy flow) is
+// picked up within PRICE_CACHE_TTL_MS instead of pinning warm instances to an
+// archived price id until restart.
+const PRICE_CACHE_TTL_MS = 10 * 60 * 1000;
+type CacheEntry<V> = { value: V; expiresAt: number };
+const tierToPriceCache = new Map<Tier, CacheEntry<string>>();
+const priceToTierCache = new Map<string, CacheEntry<Tier>>();
+
+function cacheGet<K, V>(cache: Map<K, CacheEntry<V>>, key: K): V | undefined {
+  const entry = cache.get(key);
+  if (!entry) return undefined;
+  if (Date.now() > entry.expiresAt) {
+    cache.delete(key);
+    return undefined;
+  }
+  return entry.value;
+}
+
+function cacheSet<K, V>(cache: Map<K, CacheEntry<V>>, key: K, value: V): void {
+  cache.set(key, { value, expiresAt: Date.now() + PRICE_CACHE_TTL_MS });
+}
 
 /**
  * Look up the active Stripe Price ID for a given tier via its lookup_key.
@@ -101,7 +121,7 @@ const priceToTierCache = new Map<string, Tier>();
 export async function getPriceIdForTier(
   tier: "plus" | "pro",
 ): Promise<string> {
-  const cached = tierToPriceCache.get(tier);
+  const cached = cacheGet(tierToPriceCache, tier);
   if (cached) return cached;
   const lookupKey = TIER_LOOKUP_KEYS[tier];
   const { data } = await stripe.prices.list({
@@ -116,8 +136,8 @@ export async function getPriceIdForTier(
         `Create the Price in Stripe Dashboard with this lookup_key.`,
     );
   }
-  tierToPriceCache.set(tier, priceId);
-  priceToTierCache.set(priceId, tier);
+  cacheSet(tierToPriceCache, tier, priceId);
+  cacheSet(priceToTierCache, priceId, tier);
   return priceId;
 }
 
@@ -130,7 +150,7 @@ export async function getPriceIdForTier(
  * round-trips.
  */
 export async function tierFromPriceId(priceId: string): Promise<Tier | null> {
-  const cached = priceToTierCache.get(priceId);
+  const cached = cacheGet(priceToTierCache, priceId);
   if (cached) return cached;
   let lookupKey: string | null = null;
   try {
@@ -148,8 +168,8 @@ export async function tierFromPriceId(priceId: string): Promise<Tier | null> {
   const matchedTier = (Object.entries(TIER_LOOKUP_KEYS) as [Tier, string][])
     .find(([, k]) => k === lookupKey)?.[0];
   if (!matchedTier || matchedTier === "free") return null;
-  priceToTierCache.set(priceId, matchedTier);
-  tierToPriceCache.set(matchedTier, priceId);
+  cacheSet(priceToTierCache, priceId, matchedTier);
+  cacheSet(tierToPriceCache, matchedTier, priceId);
   return matchedTier;
 }
 
@@ -349,6 +369,37 @@ function notStaleSubscriptionEvent(eventCreatedAt: Date) {
 }
 
 /**
+ * Incremental credits to revoke for a single `charge.refunded` event.
+ *
+ * Stripe's `charge.amount_refunded` is CUMULATIVE across every refund on a
+ * charge, and each refund fires its own event. Revoking the full cumulative
+ * fraction on every event double-deducts on the 2nd+ partial refund. So we
+ * compute the total credits that SHOULD be revoked given the cumulative
+ * refunded amount, then subtract what prior events for this charge already
+ * revoked, and return only the delta (clamped >= 0).
+ *
+ * `alreadyRevoked` is the sum of prior per-event revoke amounts (intended, not
+ * balance-capped) for this charge — see the ledger `requested_revoke` metadata.
+ * Using intended (not actually-deducted) amounts keeps the sequence dependent
+ * only on Stripe's cumulative figure, so it never claws back credits the user
+ * re-purchased between refunds.
+ *
+ * Pure — unit tested. e.g. $20 → 2000cr, refund $10 then $5:
+ *   refundDelta(2000, 2000, 1000, 0)    === 1000
+ *   refundDelta(2000, 2000, 1500, 1000) === 500   (total 1500, never 2500)
+ */
+export function refundDelta(
+  granted: number,
+  amount: number,
+  amountRefunded: number,
+  alreadyRevoked: number,
+): number {
+  if (amount <= 0) return 0;
+  const totalToRevoke = Math.floor(granted * (amountRefunded / amount));
+  return Math.max(0, totalToRevoke - alreadyRevoked);
+}
+
+/**
  * Routes Stripe webhook events to the right local handler. Every credit-
  * mutating handler is idempotent on `event.id` via the credit_ledger
  * stripe_event UNIQUE index — Stripe retries are safe.
@@ -423,7 +474,7 @@ export async function handleSubscriptionWebhook(
       if (!subscriptionId) break;
       const customerId = invoice.customer as string;
       const [profile] = await db
-        .select({ id: userProfiles.id, tier: userProfiles.tier })
+        .select({ id: userProfiles.id })
         .from(userProfiles)
         .where(eq(userProfiles.stripeCustomerId, customerId))
         .limit(1);
@@ -433,23 +484,31 @@ export async function handleSubscriptionWebhook(
         );
         break;
       }
-      // Skip free users — they shouldn't be receiving subscription invoices.
-      // If we see one, it's a logical bug worth knowing about.
-      if (profile.tier === "free") {
+      // Resolve the tier from the invoice's SUBSCRIPTION, not the local
+      // profile.tier. Stripe doesn't guarantee this event lands after
+      // customer.subscription.created (which flips the tier). A new subscriber
+      // whose first invoice arrives first would still read tier="free" locally
+      // and get 0 credits despite being charged. Reading the subscription's
+      // price is the source of truth and self-heals that race.
+      const sub = await stripe.subscriptions.retrieve(subscriptionId);
+      const tier = await tierFromSubscription(sub);
+      if (!tier || tier === "free") {
         console.warn(
-          `[stripe-webhook] invoice.payment_succeeded for free-tier user ${profile.id}`,
+          `[stripe-webhook] invoice.payment_succeeded: could not resolve a paid ` +
+            `tier for user ${profile.id}`,
+          { subscriptionId },
         );
         break;
       }
       await grantMonthly({
         userId: profile.id,
-        amount: MONTHLY_GRANT[profile.tier],
+        amount: MONTHLY_GRANT[tier],
         reason: "subscription_grant",
         stripeEvent: event.id,
         metadata: {
           subscription_id: subscriptionId,
           invoice_id: invoice.id,
-          tier: profile.tier,
+          tier,
           period_end: invoice.period_end,
         },
       });
@@ -566,7 +625,11 @@ export async function handleSubscriptionWebhook(
       // Strategy: look up the credit_ledger row for the topup_purchase
       // tied to this charge's PaymentIntent (we stored payment_intent in
       // the grant's metadata). Refund proportionally for partial refunds.
-      // Idempotent on event.id via creditLedger.stripeEvent UNIQUE.
+      //
+      // amount_refunded is CUMULATIVE and each refund fires its own event, so
+      // we revoke only the INCREMENTAL credits this event adds (see
+      // refundDelta) — not the whole cumulative fraction again. Still
+      // idempotent per event.id via creditLedger.stripeEvent UNIQUE.
       const charge = event.data.object as Stripe.Charge;
       const paymentIntentId = typeof charge.payment_intent === "string"
         ? charge.payment_intent
@@ -601,16 +664,42 @@ export async function handleSubscriptionWebhook(
         break;
       }
 
-      // Compute refund credit amount proportionally (partial refund safe).
-      // amount_refunded is in cents; if we charged $20 and refunded $10,
-      // we refund half the credits.
-      const fraction = charge.amount > 0 ? charge.amount_refunded / charge.amount : 1;
-      const refundAmount = Math.floor(original.delta * fraction);
+      // Sum credits already revoked for THIS charge across prior refund
+      // events (their per-event intended amount lives in the ledger
+      // `requested_revoke` metadata). Subtract from the cumulative target so
+      // we only take the incremental delta for this event.
+      // ponytail: query + revoke aren't one tx, so two concurrent refund
+      // events on the same charge could race. Stripe delivers refund events
+      // for a charge sequentially in practice; add a per-charge lock if that
+      // ever stops holding.
+      const [revokedRow] = await db
+        .select({
+          total: sql<
+            string
+          >`coalesce(sum((${creditLedger.metadata}->>'requested_revoke')::int), 0)`,
+        })
+        .from(creditLedger)
+        .where(
+          and(
+            eq(creditLedger.reason, "refund"),
+            sql`${creditLedger.metadata}->>'charge_id' = ${charge.id}`,
+          ),
+        );
+      const alreadyRevoked = Number(revokedRow?.total ?? 0);
+
+      const refundAmount = refundDelta(
+        original.delta,
+        charge.amount,
+        charge.amount_refunded,
+        alreadyRevoked,
+      );
       if (refundAmount <= 0) break;
 
       // revokeTopupCredits subtracts from the topup bucket (capped at 0
       // — if the user already spent some, we eat the loss). Idempotent
-      // on event.id via the credit_ledger UNIQUE index.
+      // on event.id via the credit_ledger UNIQUE index. It stores our
+      // `requested_revoke` (the per-event delta below) in metadata, which
+      // the next refund event sums as `alreadyRevoked`.
       const result = await revokeTopupCredits({
         userId: original.userId,
         amount: refundAmount,
@@ -620,7 +709,7 @@ export async function handleSubscriptionWebhook(
           charge_id: charge.id,
           payment_intent: paymentIntentId,
           original_ledger_id: original.id,
-          refund_fraction: fraction,
+          already_revoked_before: alreadyRevoked,
           stripe_refund_amount_cents: charge.amount_refunded,
         },
       });
@@ -630,7 +719,8 @@ export async function handleSubscriptionWebhook(
           userId: original.userId,
           requestedRevoke: refundAmount,
           actuallyDeducted: result.deducted,
-          fraction,
+          alreadyRevoked,
+          cumulativeRefundedCents: charge.amount_refunded,
         });
       }
       break;

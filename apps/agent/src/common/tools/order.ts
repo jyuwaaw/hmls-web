@@ -554,9 +554,14 @@ export const createOrderTool = {
         return toolResult({ success: false, error: "Order not found" });
       }
 
-      // Look up the existing order's shopId for consistent re-pricing.
+      // Look up the existing order's shopId (for consistent re-pricing) and
+      // its real customerId — a staff revise that supplies customerInfo but
+      // no customerId must resolve back to THIS customer, never fall into
+      // the guest-create branch (which would orphan a new customer row, or
+      // throw against the RLS WITH CHECK if the guest's routed shop differs
+      // from the GUC-scoped shop).
       const [existingOrder] = await db
-        .select({ shopId: schema.orders.shopId })
+        .select({ shopId: schema.orders.shopId, customerId: schema.orders.customerId })
         .from(schema.orders)
         .where(eq(schema.orders.id, params.orderId))
         .limit(1);
@@ -575,12 +580,34 @@ export const createOrderTool = {
       const actor = customerAgentActor(ctx) ?? staffAgentActor(ctx);
       await resolveCustomer(
         ctx?.customerId,
-        params.customerId,
+        params.customerId ?? existingOrder?.customerId ?? undefined,
         params.customerInfo,
         ctxAccess,
+        existingShopId ?? undefined,
       );
       const phoneIn = clean(params.customerInfo?.phone);
       const addressIn = clean(params.customerInfo?.address);
+
+      // Re-geocode when the revise carries a new address. geocodeAddress is
+      // best-effort (never throws — returns null on miss/timeout), so a
+      // geocoder failure never blocks the revise; it just leaves lat/lng
+      // null rather than stale. Without this, location/locationLat/
+      // locationLng would keep pointing at the order's original address
+      // after the customer/staff corrects it.
+      let locationPatch: {
+        location?: string;
+        locationLat?: string | null;
+        locationLng?: string | null;
+      } = {};
+      if (addressIn) {
+        const coords = await geocodeAddress(addressIn);
+        locationPatch = {
+          location: addressIn,
+          locationLat: coords ? String(coords.lat) : null,
+          locationLng: coords ? String(coords.lng) : null,
+        };
+      }
+
       const result = await patchItems(
         params.orderId,
         {
@@ -598,6 +625,7 @@ export const createOrderTool = {
           // an existing snapshot with a missing customerInfo field.
           contactPhone: phoneIn,
           contactAddress: addressIn,
+          ...locationPatch,
         },
         actor,
         {

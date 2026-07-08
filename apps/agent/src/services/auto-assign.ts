@@ -11,7 +11,7 @@
 
 import { and, desc, eq, gte, inArray, lte, ne, sql } from "drizzle-orm";
 import { getLogger } from "@logtape/logtape";
-import { db, schema } from "../db/client.ts";
+import { db, dbAdmin, schema } from "../db/client.ts";
 import type { Actor } from "@hmls/shared/order/status";
 import { assignProvider } from "./order-state.ts";
 
@@ -76,7 +76,15 @@ export async function autoAssignProvider(
       AND o2.blocked_range && tstzrange(${slotStart.toISOString()}, ${slotEnd.toISOString()}, '[)')
   )`;
 
-  const eligible = await db
+  // dbAdmin: this runs inside both customer- and staff-scoped tool calls
+  // (triggered from schedule_order and the admin scheduling route). A
+  // customer-scoped tx sets only app.customer_id (never app.shop_id — see
+  // pickScopeConfig's precedence), so under RLS the shop-only providers
+  // policy would deny this query entirely, and the orders subquery above
+  // would see only this one customer's rows (undercounting conflicts from
+  // other customers on the same provider). The shop boundary is enforced
+  // explicitly by the eq(shopId) filter below, not by RLS.
+  const eligible = await dbAdmin
     .select({ id: schema.providers.id })
     .from(schema.providers)
     .where(
@@ -127,7 +135,11 @@ export async function autoAssignProvider(
     const horizon = new Date(
       now.getTime() + LOAD_LOOKAHEAD_DAYS * 24 * 60 * 60 * 1000,
     );
-    const loads = await db
+    // dbAdmin: fewest-jobs load-balancing must count EVERY customer's
+    // scheduled orders against these providers, not just the acting
+    // customer's (see the eligible-providers comment above for why `db`
+    // would silently undercount under a customer-scoped tx).
+    const loads = await dbAdmin
       .select({
         providerId: schema.orders.providerId,
         cnt: sql<number>`count(*)::int`,

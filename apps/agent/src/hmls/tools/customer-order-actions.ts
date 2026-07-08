@@ -7,6 +7,7 @@ import { randomUUID } from "node:crypto";
 import type { ToolContext } from "../../common/convert-tools.ts";
 import { patchItems, transition } from "../../services/order-state.ts";
 import { customerAgentActor, toolResultFromOrderState } from "../../services/order-state-tool.ts";
+import { shopHourlyRate } from "../skills/estimate/pricing.ts";
 
 // `approve_order` and `decline_order` were removed: in the chat flow the
 // order accumulates items + appointment + auto-assigned mechanic on a
@@ -122,10 +123,11 @@ const modifyOrderItemsTool = {
       items = items.filter((item) => !removeSet.has(item.id));
     }
 
-    // Auto-price added items from OLP labor lookup at $140/hr (matches the
-    // pricing engine). Missing lookups fall through at $0 so the shop
-    // prices them during review.
+    // Auto-price added items from OLP labor lookup at the shop's hourly
+    // rate (matches the pricing engine). Missing lookups fall through at $0
+    // so the shop prices them during review.
     if (params.addItems && params.addItems.length > 0) {
+      const shopRateCents = await shopHourlyRate(order.shopId) ?? 14000;
       const vehicleInfo = order.vehicleInfo as
         | { year?: string; make?: string; model?: string }
         | null;
@@ -162,7 +164,7 @@ const modifyOrderItemsTool = {
           }
         }
 
-        const priceCents = laborHours !== undefined ? Math.round(laborHours * 140 * 100) : 0;
+        const priceCents = laborHours !== undefined ? Math.round(laborHours * shopRateCents) : 0;
         const metadata: Record<string, unknown> = { customerRequested: true };
         if (sourceMeta) metadata.sourceMeta = sourceMeta;
 

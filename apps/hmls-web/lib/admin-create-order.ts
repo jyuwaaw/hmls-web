@@ -1,3 +1,19 @@
+export const ORDER_DRAFT_KEY = "admin-create-order-draft";
+export const PICKER_DRAFT_KEY = "admin-create-order-customer-picker";
+
+/** Clears the walk-in order draft + customer-picker draft. Called on submit
+ * success/cancel, and on sign-out so the next user on a shared terminal
+ * doesn't see a half-filled walk-in order with the prior customer's PII. */
+export function clearOrderDraft(): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(ORDER_DRAFT_KEY);
+    sessionStorage.removeItem(PICKER_DRAFT_KEY);
+  } catch {
+    /* storage unavailable */
+  }
+}
+
 export type ManualOrderForm = {
   customerId: string;
   vehicleYear: string;

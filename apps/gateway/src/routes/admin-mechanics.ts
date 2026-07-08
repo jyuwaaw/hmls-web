@@ -32,22 +32,25 @@ import type {
 
 type ApiError = { error: { code: string; message: string } };
 
-/** Returns true when the order exists and belongs to the given shop. */
+/** Returns true when the order exists and belongs to the given shop (any shop
+ *  for the owner-all sentinel — callers that need to block owner-all writes
+ *  must guard with `shopId === OWNER_ALL_SHOPS` before reaching this). */
 async function orderInShop(id: number, shopId: string): Promise<boolean> {
   const [row] = await db
     .select({ id: schema.orders.id })
     .from(schema.orders)
-    .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
+    .where(and(eq(schema.orders.id, id), whereShop(schema.orders.shopId, shopId)))
     .limit(1);
   return !!row;
 }
 
-/** Returns true when the provider exists and belongs to the given shop. */
+/** Returns true when the provider exists and belongs to the given shop (any
+ *  shop for the owner-all sentinel — see orderInShop note above). */
 async function providerInShop(id: number, shopId: string): Promise<boolean> {
   const [row] = await db
     .select({ id: schema.providers.id })
     .from(schema.providers)
-    .where(and(eq(schema.providers.id, id), eq(schema.providers.shopId, shopId)))
+    .where(and(eq(schema.providers.id, id), whereShop(schema.providers.shopId, shopId)))
     .limit(1);
   return !!row;
 }
@@ -318,7 +321,7 @@ adminMechanics.get("/:id", async (c) => {
   const [provider] = await db
     .select()
     .from(schema.providers)
-    .where(and(eq(schema.providers.id, id), eq(schema.providers.shopId, shopId)))
+    .where(and(eq(schema.providers.id, id), whereShop(schema.providers.shopId, shopId)))
     .limit(1);
 
   if (!provider) {
@@ -388,6 +391,9 @@ adminMechanics.delete("/:id", async (c) => {
   }
 
   const shopId = c.get("shopId");
+  if (shopId === OWNER_ALL_SHOPS) {
+    return c.json({ error: { code: "NO_SHOP", message: "Select a shop before writing" } }, 400);
+  }
 
   const [updated] = await db
     .update(schema.providers)
@@ -439,6 +445,9 @@ adminMechanics.put("/:id/availability", zValidator("json", setAvailabilityInput)
   }
 
   const shopId = c.get("shopId");
+  if (shopId === OWNER_ALL_SHOPS) {
+    return c.json({ error: { code: "NO_SHOP", message: "Select a shop before writing" } }, 400);
+  }
   if (!(await providerInShop(id, shopId))) {
     return c.json<ApiError>(
       { error: { code: "NOT_FOUND", message: "Mechanic not found" } },
@@ -527,6 +536,9 @@ adminMechanics.post("/:id/overrides", zValidator("json", createOverrideInput), a
   }
 
   const shopId = c.get("shopId");
+  if (shopId === OWNER_ALL_SHOPS) {
+    return c.json({ error: { code: "NO_SHOP", message: "Select a shop before writing" } }, 400);
+  }
   if (!(await providerInShop(id, shopId))) {
     return c.json<ApiError>(
       { error: { code: "NOT_FOUND", message: "Mechanic not found" } },
@@ -587,6 +599,9 @@ adminMechanics.delete("/:id/overrides/:overrideId", async (c) => {
   }
 
   const shopId = c.get("shopId");
+  if (shopId === OWNER_ALL_SHOPS) {
+    return c.json({ error: { code: "NO_SHOP", message: "Select a shop before writing" } }, 400);
+  }
   if (!(await providerInShop(id, shopId))) {
     return c.json<ApiError>(
       { error: { code: "NOT_FOUND", message: "Mechanic not found" } },
@@ -625,7 +640,7 @@ adminMechanics.get("/:id/orders", zValidator("query", listMechanicOrdersQuery), 
   const { from, to } = c.req.valid("query");
   const shopId = c.get("shopId");
 
-  const conditions = [eq(schema.orders.providerId, id), eq(schema.orders.shopId, shopId)];
+  const conditions = [eq(schema.orders.providerId, id), whereShop(schema.orders.shopId, shopId)];
   if (from && to) {
     conditions.push(
       between(schema.orders.scheduledAt, new Date(from), new Date(to)),
@@ -689,6 +704,9 @@ adminMechanics.post(
     const body = c.req.valid("json");
 
     const shopId = c.get("shopId");
+    if (shopId === OWNER_ALL_SHOPS) {
+      return c.json({ error: { code: "NO_SHOP", message: "Select a shop before writing" } }, 400);
+    }
 
     // Pre-check the provider here so the "mechanic not found" error keeps its
     // specific wording — the harness's `not_found` path is keyed on the id we

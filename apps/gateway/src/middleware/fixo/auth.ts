@@ -57,11 +57,16 @@ export async function authenticateRequest(
 
   // Fallback: legacy HMLS customer lookup. Identity resolution before any
   // shop scope exists — no tenant GUC set yet, so use dbAdmin.
-  const [customer] = await dbAdmin
+  // Email fallback: only bind when EXACTLY ONE row matches — avoids cross-shop
+  // mis-binding when multiple shops have a customer with the same email
+  // (mirrors requireAuth in ../auth.ts).
+  const emailMatches = await dbAdmin
     .select()
     .from(schema.customers)
     .where(eq(schema.customers.email, authUser.email))
-    .limit(1);
+    .limit(2);
+  const customer = emailMatches.length === 1 ? emailMatches[0] : undefined;
+  // 0 or ≥2 matches → treat as not-found (falls through to auto-provision below).
 
   if (customer) {
     // Legacy customers stay outside the credit system (chargeForInput

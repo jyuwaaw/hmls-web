@@ -40,12 +40,15 @@ function adminActor(email: string | null | undefined): Actor {
   return { kind: "admin", email: email ?? "admin" };
 }
 
-/** Returns true when the order exists and belongs to the given shop. */
+/** Returns true when the order exists and belongs to the given shop (any shop
+ *  for the owner-all sentinel — matches the whereShop pattern GET /orders/:id
+ *  already uses, so an owner with no shop selected can still read/act on any
+ *  order by id). */
 async function orderInShop(id: number, shopId: string): Promise<boolean> {
   const [row] = await db
     .select({ id: schema.orders.id })
     .from(schema.orders)
-    .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
+    .where(and(eq(schema.orders.id, id), whereShop(schema.orders.shopId, shopId)))
     .limit(1);
   return !!row;
 }
@@ -295,7 +298,7 @@ orders.patch("/:id", zValidator("json", updateOrderInput), async (c) => {
     const [current] = await db
       .select({ items: schema.orders.items })
       .from(schema.orders)
-      .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
+      .where(and(eq(schema.orders.id, id), whereShop(schema.orders.shopId, shopId)))
       .limit(1);
     if (!current) {
       return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
@@ -329,20 +332,22 @@ orders.patch("/:id", zValidator("json", updateOrderInput), async (c) => {
     directUpdates.confirmedDiagnosis = body.confirmedDiagnosis;
   }
 
-  if (Object.keys(directUpdates).length > 0) {
-    directUpdates.updatedAt = new Date();
-    await db
-      .update(schema.orders)
-      .set(directUpdates)
-      .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)));
-  }
-
-  if (!wantsItemEdit && Object.keys(directUpdates).length === 1) {
-    // Only updatedAt was set — no actual fields to change.
+  // Check for "nothing to change" BEFORE stamping updatedAt below — otherwise
+  // directUpdates always has >=1 key by the time we'd check its length here.
+  const hasDirectUpdates = Object.keys(directUpdates).length > 0;
+  if (!wantsItemEdit && !hasDirectUpdates) {
     return c.json<ApiError>(
       { error: { code: "BAD_REQUEST", message: "No fields to update" } },
       400,
     );
+  }
+
+  if (hasDirectUpdates) {
+    directUpdates.updatedAt = new Date();
+    await db
+      .update(schema.orders)
+      .set(directUpdates)
+      .where(and(eq(schema.orders.id, id), whereShop(schema.orders.shopId, shopId)));
   }
 
   // Return the freshly-read row so clients see the consistent post-write
@@ -350,7 +355,7 @@ orders.patch("/:id", zValidator("json", updateOrderInput), async (c) => {
   const [latest] = await db
     .select()
     .from(schema.orders)
-    .where(and(eq(schema.orders.id, id), eq(schema.orders.shopId, shopId)))
+    .where(and(eq(schema.orders.id, id), whereShop(schema.orders.shopId, shopId)))
     .limit(1);
   if (!latest) {
     return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);

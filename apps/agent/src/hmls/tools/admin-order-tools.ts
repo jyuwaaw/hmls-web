@@ -9,6 +9,7 @@ import type { LaborTimeResult, OlpVehicle } from "./olp-client.ts";
 import type { ToolContext } from "../../common/convert-tools.ts";
 import { addNote, patchItems } from "../../services/order-state.ts";
 import { staffAgentActor, toolResultFromOrderState } from "../../services/order-state-tool.ts";
+import { shopHourlyRate } from "../skills/estimate/pricing.ts";
 
 // Note: `create_order` lives in apps/agent/src/common/tools/order.ts — it's the
 // only entry point for new orders (full pricing engine, INSERT-or-UPDATE-by-orderId).
@@ -343,6 +344,10 @@ const updateOrderItemsTool = {
     const vehicleInfo =
       (order as unknown as { vehicleInfo?: { year?: string; make?: string; model?: string } })
         .vehicleInfo;
+    // Per-shop labor rate (cents/hr), matching the pricing engine in
+    // common/tools/order.ts — falls back to the global default when the
+    // shop row is missing or laborRateCents is null.
+    const shopRateCents = await shopHourlyRate(order.shopId) ?? 14000;
 
     async function buildItem(
       desc: string,
@@ -380,7 +385,7 @@ const updateOrderItemsTool = {
         }
       }
 
-      const laborCents = Math.round(finalLabor * 140 * 100);
+      const laborCents = Math.round(finalLabor * shopRateCents);
       const partsCents = Math.round((partsCost ?? 0) * 100);
       const totalCents = laborCents + partsCents;
 

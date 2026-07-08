@@ -27,7 +27,7 @@
 
 import { and, eq, sql } from "drizzle-orm";
 import { getLogger } from "@logtape/logtape";
-import { db, schema } from "../db/client.ts";
+import { db, dbAdmin, schema } from "../db/client.ts";
 import type { OrderItem } from "@hmls/shared/db/schema";
 import { notifyOrderStatusChange } from "../lib/notifications.ts";
 import { hasIntakeFields, upsertOrderIntake } from "./order-intake.ts";
@@ -236,6 +236,12 @@ export interface ItemsPatch {
    *  null/undefined semantics as the fields above. */
   contactPhone?: string | null;
   contactAddress?: string | null;
+  /** Booking/scheduling display location + coords. Re-geocoded by the
+   *  caller when contactAddress changes on a revise, so the map pin never
+   *  goes stale vs. the address the order now claims. */
+  location?: string | null;
+  locationLat?: string | null;
+  locationLng?: string | null;
 }
 
 export interface PatchItemsOptions {
@@ -334,6 +340,9 @@ export async function patchItems(
   if (patch.contactAddress !== undefined) {
     updateFields.contactAddress = patch.contactAddress;
   }
+  if (patch.location !== undefined) updateFields.location = patch.location;
+  if (patch.locationLat !== undefined) updateFields.locationLat = patch.locationLat;
+  if (patch.locationLng !== undefined) updateFields.locationLng = patch.locationLng;
   if (willRevert) {
     updateFields.status = "revised";
     updateFields.statusHistory = [
@@ -604,7 +613,12 @@ export async function assignProvider(
     };
   }
 
-  const [provider] = await db
+  // dbAdmin: assignProvider is invoked from a customer-scoped tx (auto-
+  // dispatch on customer self-scheduling — see auto-assign.ts) as well as
+  // admin. A customer-scoped tx sets only app.customer_id, so the shop-only
+  // providers RLS policy would deny this read entirely. The shop boundary
+  // is enforced explicitly by the shopId comparison below, not by RLS.
+  const [provider] = await dbAdmin
     .select()
     .from(schema.providers)
     .where(eq(schema.providers.id, providerId))

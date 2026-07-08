@@ -90,7 +90,12 @@ Deno.test("bookedMinutesForWeek sums durations of bookings in the week", () => {
     {
       scheduledAt: new Date("2026-04-21T14:00:00.000Z"),
       durationMinutes: 60,
-      status: "confirmed",
+      status: "scheduled",
+    },
+    {
+      scheduledAt: new Date("2026-04-22T09:00:00.000Z"),
+      durationMinutes: 45,
+      status: "in_progress",
     },
     {
       scheduledAt: new Date("2026-04-23T10:00:00.000Z"),
@@ -101,16 +106,16 @@ Deno.test("bookedMinutesForWeek sums durations of bookings in the week", () => {
     {
       scheduledAt: new Date("2026-04-28T10:00:00.000Z"),
       durationMinutes: 60,
-      status: "confirmed",
+      status: "scheduled",
     },
-    // Rejected — excluded
+    // Declined — excluded
     {
       scheduledAt: new Date("2026-04-22T10:00:00.000Z"),
       durationMinutes: 60,
-      status: "rejected",
+      status: "declined",
     },
   ];
-  assertEquals(bookedMinutesForWeek(bookings, NOW), 150);
+  assertEquals(bookedMinutesForWeek(bookings, NOW), 195);
 });
 
 Deno.test("computeUtilization returns null when available is 0", () => {
@@ -121,23 +126,23 @@ Deno.test("computeUtilization rounds to integer percent", () => {
   assertAlmostEquals(computeUtilization(480, 120)!, 25, 0.01);
 });
 
-Deno.test("isOnJobNow returns true when current time is inside a confirmed booking", () => {
+Deno.test("isOnJobNow returns true when current time is inside an in_progress booking", () => {
   const bookings = [
     {
       scheduledAt: new Date("2026-04-20T09:30:00.000Z"),
       durationMinutes: 60,
-      status: "confirmed",
+      status: "in_progress",
     },
   ];
   assertEquals(isOnJobNow(bookings, NOW), true);
 });
 
-Deno.test("isOnJobNow ignores non-confirmed bookings", () => {
+Deno.test("isOnJobNow ignores a scheduled (not-yet-started) booking even if its window covers now", () => {
   const bookings = [
     {
       scheduledAt: new Date("2026-04-20T09:30:00.000Z"),
       durationMinutes: 60,
-      status: "requested",
+      status: "scheduled",
     },
   ];
   assertEquals(isOnJobNow(bookings, NOW), false);
@@ -148,7 +153,7 @@ Deno.test("isOnJobNow returns false when no booking covers now", () => {
     {
       scheduledAt: new Date("2026-04-20T12:00:00.000Z"),
       durationMinutes: 60,
-      status: "confirmed",
+      status: "in_progress",
     },
   ];
   assertEquals(isOnJobNow(bookings, NOW), false);

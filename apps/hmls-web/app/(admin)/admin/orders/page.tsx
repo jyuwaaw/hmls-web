@@ -31,8 +31,11 @@ import { useApi } from "@/hooks/useApi";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
   buildCreateOrderPayload,
+  clearOrderDraft,
   emptyManualOrderForm,
   type ManualOrderForm,
+  ORDER_DRAFT_KEY,
+  PICKER_DRAFT_KEY,
   validateManualOrderForm,
 } from "@/lib/admin-create-order";
 import {
@@ -102,9 +105,6 @@ const emptyCustomerDraft = {
   address: "",
 };
 
-const ORDER_DRAFT_KEY = "admin-create-order-draft";
-const PICKER_DRAFT_KEY = "admin-create-order-customer-picker";
-
 type PickerDraft = {
   mode: "search" | "create";
   search: string;
@@ -142,13 +142,6 @@ function readPickerDraft(): PickerDraft {
     };
   } catch {
     return emptyPickerDraft;
-  }
-}
-
-function clearOrderDraft() {
-  if (typeof window !== "undefined") {
-    sessionStorage.removeItem(ORDER_DRAFT_KEY);
-    sessionStorage.removeItem(PICKER_DRAFT_KEY);
   }
 }
 

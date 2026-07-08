@@ -236,24 +236,24 @@ export function buildFeeItems(
   return items;
 }
 
-/** Calculate discount amount (returns positive cents to subtract) */
+/** Calculate discount amount (returns positive cents to subtract).
+ *  Multi-service (3+ services) and an explicitly-requested discountType are
+ *  both computed when applicable, and the LARGER of the two wins — an
+ *  explicit fleet/military/etc. discount must never be silently discarded
+ *  in favor of a smaller multi-service discount just because it fires
+ *  first, and vice versa. */
 export function calculateDiscount(
   config: PricingConfig,
   subtotalCents: number,
   discountType?: DiscountType,
   serviceCount?: number,
 ): { amount: number; label: string } | null {
-  // Multi-service discount: 3+ services
-  if (serviceCount && serviceCount >= 3) {
-    return {
-      amount: Math.round(
-        subtotalCents * (config.multiServiceDiscountPct / 100),
-      ),
+  const multiService = serviceCount && serviceCount >= 3
+    ? {
+      amount: Math.round(subtotalCents * (config.multiServiceDiscountPct / 100)),
       label: `Multi-service discount (${config.multiServiceDiscountPct}%)`,
-    };
-  }
-
-  if (!discountType) return null;
+    }
+    : null;
 
   const discountMap: Record<DiscountType, { pct: number; label: string }> = {
     multi_service: {
@@ -277,11 +277,16 @@ export function calculateDiscount(
     },
   };
 
-  const d = discountMap[discountType];
-  if (!d || d.pct <= 0) return null;
+  const requested = discountType ? discountMap[discountType] : undefined;
+  const explicit = requested && requested.pct > 0
+    ? {
+      amount: Math.round(subtotalCents * (requested.pct / 100)),
+      label: `${requested.label} (${requested.pct}%)`,
+    }
+    : null;
 
-  return {
-    amount: Math.round(subtotalCents * (d.pct / 100)),
-    label: `${d.label} (${d.pct}%)`,
-  };
+  if (multiService && explicit) {
+    return explicit.amount >= multiService.amount ? explicit : multiService;
+  }
+  return explicit ?? multiService;
 }

@@ -323,6 +323,9 @@ admin.delete("/customers/:id", async (c) => {
   }
 
   const shopId = c.get("shopId");
+  if (shopId === OWNER_ALL_SHOPS) {
+    return c.json({ error: { code: "NO_SHOP", message: "Select a shop before writing" } }, 400);
+  }
 
   const [existing] = await db
     .select({ id: schema.customers.id })
