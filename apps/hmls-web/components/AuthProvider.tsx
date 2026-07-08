@@ -15,7 +15,7 @@ type AuthContextType = {
   isMechanic: boolean;
   isOwner: boolean;
   activeShop: string | null;
-  setActiveShop: (id: string) => void;
+  setActiveShop: (id: string | null) => void;
   api: ApiClient;
 };
 

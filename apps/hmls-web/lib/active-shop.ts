@@ -20,3 +20,13 @@ export function writeActiveShop(
     /* storage unavailable */
   }
 }
+
+/** Back to "all shops": no X-Shop-Id is sent until a shop is picked again. */
+export function clearActiveShop(storage: Storage | undefined): void {
+  if (!storage) return;
+  try {
+    storage.removeItem(ACTIVE_SHOP_KEY);
+  } catch {
+    /* storage unavailable */
+  }
+}

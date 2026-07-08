@@ -1,8 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
-import { readActiveShop, writeActiveShop } from "@/lib/active-shop";
+import {
+  clearActiveShop,
+  readActiveShop,
+  writeActiveShop,
+} from "@/lib/active-shop";
 
-export function useActiveShop(): [string | null, (id: string) => void] {
+export function useActiveShop(): [string | null, (id: string | null) => void] {
   const [shopId, setShopId] = useState<string | null>(null);
   useEffect(() => {
     setShopId(
@@ -11,11 +15,11 @@ export function useActiveShop(): [string | null, (id: string) => void] {
       ),
     );
   }, []);
-  const set = (id: string) => {
-    writeActiveShop(
-      typeof window === "undefined" ? undefined : window.localStorage,
-      id,
-    );
+  const set = (id: string | null) => {
+    const storage =
+      typeof window === "undefined" ? undefined : window.localStorage;
+    if (id === null) clearActiveShop(storage);
+    else writeActiveShop(storage, id);
     setShopId(id);
   };
   return [shopId, set];
