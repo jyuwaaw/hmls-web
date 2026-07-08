@@ -70,3 +70,20 @@ DROP POLICY IF EXISTS provider_schedule_overrides_tenant ON provider_schedule_ov
 CREATE POLICY provider_schedule_overrides_tenant ON provider_schedule_overrides FOR ALL
   USING (EXISTS (SELECT 1 FROM providers p WHERE p.id = provider_schedule_overrides.provider_id))
   WITH CHECK (EXISTS (SELECT 1 FROM providers p WHERE p.id = provider_schedule_overrides.provider_id));
+
+-- ── auth-hook carve-out (found by local full-stack test, 2026-07-08) ─────────
+-- custom_access_token_hook runs as supabase_auth_admin (NOT SECURITY DEFINER,
+-- NOT BYPASSRLS — verified in prod). Under FORCE RLS its
+-- `SELECT role FROM customers WHERE auth_user_id = ...` matches no policy
+-- (no GUC is set at token issuance) → 0 rows → every login is minted
+-- user_role='customer' → all admins/owners are locked out of /admin.
+-- Per-role read policy fixes exactly that path and nothing else.
+-- (handle_new_user is unaffected: SECURITY DEFINER, owner postgres = BYPASSRLS.)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'supabase_auth_admin') THEN
+    DROP POLICY IF EXISTS customers_auth_hook_read ON customers;
+    CREATE POLICY customers_auth_hook_read ON customers
+      FOR SELECT TO supabase_auth_admin USING (true);
+  END IF;
+END $$;
