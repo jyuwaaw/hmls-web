@@ -6,6 +6,50 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCents } from "@/lib/format";
 
+/**
+ * Numeric input that doesn't fight your typing: while focused it shows the raw
+ * string you typed (so "4.", "", "-" are fine mid-edit) and commits the parsed
+ * value upward on every keystroke; on blur it re-formats from the canonical value.
+ */
+function NumberField({
+  value,
+  format,
+  parse,
+  pattern,
+  onCommit,
+  inputMode,
+  placeholder,
+  className,
+}: {
+  value: number;
+  format: (n: number) => string;
+  parse: (s: string) => number;
+  pattern: RegExp;
+  onCommit: (n: number) => void;
+  inputMode: "numeric" | "decimal";
+  placeholder?: string;
+  className?: string;
+}) {
+  const [draft, setDraft] = useState<string | null>(null);
+  return (
+    <Input
+      type="text"
+      inputMode={inputMode}
+      placeholder={placeholder}
+      value={draft ?? format(value)}
+      onChange={(e) => {
+        const v = e.target.value;
+        if (!pattern.test(v)) return;
+        setDraft(v);
+        onCommit(parse(v));
+      }}
+      onFocus={(e) => e.target.select()}
+      onBlur={() => setDraft(null)}
+      className={className}
+    />
+  );
+}
+
 export function ItemEditor({
   items,
   notes,
@@ -30,7 +74,9 @@ export function ItemEditor({
         if (i !== index) return item;
         const updated = { ...item, ...patch };
         if ("quantity" in patch || "unitPriceCents" in patch) {
-          updated.totalCents = updated.quantity * updated.unitPriceCents;
+          updated.totalCents = Math.round(
+            updated.quantity * updated.unitPriceCents,
+          );
         }
         return updated;
       }),
@@ -70,28 +116,30 @@ export function ItemEditor({
               onChange={(e) => updateItem(idx, { name: e.target.value })}
               className="min-w-0 text-xs h-8"
             />
-            <Input
-              type="number"
-              min={1}
+            <NumberField
               value={item.quantity}
-              onChange={(e) =>
-                updateItem(idx, { quantity: Number(e.target.value) || 1 })
-              }
+              format={String}
+              // fractional quantities are legit (2.5 hrs labor, 5.5 qt oil)
+              // and exist in saved orders — keep them editable
+              parse={(v) => {
+                const n = Number(v);
+                return n > 0 ? n : 1;
+              }}
+              pattern={/^\d*\.?\d{0,2}$/}
+              onCommit={(quantity) => updateItem(idx, { quantity })}
+              inputMode="numeric"
+              placeholder="1"
               className="w-full sm:w-14 text-xs h-8 text-right"
             />
-            <Input
-              type="number"
-              min={0}
-              step={0.01}
-              placeholder="$"
-              value={(item.unitPriceCents / 100).toFixed(2)}
-              onChange={(e) =>
-                updateItem(idx, {
-                  unitPriceCents: Math.round(
-                    (Number(e.target.value) || 0) * 100,
-                  ),
-                })
-              }
+            <NumberField
+              value={item.unitPriceCents}
+              format={(c) => (c === 0 ? "" : (c / 100).toFixed(2))}
+              parse={(v) => Math.round((Number(v) || 0) * 100)}
+              // leading "-" allowed: discount items store negative cents
+              pattern={/^-?\d*\.?\d{0,2}$/}
+              onCommit={(unitPriceCents) => updateItem(idx, { unitPriceCents })}
+              inputMode="decimal"
+              placeholder="0.00"
               className="w-full sm:w-24 text-xs h-8 text-right"
             />
             <span className="text-xs text-muted-foreground w-16 text-right">

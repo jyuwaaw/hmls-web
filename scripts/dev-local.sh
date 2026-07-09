@@ -30,7 +30,11 @@ LOCAL_ENV=(
 case "${1:-api}" in
   api)
     echo "API → local Supabase ($DB_URL)"
-    infisical run --env=dev -- env "${LOCAL_ENV[@]}" deno task dev:api
+    # -u TENANT_DATABASE_URL: Infisical dev carries the PROD tenant_app URL
+    # (synced for Deno Deploy); without unsetting it, the "local" API's default
+    # db would connect straight to prod. Locally we fall back to DATABASE_URL
+    # (local superuser; tenantDb() logs the RLS-not-enforced warning).
+    infisical run --env=dev -- env -u TENANT_DATABASE_URL "${LOCAL_ENV[@]}" deno task dev:api
     ;;
   web)
     echo "web → local Supabase ($API_URL), API at localhost:8080"
