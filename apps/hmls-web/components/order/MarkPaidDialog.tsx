@@ -1,5 +1,6 @@
 "use client";
 
+import { PAYMENT_METHODS } from "@hmls/shared/order/status";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,8 +24,6 @@ type Props = {
     reference?: string;
   }): Promise<void>;
 };
-
-const METHODS = ["cash", "card", "check", "transfer", "other"] as const;
 
 export function MarkPaidDialog({
   open,
@@ -83,7 +82,7 @@ export function MarkPaidDialog({
               onChange={(e) => setMethod(e.target.value)}
               className="w-full h-9 px-3 rounded-md border border-input bg-transparent text-sm"
             >
-              {METHODS.map((m) => (
+              {PAYMENT_METHODS.map((m) => (
                 <option key={m} value={m}>
                   {m}
                 </option>
