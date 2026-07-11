@@ -30,7 +30,11 @@ import { getLogger } from "@logtape/logtape";
 import { db, dbAdmin, schema } from "../db/client.ts";
 import type { OrderItem } from "@hmls/shared/db/schema";
 import type { ContactMethod } from "@hmls/shared/api/contracts/orders";
-import { notifyOrderStatusChange } from "../lib/notifications.ts";
+import {
+  type MechanicNotifyEvent,
+  notifyMechanic,
+  notifyOrderStatusChange,
+} from "../lib/notifications.ts";
 import { hasIntakeFields, upsertOrderIntake } from "./order-intake.ts";
 import {
   type Actor,
@@ -113,6 +117,20 @@ function fireNotification(orderId: number, templateKey: string): void {
       templateKey,
       err: String(err),
     });
+  });
+}
+
+/** Fire-and-forget email to the order's assigned mechanic (assigned /
+ *  rescheduled / cancelled). Same contract as fireNotification — errors are
+ *  logged only, never roll back the committed write. notifyMechanic no-ops
+ *  when the order has no assigned mechanic. */
+function fireMechanicNotification(
+  orderId: number,
+  event: MechanicNotifyEvent,
+  recipientProviderId?: number,
+): void {
+  notifyMechanic(orderId, event, recipientProviderId).catch((err) => {
+    logger.warn("notifyMechanic failed", { orderId, event, err: String(err) });
   });
 }
 
@@ -340,6 +358,11 @@ export async function transition(
     } else {
       fireNotification(orderId, target);
     }
+  }
+
+  // A cancelled order that had a mechanic assigned: tell them not to go.
+  if (target === "cancelled" && updated.row.providerId != null) {
+    fireMechanicNotification(orderId, "cancelled");
   }
 
   return { ok: true, value: updated.row };
@@ -712,6 +735,14 @@ export async function attachSchedule(
     fireNotification(orderId, "schedule_changed");
   }
 
+  // Notify the assigned mechanic whenever the time on their job becomes known
+  // or changes (covers both "time set after assignment" and a later reschedule).
+  // Skipped when no mechanic is assigned yet — assignProvider then sends the
+  // "new job" email carrying the already-set time, so there's no double-send.
+  if (updated.row.providerId != null && timeChanged && schedulePairComplete(updated.row)) {
+    fireMechanicNotification(orderId, "rescheduled");
+  }
+
   return { ok: true, value: updated.row };
 }
 
@@ -835,6 +866,16 @@ export async function assignProvider(
 
   if (updated.scheduleReadyClaimed) {
     fireNotification(orderId, "schedule_ready");
+  }
+  // The newly-assigned mechanic gets a "new job" email (the early-return guard
+  // above means providerId genuinely changed).
+  fireMechanicNotification(orderId, "assigned");
+  // Reassignment A→B: also tell A they've been taken off. `order` is the
+  // pre-update row, so order.providerId is the previous mechanic; the guard
+  // above (order.providerId === providerId → early return) means when it's
+  // non-null it's genuinely a different mechanic being replaced.
+  if (order.providerId != null) {
+    fireMechanicNotification(orderId, "unassigned", order.providerId);
   }
 
   return { ok: true, value: updated.row };

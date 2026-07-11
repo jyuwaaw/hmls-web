@@ -30,6 +30,7 @@ import {
   recordPayment,
   transition,
 } from "./order-state.ts";
+import { notifyMechanic } from "../lib/notifications.ts";
 import { autoAssignProvider } from "./auto-assign.ts";
 import type { Actor, OrderStatus, PhysicalOrderStatus } from "@hmls/shared/order/status";
 import type { OrderItem } from "@hmls/shared/db/schema";
@@ -87,7 +88,7 @@ async function sweepStaleFixtures(): Promise<void> {
 
 async function insertTestMechanic(
   shopId: string,
-  opts: { name?: string; isActive?: boolean } = {},
+  opts: { name?: string; isActive?: boolean; email?: string | null } = {},
 ): Promise<typeof schema.providers.$inferSelect> {
   const [row] = await db
     .insert(schema.providers)
@@ -95,6 +96,7 @@ async function insertTestMechanic(
       shopId,
       name: `${TEST_MARKER} ${opts.name ?? crypto.randomUUID().slice(0, 8)}`,
       isActive: opts.isActive ?? true,
+      email: opts.email ?? null,
     })
     .returning();
   return row;
@@ -1203,6 +1205,48 @@ Deno.test({
       } finally {
         await deleteOrder(order.id);
         await deleteMechanic(mech.id);
+      }
+    });
+
+    await t.step("notifyMechanic: resolves the assigned mechanic's email", async () => {
+      const withEmail = await insertTestMechanic(shopId, { email: "mech@hmls.local" });
+      const noEmail = await insertTestMechanic(shopId, { email: null });
+      const assigned = await insertTestOrder({
+        shopId,
+        status: "approved",
+        customerId,
+        providerId: withEmail.id,
+        scheduledAt: futureDate(48),
+      });
+      const unassigned = await insertTestOrder({ shopId, status: "approved", customerId });
+      const noEmailOrder = await insertTestOrder({
+        shopId,
+        status: "approved",
+        customerId,
+        providerId: noEmail.id,
+      });
+      try {
+        // Resolves provider.email → dispatch attempted (Resend unset in test,
+        // but resolution reached the send path).
+        assertEquals(await notifyMechanic(assigned.id, "assigned"), "sent");
+        // No mechanic on the order → nobody to notify.
+        assertEquals(await notifyMechanic(unassigned.id, "cancelled"), "no-recipient");
+        // Mechanic assigned but has no email on file → skip, don't throw.
+        assertEquals(await notifyMechanic(noEmailOrder.id, "rescheduled"), "no-recipient");
+        // Unknown order id → not-found, never throws.
+        assertEquals(await notifyMechanic(2_000_000_000, "assigned"), "not-found");
+        // Reassignment: the override targets the PREVIOUS mechanic (withEmail)
+        // even though the order row now points at a different current mechanic.
+        assertEquals(
+          await notifyMechanic(noEmailOrder.id, "unassigned", withEmail.id),
+          "sent",
+        );
+      } finally {
+        await deleteOrder(assigned.id);
+        await deleteOrder(unassigned.id);
+        await deleteOrder(noEmailOrder.id);
+        await deleteMechanic(withEmail.id);
+        await deleteMechanic(noEmail.id);
       }
     });
 
