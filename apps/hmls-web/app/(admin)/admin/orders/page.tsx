@@ -47,22 +47,16 @@ import {
 } from "@/lib/admin-order-filters";
 import { adminPaths } from "@/lib/api-paths";
 import { formatCents } from "@/lib/format";
-import { ORDER_STATUS, type StatusConfig } from "@/lib/status-display";
+import {
+  orderSubBadge,
+  type StatusConfig,
+  statusDisplay,
+} from "@/lib/status-display";
 import { cn } from "@/lib/utils";
 
 /* ── Helpers ──────────────────────────────────────────────────────────── */
 
-function OrderStatusBadge({
-  status,
-  config,
-}: {
-  status: string;
-  config: Record<string, StatusConfig>;
-}) {
-  const entry = config[status] ?? {
-    label: status,
-    color: "bg-neutral-100 text-neutral-500",
-  };
+function OrderStatusBadge({ entry }: { entry: StatusConfig }) {
   return (
     <Badge variant="outline" className={cn(entry.color)}>
       {entry.label}
@@ -70,21 +64,20 @@ function OrderStatusBadge({
   );
 }
 
-/* ── Grouped filters ────────────────────────────────────────────────── */
+/* ── Grouped filters (7-state machine — scheduling is a property of
+      `approved`, revisions are drafts; see orderSubBadge) ─────────────── */
 
 const FILTER_GROUPS = [
   { value: "", label: "All" },
   { value: "draft", label: "Pending Review" },
   { value: "estimated", label: "Sent" },
   { value: "approved", label: "Approved" },
-  { value: "scheduled", label: "Scheduled" },
   { value: "in_progress", label: "In Progress" },
   { value: "completed", label: "Completed" },
 ] satisfies { value: AdminOrdersFilter; label: string }[];
 
 const MORE_FILTERS = [
   { value: "declined", label: "Declined" },
-  { value: "revised", label: "Revised" },
   { value: "cancelled", label: "Cancelled" },
 ] satisfies { value: AdminOrdersFilter; label: string }[];
 
@@ -746,6 +739,7 @@ export default function OrdersPage() {
                   .join(" ")
               : null;
             const items = order.items ?? [];
+            const subBadge = orderSubBadge(order);
 
             return (
               <Link
@@ -763,14 +757,22 @@ export default function OrdersPage() {
                     <span className="text-sm font-semibold text-foreground">
                       #{order.id}
                     </span>
-                    <OrderStatusBadge
-                      status={order.status}
-                      config={ORDER_STATUS}
-                    />
-                    {order.revisionNumber > 1 && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400">
-                        v{order.revisionNumber}
+                    <OrderStatusBadge entry={statusDisplay(order.status)} />
+                    {subBadge ? (
+                      <span
+                        className={cn(
+                          "text-[10px] px-1.5 py-0.5 rounded",
+                          subBadge.color,
+                        )}
+                      >
+                        {subBadge.label}
                       </span>
+                    ) : (
+                      order.revisionNumber > 1 && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400">
+                          v{order.revisionNumber}
+                        </span>
+                      )
                     )}
                   </div>
                   <span className="text-xs text-muted-foreground truncate hidden sm:inline">

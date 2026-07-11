@@ -1,7 +1,7 @@
 import type {
   Customer,
+  CustomerOrderEvent,
   Order,
-  OrderEvent,
   OrderIntake,
   OrderWithIntake,
 } from "@hmls/shared/db/types";
@@ -17,11 +17,12 @@ export type PortalOrder = Order;
 export type PortalBookingRow = OrderWithIntake;
 
 /** Shape returned by GET /api/portal/me/orders/:id — order + intake + events
- *  (no customer join; portal route is customer-scoped). */
+ *  (no customer join; portal route is customer-scoped). Events are the
+ *  customer-visible projection: allowlisted types, no metadata/actor. */
 export type PortalOrderDetail = {
   order: Order;
   intake: OrderIntake | null;
-  events: OrderEvent[];
+  events: CustomerOrderEvent[];
   needsAddress: boolean;
 };
 

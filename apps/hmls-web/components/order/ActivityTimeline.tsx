@@ -2,7 +2,6 @@
 
 import type { ContactMethod } from "@hmls/shared/api/contracts/orders";
 import type { OrderEvent } from "@hmls/shared/db/types";
-import { isOrderStatus } from "@hmls/shared/order/status";
 import {
   ClipboardEdit,
   MessageSquare,
@@ -10,7 +9,7 @@ import {
   Tag,
   User,
 } from "lucide-react";
-import { ORDER_STEP_LABELS_ADMIN } from "@/lib/status-display";
+import { historicalStatusLabel } from "@/lib/status-display";
 
 /** Past-tense verb per contact method — shared by the timeline description and
  * the Log-contact buttons so the button label always matches the event it logs. */
@@ -46,12 +45,10 @@ export function eventDescription(event: OrderEvent): string {
   switch (event.eventType) {
     case "status_change":
       if (event.fromStatus && event.toStatus) {
-        const fromLabel = isOrderStatus(event.fromStatus)
-          ? ORDER_STEP_LABELS_ADMIN[event.fromStatus]
-          : event.fromStatus;
-        const toLabel = isOrderStatus(event.toStatus)
-          ? ORDER_STEP_LABELS_ADMIN[event.toStatus]
-          : event.toStatus;
+        // History is immutable — pre-collapse events keep their historical
+        // labels (Scheduled/Revised) instead of being canonicalized away.
+        const fromLabel = historicalStatusLabel(event.fromStatus);
+        const toLabel = historicalStatusLabel(event.toStatus);
         return `Status changed from ${fromLabel} → ${toLabel}`;
       }
       return "Status changed";

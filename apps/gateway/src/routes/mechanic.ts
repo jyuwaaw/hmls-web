@@ -1,16 +1,22 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import { and, asc, between, eq, gte, lte } from "drizzle-orm";
+import { and, asc, between, eq, gte, isNull, lte, or } from "drizzle-orm";
 import { db, schema } from "@hmls/agent/db";
 import { type MechanicEnv, requireMechanic } from "../middleware/mechanic.ts";
 import { requireShopContext, type WithShop } from "../middleware/shop-context.ts";
 import { withTenantTx } from "../middleware/with-tenant-tx.ts";
+import { recordPayment, transition } from "@hmls/agent/order-state";
+import { canonicalizeStatus } from "@hmls/shared/order/status";
+import { recordOutcome } from "@hmls/agent/fixo-brain";
+import { sendOrderStateResult } from "../lib/order-state-http.ts";
 import {
   createMechanicOverrideInput,
   listMechanicOverridesQuery,
   listMyOrdersQuery,
+  mechanicTransitionInput,
   setMechanicAvailabilityInput,
 } from "@hmls/shared/api/contracts/mechanic";
+import { recordPaymentInput } from "@hmls/shared/api/contracts/orders";
 import type {
   OrderRowWithIntake,
   ProviderAvailabilityRow,
@@ -189,12 +195,25 @@ mechanic.get("/orders", zValidator("query", listMyOrdersQuery), async (c) => {
   const { from, to } = c.req.valid("query");
 
   const conditions = [eq(schema.orders.providerId, providerId), eq(schema.orders.shopId, shopId)];
+  // Unscheduled-but-assigned orders (scheduledAt IS NULL) are the "Pending
+  // schedule" bucket the mechanic page renders via partitionBySchedule. A bare
+  // `scheduledAt >= from` is NULL (not TRUE) for those rows and would drop them
+  // entirely, making that bucket unreachable — so always OR-in the null case.
   if (from && to) {
-    conditions.push(between(schema.orders.scheduledAt, new Date(from), new Date(to)));
+    conditions.push(
+      or(
+        isNull(schema.orders.scheduledAt),
+        between(schema.orders.scheduledAt, new Date(from), new Date(to)),
+      )!,
+    );
   } else if (from) {
-    conditions.push(gte(schema.orders.scheduledAt, new Date(from)));
+    conditions.push(
+      or(isNull(schema.orders.scheduledAt), gte(schema.orders.scheduledAt, new Date(from)))!,
+    );
   } else if (to) {
-    conditions.push(lte(schema.orders.scheduledAt, new Date(to)));
+    conditions.push(
+      or(isNull(schema.orders.scheduledAt), lte(schema.orders.scheduledAt, new Date(to)))!,
+    );
   }
 
   const rows = await db
@@ -209,5 +228,141 @@ mechanic.get("/orders", zValidator("query", listMyOrdersQuery), async (c) => {
   const withIntake: OrderRowWithIntake[] = rows.map((r) => ({ ...r.order, intake: r.intake }));
   return c.json<OrderRowWithIntake[]>(withIntake);
 });
+
+// ---------------------------------------------------------------------------
+// POST /orders/:id/transition — mechanic drives their own job:
+// approved → in_progress ("Start") and in_progress → completed ("Complete").
+// ACTOR_PERMISSIONS in the harness is the rule table; this route only asserts
+// ownership and translates the result to HTTP.
+// ---------------------------------------------------------------------------
+
+mechanic.post(
+  "/orders/:id/transition",
+  zValidator("json", mechanicTransitionInput),
+  async (c) => {
+    const providerId = c.get("providerId");
+    const shopId = c.get("shopId");
+    const id = Number(c.req.param("id"));
+    if (!Number.isInteger(id) || id <= 0) {
+      return c.json<ApiError>({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
+    }
+    const body = c.req.valid("json");
+
+    // Ownership double-scope: the order must be assigned to THIS mechanic AND
+    // belong to their shop. Any mismatch is a 404, not 403 — don't leak that
+    // the order exists.
+    const [order] = await db
+      .select()
+      .from(schema.orders)
+      .where(
+        and(
+          eq(schema.orders.id, id),
+          eq(schema.orders.providerId, providerId),
+          eq(schema.orders.shopId, shopId),
+        ),
+      )
+      .limit(1);
+    if (!order) {
+      return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
+    }
+
+    // Transition FIRST, then persist the confirmed diagnosis + close the fixo
+    // loop only on success. A rejected/duplicate Complete (stale card, order
+    // no longer in_progress, concurrent cancel) must not stamp a diagnosis
+    // onto a wrong-state order or report a calibration outcome for a
+    // completion that never happened.
+    const result = await transition(id, body.to, { kind: "mechanic", providerId });
+
+    const diag = body.confirmedDiagnosis?.trim();
+    if (result.ok && body.to === "completed" && diag) {
+      // Same direct column write the admin complete flow does via PATCH /orders/:id.
+      await db
+        .update(schema.orders)
+        .set({ confirmedDiagnosis: diag, updatedAt: new Date() })
+        .where(
+          and(
+            eq(schema.orders.id, id),
+            eq(schema.orders.providerId, providerId),
+            eq(schema.orders.shopId, shopId),
+          ),
+        );
+
+      // Loop closer (mirrors admin PATCH /orders/:id): report the confirmed
+      // outcome back to the brain for fixo-linked orders. Fire-and-forget — a
+      // calibration write must never block or fail the completion.
+      if (order.fixoPredictionId) {
+        recordOutcome({
+          predictionId: order.fixoPredictionId,
+          confirmedDiagnosis: diag,
+          actualCostCents: order.paidAmountCents ?? order.subtotalCents,
+        }).catch((err) => {
+          console.error(`recordOutcome failed for order ${id}:`, String(err));
+        });
+      }
+    }
+
+    return sendOrderStateResult(c, result);
+  },
+);
+
+// ---------------------------------------------------------------------------
+// POST /orders/:id/payment — on-the-spot collection after Complete. Same body
+// as the admin route (shared recordPaymentInput contract); same ownership
+// double-scope as the transition route. Mechanics can only stamp payment on
+// their own COMPLETED job — deposits on approved orders stay admin-only.
+// recordPayment overwrites the payment fields on repeat submission (retry
+// semantics, no stacking) and writes collectedBy into the event metadata.
+// ---------------------------------------------------------------------------
+
+mechanic.post(
+  "/orders/:id/payment",
+  zValidator("json", recordPaymentInput),
+  async (c) => {
+    const providerId = c.get("providerId");
+    const shopId = c.get("shopId");
+    const id = Number(c.req.param("id"));
+    if (!Number.isInteger(id) || id <= 0) {
+      return c.json<ApiError>({ error: { code: "BAD_REQUEST", message: "Invalid order ID" } }, 400);
+    }
+    const body = c.req.valid("json");
+
+    // Ownership double-scope: mismatch is a 404, not 403 — don't leak that
+    // the order exists.
+    const [order] = await db
+      .select()
+      .from(schema.orders)
+      .where(
+        and(
+          eq(schema.orders.id, id),
+          eq(schema.orders.providerId, providerId),
+          eq(schema.orders.shopId, shopId),
+        ),
+      )
+      .limit(1);
+    if (!order) {
+      return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
+    }
+
+    if (canonicalizeStatus(order.status) !== "completed") {
+      return c.json<ApiError>(
+        {
+          error: {
+            code: "BAD_REQUEST",
+            message: "Payment can only be recorded on a completed job",
+          },
+        },
+        400,
+      );
+    }
+
+    const result = await recordPayment(id, {
+      amountCents: body.amountCents,
+      method: body.method,
+      reference: body.reference ?? null,
+      paidAt: body.paidAt ? new Date(body.paidAt) : undefined,
+    }, { kind: "mechanic", providerId });
+    return sendOrderStateResult(c, result);
+  },
+);
 
 export { mechanic };

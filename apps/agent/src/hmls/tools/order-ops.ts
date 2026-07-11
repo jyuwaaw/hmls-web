@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, ilike, sql } from "drizzle-orm";
 import { db, schema } from "../../db/client.ts";
 import { type AccessCtx, canWrite, orderAccessible, OWNER_ALL_SHOPS } from "../../db/tenant.ts";
 import { toolResult } from "@hmls/shared/tool-result";
@@ -7,22 +7,29 @@ import type { ToolContext } from "../../common/convert-tools.ts";
 import {
   addNote,
   allowedTransitions,
+  assignProvider,
+  canonicalizeStatus,
   type OrderStatus,
+  PAYMENT_METHODS,
+  type PaymentMethod,
+  recordPayment,
   transition,
 } from "../../services/order-state.ts";
+import { AUTHORIZATION_CHANNELS, type OrderAuthorization } from "@hmls/shared/order/status";
 import {
   customerAgentActor,
   staffAgentActor,
   toolResultFromOrderState,
 } from "../../services/order-state-tool.ts";
 
+// Canonical 7-state machine — the LLM should never target the retired
+// 'scheduled'/'revised' labels (transition() would map them anyway, but the
+// schema shouldn't advertise them).
 const ORDER_STATUSES = [
   "draft",
   "estimated",
-  "revised",
   "approved",
   "declined",
-  "scheduled",
   "in_progress",
   "completed",
   "cancelled",
@@ -37,7 +44,10 @@ const transitionOrderStatusTool = {
   description:
     "Transition an order to a new status. The harness validates the transition against the " +
     "state machine AND the caller's role permissions. Use get_order_status first to confirm " +
-    "the current status.",
+    "the current status. SENSITIVE — CANCELLATION IS TERMINAL: never transition to 'cancelled' " +
+    'on a first-pass guess. First echo the order and the reason to the human (e.g. "Cancel ' +
+    'order #42 — customer no-show. Confirm?") and only call after they confirm in this ' +
+    "conversation.",
   schema: z.object({
     orderId: z.string().describe("The order ID (numeric string or number)"),
     newStatus: z
@@ -47,12 +57,30 @@ const transitionOrderStatusTool = {
       .string()
       .optional()
       .describe("Optional reason (stored on cancelled/declined orders, otherwise audit-only)"),
+    authorization: z
+      .object({
+        channel: z
+          .enum(AUTHORIZATION_CHANNELS)
+          .describe("How the customer authorized: portal, text, call, or in_person"),
+        note: z
+          .string()
+          .optional()
+          .describe("Optional context, e.g. 'spoke with owner at 10:30am'"),
+      })
+      .optional()
+      .describe(
+        "Customer-authorization evidence. REQUIRED when transitioning to 'approved' (including " +
+          "the draft→approved walk-in shortcut) — this edge records how the customer approved " +
+          "the work. If you do not know which channel the customer used, ASK the user first; " +
+          "never guess.",
+      ),
   }),
   execute: async (
     params: {
       orderId: string;
       newStatus: (typeof ORDER_STATUSES)[number];
       reason?: string;
+      authorization?: OrderAuthorization;
     },
     ctx: ToolContext | undefined,
   ) => {
@@ -74,6 +102,7 @@ const transitionOrderStatusTool = {
 
     const result = await transition(id, params.newStatus as OrderStatus, actor, {
       reason: params.reason,
+      authorization: params.authorization,
     });
     return toolResultFromOrderState(result, (row) => ({
       orderId: row.id,
@@ -262,7 +291,10 @@ const getOrderStatusTool = {
       return toolResult({ success: false, error: "No order found" });
     }
 
-    const nextSteps = allowedTransitions(order.status as OrderStatus);
+    // Canonical status for the LLM — a window-period physical 'scheduled' /
+    // 'revised' row reads as its canonical state.
+    const status: OrderStatus = canonicalizeStatus(order.status);
+    const nextSteps = allowedTransitions(status);
     const nextStepHint = nextSteps.length > 0
       ? `Next allowed transitions: ${nextSteps.join(", ")}`
       : "Order is in a terminal state";
@@ -277,7 +309,9 @@ const getOrderStatusTool = {
     return toolResult({
       success: true,
       orderId: order.id,
-      status: order.status,
+      status,
+      scheduledAt: order.scheduledAt,
+      providerId: order.providerId,
       contactName: order.contactName,
       contactEmail: order.contactEmail,
       contactPhone: order.contactPhone,
@@ -296,6 +330,244 @@ const getOrderStatusTool = {
 };
 
 // ---------------------------------------------------------------------------
+// Tool 4: assign_mechanic (staff-only — registered via staffOrderOpsTools)
+// ---------------------------------------------------------------------------
+
+const assignMechanicTool = {
+  name: "assign_mechanic",
+  description: "Assign (dispatch) a mechanic to an order — no status change. Pass providerId " +
+    "when known; otherwise pass the mechanic's name and it is resolved within the shop " +
+    "(ambiguous or unknown names return the candidates so you can retry). " +
+    "SENSITIVE — RE-DISPATCH: if the order already has a DIFFERENT mechanic assigned, do not " +
+    'swap them on a first-pass guess. First echo the change to the human (e.g. "Order #42 is ' +
+    'assigned to Jake — replace with Maria?"), and only after they confirm in this ' +
+    "conversation, call again with confirmReassign: true.",
+  schema: z.object({
+    orderId: z.string().describe("The order ID (numeric string or number)"),
+    providerId: z
+      .number()
+      .int()
+      .positive()
+      .optional()
+      .describe("The mechanic's provider ID (preferred when known)"),
+    providerName: z
+      .string()
+      .optional()
+      .describe("Mechanic name to resolve within the shop when providerId is unknown"),
+    confirmReassign: z
+      .boolean()
+      .optional()
+      .describe(
+        "Required (true) only when the order already has a different mechanic assigned. Set " +
+          "ONLY after the human has confirmed the re-dispatch in this conversation.",
+      ),
+    force: z
+      .boolean()
+      .optional()
+      .describe("Admin override: allow assigning an inactive mechanic"),
+  }),
+  execute: async (
+    params: {
+      orderId: string;
+      providerId?: number;
+      providerName?: string;
+      confirmReassign?: boolean;
+      force?: boolean;
+    },
+    ctx: ToolContext | undefined,
+  ) => {
+    const id = Number(params.orderId);
+    if (!Number.isInteger(id) || id <= 0) {
+      return toolResult({ success: false, error: "Invalid order ID" });
+    }
+    if (params.providerId == null && !params.providerName?.trim()) {
+      return toolResult({
+        success: false,
+        error: "Provide providerId or providerName to pick a mechanic",
+      });
+    }
+    // Ownership pre-flight (WRITE) — same rule as transition_order_status.
+    const ctxAccess: AccessCtx = { shopId: ctx?.shopId, customerId: ctx?.customerId };
+    if (!canWrite(ctxAccess) || !(await orderAccessible(id, ctxAccess))) {
+      return toolResult({ success: false, error: `Order #${id} not found` });
+    }
+
+    const [order] = await db
+      .select()
+      .from(schema.orders)
+      .where(eq(schema.orders.id, id))
+      .limit(1);
+    if (!order) {
+      return toolResult({ success: false, error: `Order #${id} not found` });
+    }
+
+    // Resolve the mechanic. Name resolution doubles as discovery: no
+    // list_providers tool exists, so error messages list the shop's active
+    // mechanics for the model to retry with.
+    let providerId = params.providerId;
+    let providerName: string | undefined;
+    if (providerId == null) {
+      const term = params.providerName!.trim();
+      const matches = await db
+        .select({ id: schema.providers.id, name: schema.providers.name })
+        .from(schema.providers)
+        .where(
+          and(
+            eq(schema.providers.shopId, order.shopId),
+            ilike(schema.providers.name, `%${term}%`),
+          ),
+        );
+      if (matches.length === 0) {
+        const active = await db
+          .select({ id: schema.providers.id, name: schema.providers.name })
+          .from(schema.providers)
+          .where(
+            and(eq(schema.providers.shopId, order.shopId), eq(schema.providers.isActive, true)),
+          );
+        const roster = active.map((p) => `${p.name} (#${p.id})`).join(", ") || "none";
+        return toolResult({
+          success: false,
+          error: `No mechanic matching "${term}" in this shop. Active mechanics: ${roster}`,
+        });
+      }
+      if (matches.length > 1) {
+        const candidates = matches.map((p) => `${p.name} (#${p.id})`).join(", ");
+        return toolResult({
+          success: false,
+          error: `Ambiguous mechanic name "${term}" — matches: ${candidates}. ` +
+            "Ask the user which one, then re-call with that providerId.",
+        });
+      }
+      providerId = matches[0].id;
+      providerName = matches[0].name;
+    }
+
+    // Re-dispatch confirmation fence (Codex C8): overwriting an existing
+    // assignment requires an explicit in-chat confirmation from the human.
+    if (
+      order.providerId != null && order.providerId !== providerId && !params.confirmReassign
+    ) {
+      const [current] = await db
+        .select({ name: schema.providers.name })
+        .from(schema.providers)
+        .where(eq(schema.providers.id, order.providerId))
+        .limit(1);
+      const currentLabel = current
+        ? `${current.name} (#${order.providerId})`
+        : `#${order.providerId}`;
+      return toolResult({
+        success: false,
+        error: `Order #${id} is already assigned to mechanic ${currentLabel}. Re-dispatching ` +
+          "replaces them — confirm the swap with the user first, then re-call with " +
+          "confirmReassign: true.",
+      });
+    }
+
+    const actor = customerAgentActor(ctx) ?? staffAgentActor(ctx);
+    const result = await assignProvider(id, providerId, actor, { force: params.force });
+    return toolResultFromOrderState(result, (row) => ({
+      orderId: row.id,
+      providerId: row.providerId,
+      message: `Order #${row.id} assigned to mechanic ${
+        providerName ? `${providerName} (#${row.providerId})` : `#${row.providerId}`
+      }`,
+    }));
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Tool 5: record_payment (staff-only — registered via staffOrderOpsTools)
+// ---------------------------------------------------------------------------
+
+const recordPaymentTool = {
+  name: "record_payment",
+  description: "Record a manual payment on an order — stamps paid_at, payment_method, and the " +
+    "paid amount; no status change. Only allowed on approved, in_progress, or completed " +
+    "orders. SENSITIVE — TOUCHES MONEY: never call this on a first-pass guess. First echo the " +
+    'exact amount, method, and order to the human (e.g. "Record $180.00 cash on order #42 — ' +
+    'confirm?") and only call after they confirm in this conversation, with confirmed: true.',
+  schema: z.object({
+    orderId: z.string().describe("The order ID (numeric string or number)"),
+    amountCents: z
+      .number()
+      .int()
+      .positive()
+      .describe("Payment amount in CENTS (e.g. $180.00 → 18000)"),
+    method: z
+      .enum(PAYMENT_METHODS)
+      .describe("How the customer paid"),
+    reference: z
+      .string()
+      .optional()
+      .describe("Optional reference (check number, Venmo handle, Stripe id, ...)"),
+    paidAt: z
+      .string()
+      .optional()
+      .describe("ISO 8601 timestamp when the payment was received (defaults to now)"),
+    confirmed: z
+      .boolean()
+      .describe(
+        "Set true ONLY after the human has confirmed the echoed amount and method in this " +
+          "conversation. Never set true on your own initiative.",
+      ),
+  }),
+  execute: async (
+    params: {
+      orderId: string;
+      amountCents: number;
+      method: PaymentMethod;
+      reference?: string;
+      paidAt?: string;
+      confirmed: boolean;
+    },
+    ctx: ToolContext | undefined,
+  ) => {
+    const id = Number(params.orderId);
+    if (!Number.isInteger(id) || id <= 0) {
+      return toolResult({ success: false, error: "Invalid order ID" });
+    }
+    // Confirmation fence (Codex C8) — pure input validation, checked before
+    // any DB access so an unconfirmed call has zero side effects.
+    if (params.confirmed !== true) {
+      return toolResult({
+        success: false,
+        error: "record_payment requires explicit human confirmation. Echo the amount, method, " +
+          "and order to the user, wait for their confirmation in this conversation, then " +
+          "re-call with confirmed: true.",
+      });
+    }
+    let paidAt: Date | undefined;
+    if (params.paidAt) {
+      paidAt = new Date(params.paidAt);
+      if (Number.isNaN(paidAt.getTime())) {
+        return toolResult({ success: false, error: "Invalid paidAt timestamp (use ISO 8601)" });
+      }
+    }
+    // Ownership pre-flight (WRITE) — same rule as transition_order_status.
+    const ctxAccess: AccessCtx = { shopId: ctx?.shopId, customerId: ctx?.customerId };
+    if (!canWrite(ctxAccess) || !(await orderAccessible(id, ctxAccess))) {
+      return toolResult({ success: false, error: `Order #${id} not found` });
+    }
+
+    const actor = customerAgentActor(ctx) ?? staffAgentActor(ctx);
+    const result = await recordPayment(id, {
+      amountCents: params.amountCents,
+      method: params.method,
+      reference: params.reference,
+      paidAt,
+    }, actor);
+    return toolResultFromOrderState(result, (row) => ({
+      orderId: row.id,
+      paidAt: row.paidAt,
+      paymentMethod: row.paymentMethod,
+      paidAmountCents: row.paidAmountCents,
+      message: `Payment of $${(params.amountCents / 100).toFixed(2)} (${params.method}) ` +
+        `recorded on order #${row.id}`,
+    }));
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Export
 // ---------------------------------------------------------------------------
 
@@ -303,4 +575,13 @@ export const orderOpsTools = [
   transitionOrderStatusTool,
   addOrderNoteTool,
   getOrderStatusTool,
+];
+
+/** Staff-agent-only order operations. The customer agent must NEVER register
+ *  these (dispatch + money). Belt-and-braces: even if misregistered, a
+ *  customer ctx resolves to customer authority, which assignProvider /
+ *  recordPayment reject at the harness layer. */
+export const staffOrderOpsTools = [
+  assignMechanicTool,
+  recordPaymentTool,
 ];

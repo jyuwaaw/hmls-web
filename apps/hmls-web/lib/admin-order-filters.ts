@@ -1,12 +1,13 @@
+// The 7 canonical states. Legacy 'scheduled'/'revised' filter URLs fall back
+// to "All" — the gateway's ?status=approved / ?status=draft responses already
+// include window-period legacy rows, so nothing is hidden.
 const ADMIN_ORDER_FILTERS = [
   "draft",
   "estimated",
   "approved",
-  "scheduled",
   "in_progress",
   "completed",
   "declined",
-  "revised",
   "cancelled",
 ] as const;
 

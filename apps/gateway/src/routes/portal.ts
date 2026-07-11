@@ -2,8 +2,9 @@ import { Hono } from "hono";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import { db, schema } from "@hmls/agent/db";
-import { and, desc, eq, ne } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { Errors } from "@hmls/shared/errors";
+import { filterCustomerVisibleEvents, toCustomerOrder } from "@hmls/shared/db/schema";
 import { type AuthEnv, requireAuth } from "../middleware/auth.ts";
 import { requireShopContext, type WithShop } from "../middleware/shop-context.ts";
 import { withTenantTx } from "../middleware/with-tenant-tx.ts";
@@ -12,14 +13,19 @@ import { sendOrderStateResult } from "../lib/order-state-http.ts";
 import { geocodeAddress } from "@hmls/agent/common/shop-routing";
 import { orderReasonInput, updateProfileInput } from "@hmls/shared/api/contracts/portal";
 import type {
+  CustomerOrderEventRow,
   CustomerRow,
-  OrderEventRow,
   OrderIntakeRow,
   OrderRow,
   OrderRowWithIntake,
 } from "@hmls/shared/db/types";
 
 type ApiError = { error: { code: string; message: string } };
+
+// Order shapes as the customer sees them: internal-only columns (adminNotes,
+// fixoPredictionId) stripped by toCustomerOrder before the row leaves the API.
+type CustomerOrderRow = Omit<OrderRow, "adminNotes" | "fixoPredictionId">;
+type CustomerOrderRowWithIntake = Omit<OrderRowWithIntake, "adminNotes" | "fixoPredictionId">;
 
 const ZIP_ONLY = /^\d{5}(-\d{4})?$/;
 /** An estimate whose stored location is a bare ZIP still needs a street address before approval. */
@@ -90,10 +96,10 @@ portal.get("/me/bookings", async (c) => {
     .orderBy(desc(schema.orders.scheduledAt));
 
   // Filter in JS so we still include orders without scheduled_at if none match
-  const withIntake: OrderRowWithIntake[] = rows
+  const withIntake: CustomerOrderRowWithIntake[] = rows
     .filter((r) => r.order.scheduledAt != null)
-    .map((r) => ({ ...r.order, intake: r.intake }));
-  return c.json<OrderRowWithIntake[]>(withIntake);
+    .map((r) => ({ ...toCustomerOrder(r.order), intake: r.intake }));
+  return c.json<CustomerOrderRowWithIntake[]>(withIntake);
 });
 
 // GET /me/orders — customer's orders (unified — replaces estimates + quotes)
@@ -105,7 +111,7 @@ portal.get("/me/orders", async (c) => {
     .where(eq(schema.orders.customerId, customerId)) // tenant-ok: customer-owned rows, scoped by customerId across shops; RLS app.customer_id backs it
     .orderBy(desc(schema.orders.createdAt));
 
-  return c.json<OrderRow[]>(rows);
+  return c.json<CustomerOrderRow[]>(rows.map(toCustomerOrder));
 });
 
 // GET /me/orders/:id — single order detail with events (customer-scoped)
@@ -126,16 +132,11 @@ portal.get("/me/orders/:id", async (c) => {
     return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
   }
 
-  const [events, intake] = await Promise.all([
+  const [rawEvents, intake] = await Promise.all([
     db
       .select()
       .from(schema.orderEvents)
-      // customer_contacted is the shop's internal outreach log (metadata may
-      // carry staff notes; actor is the admin's email) — never customer-facing.
-      .where(and(
-        eq(schema.orderEvents.orderId, id),
-        ne(schema.orderEvents.eventType, "customer_contacted"),
-      ))
+      .where(eq(schema.orderEvents.orderId, id))
       .orderBy(desc(schema.orderEvents.createdAt)),
     db
       .select()
@@ -145,15 +146,20 @@ portal.get("/me/orders/:id", async (c) => {
       .then((r) => r[0] ?? null),
   ]);
 
+  // Allowlist + strip: internal event types (note_added, customer_contacted,
+  // ...) never reach the portal, and metadata/actor (staff notes, admin
+  // emails, authorization evidence) are removed from what does.
+  const events = filterCustomerVisibleEvents(rawEvents);
+
   return c.json<
     {
-      order: OrderRow;
+      order: CustomerOrderRow;
       intake: OrderIntakeRow | null;
-      events: OrderEventRow[];
+      events: CustomerOrderEventRow[];
       needsAddress: boolean;
     }
   >({
-    order,
+    order: toCustomerOrder(order),
     intake,
     events,
     needsAddress: needsAddress(order),
@@ -169,7 +175,7 @@ portal.get("/me/estimates", async (c) => {
     .where(eq(schema.orders.customerId, customerId)) // tenant-ok: customer-owned rows, scoped by customerId across shops; RLS app.customer_id backs it
     .orderBy(desc(schema.orders.createdAt));
 
-  return c.json<OrderRow[]>(rows);
+  return c.json<CustomerOrderRow[]>(rows.map(toCustomerOrder));
 });
 
 // GET /me/quotes — backward compat redirect to orders
@@ -181,7 +187,7 @@ portal.get("/me/quotes", async (c) => {
     .where(eq(schema.orders.customerId, customerId)) // tenant-ok: customer-owned rows, scoped by customerId across shops; RLS app.customer_id backs it
     .orderBy(desc(schema.orders.createdAt));
 
-  return c.json<OrderRow[]>(rows);
+  return c.json<CustomerOrderRow[]>(rows.map(toCustomerOrder));
 });
 
 // Harness enforces role-based permission (e.g. "customer may approve
@@ -262,8 +268,8 @@ portal.post("/me/orders/:id/decline", zValidator("json", orderReasonInput), asyn
   return sendOrderStateResult(c, result);
 });
 
-// POST /me/orders/:id/cancel-booking — customer cancels a scheduled order
-// before the shop has started work.
+// POST /me/orders/:id/cancel-booking — customer cancels a booked (approved +
+// scheduled slot) order before the shop has started work.
 portal.post(
   "/me/orders/:id/cancel-booking",
   zValidator("json", orderReasonInput),
@@ -293,8 +299,8 @@ portal.post(
 
 // POST /me/orders/:id/cancel — customer cancels an order they no longer want,
 // from the order detail page. The harness gates which states a customer may
-// cancel from (draft / estimated / scheduled — never approved/in_progress).
-// `cancel-booking` above is the Bookings-page equivalent for scheduled orders.
+// cancel from (draft / estimated / approved — never in_progress).
+// `cancel-booking` above is the Bookings-page equivalent for booked orders.
 portal.post("/me/orders/:id/cancel", zValidator("json", orderReasonInput), async (c) => {
   const customerId = c.get("customerId");
   const id = Number(c.req.param("id"));

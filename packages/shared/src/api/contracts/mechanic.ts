@@ -45,3 +45,15 @@ export const listMyOrdersQuery = z.object({
   from: z.string().optional(),
   to: z.string().optional(),
 });
+
+// ---------------------------------------------------------------------------
+// POST /orders/:id/transition — mechanic drives their own job lifecycle
+// (approved → in_progress "Start", in_progress → completed "Complete")
+// ---------------------------------------------------------------------------
+
+export const mechanicTransitionInput = z.object({
+  to: z.enum(["in_progress", "completed"]),
+  /** Optional "what it actually turned out to be" — persisted on complete
+   *  (soft prompt in the UI, mirrors the admin complete flow). */
+  confirmedDiagnosis: z.string().optional(),
+});

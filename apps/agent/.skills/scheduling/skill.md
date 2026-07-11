@@ -15,30 +15,32 @@ request. There is no "shop must send the estimate" pause and no "customer must a
 are folded into the chat. The shop's only required interaction is a final Confirm click on the
 assembled package.
 
-## Order Lifecycle (state machine)
+## Order Lifecycle (state machine — 7 states)
 
 ```
-draft ────────► scheduled ───► in_progress ───► completed
-  │  ╲             │                  │
-  │   ╲            ▼                  ▼
-  │    ╲       cancelled         cancelled
-  │     ╲
-  │      ╲► estimated ──► approved ──► scheduled
-  │           │   │                       (legacy portal/PDF path)
-  │           ▼   ▼
-  │       declined  cancelled
-  │           │
-  │           └─► revised ─► estimated
-  │
+draft ──► estimated ──► approved ──► in_progress ──► completed
+  │ ╲        │  ▲          │              │
+  │  ╲       │  └─(pullback: shop edits a sent estimate → back to draft)
+  │   ╲      ▼             ▼              ▼
+  │    ╲  declined     cancelled      cancelled
+  │     ╲    │
+  │      ╲   └─► draft (re-revise)
+  │       ╲
+  │        ╲──► approved  (walk-in shortcut, requires customer-authorization
+  │              evidence — chat consent / text / call / in-person)
   ▼
 cancelled
 ```
 
-- **`draft → scheduled`** is the chat-flow shortcut. The customer picks a time and a mechanic gets
-  auto-assigned, all while the order stays in `draft`. The shop's "Confirm booking" click promotes
-  it to `scheduled`.
-- **`draft → estimated → approved → scheduled`** is the legacy path used for non-chat customers (PDF
-  link, portal). The customer approves via a separate /portal endpoint; the shop schedules manually.
+- **Scheduling is a property, not a status.** `approved` + `scheduledAt` + assigned mechanic IS the
+  confirmed booking. There is no `scheduled` status.
+- **`draft → approved`** is the chat-flow / walk-in shortcut. The customer picks a time and a
+  mechanic gets auto-assigned, all while the order stays in `draft`. The shop's "Approve & confirm"
+  click promotes it straight to `approved` (with authorization evidence recorded).
+- **`draft → estimated → approved`** is the review-and-send path used for non-chat customers (PDF
+  link, portal). The customer approves via a separate /portal endpoint.
+- **Revision = pullback to `draft`.** Editing a sent (`estimated`) order pulls it back to `draft`;
+  re-sending returns it to `estimated`. There is no `revised` status.
 
 ## Chat-flow contract
 
@@ -61,16 +63,16 @@ The customer's `schedule_order` call IS the affirmative consent — it's audited
 
 - `get_availability` — open slots for the next 7 days. Renders the date + time picker in the chat.
   **Do not** ask the customer for a preferred time before calling this — the picker IS the question.
-- `schedule_order` — pin appointment time on an existing order.
-  - Works on `draft` (chat path; status preserved, fields populated)
-  - Works on `approved` (legacy path; auto-advances to `scheduled`)
-  - Works on `scheduled` / `in_progress` (pure reschedule)
+- `schedule_order` — pin appointment time on an existing order. Status never changes.
+  - Works on `draft` / `estimated` (tentative slot pending shop review)
+  - Works on `approved` / `in_progress` (sets or reschedules the confirmed booking)
   - **Never pass `durationMinutesOverride`** — staff-only override; the customer-visible duration is
     fixed by the order's labor items.
-- `cancel_booking` — customer cancels a `scheduled` appointment. Once status is `in_progress`
-  (mechanic on the job), cancellations must go through the shop directly.
+- `cancel_booking` — customer cancels a booked appointment (order `approved` with a scheduled time).
+  Once status is `in_progress` (mechanic on the job), cancellations must go through the shop
+  directly.
 - `cancel_order` — customer aborts a `draft` (chat in progress, changed mind), `estimated`, or
-  `scheduled` order.
+  `approved` order.
 
 ## Auto-Dispatch Behavior
 

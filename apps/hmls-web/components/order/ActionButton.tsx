@@ -26,24 +26,34 @@ export function ActionButton({
 }: Props) {
   const variant = action.variant(order);
   const label = action.label(order);
-  const isEnabled = action.enabled(order) && !disabled;
+  const actionEnabled = action.enabled(order);
+  const isEnabled = actionEnabled && !disabled;
+  // Disabled buttons swallow pointer events, so the hint rides on a wrapper.
+  const hint = !actionEnabled ? action.disabledHint?.(order) : undefined;
 
   return (
-    <Button
-      variant={
-        variant === "danger" ? "outline" : prominent ? "default" : "ghost"
-      }
-      size={prominent ? "sm" : "xs"}
-      disabled={!isEnabled}
-      onClick={() => onClick(action)}
-      className={cn(
-        "w-full justify-center",
-        variant === "danger" &&
-          "text-destructive border-destructive/30 hover:bg-destructive/10",
-        banner && "bg-amber-600 hover:bg-amber-700 text-white",
+    <span title={hint} className="w-full">
+      <Button
+        variant={
+          variant === "danger" ? "outline" : prominent ? "default" : "ghost"
+        }
+        size={prominent ? "sm" : "xs"}
+        disabled={!isEnabled}
+        onClick={() => onClick(action)}
+        className={cn(
+          "w-full justify-center",
+          variant === "danger" &&
+            "text-destructive border-destructive/30 hover:bg-destructive/10",
+          banner && "bg-amber-600 hover:bg-amber-700 text-white",
+        )}
+      >
+        {label}
+      </Button>
+      {hint && (
+        <span className="mt-1 block text-center text-[10px] text-muted-foreground">
+          {hint}
+        </span>
       )}
-    >
-      {label}
-    </Button>
+    </span>
   );
 }

@@ -284,33 +284,11 @@ const STATUS_EMAILS: Record<string, EmailTemplate> = {
       ${fixoFreeCtaBlock("declined")}`),
   },
 
-  revised: {
-    subject: "Your Revised HMLS Estimate is Ready",
-    text: (ctx) =>
-      `Hi ${ctx.customerName},\n\nA revised estimate${
-        ctx.estimateTotal ? ` (${ctx.estimateTotal})` : ""
-      } is ready for your review.\n\n${
-        ctx.reviewUrl ?? `${ctx.portalUrl}/orders`
-      }\n\nThanks,\nHMLS Team`,
-    html: (ctx) =>
-      htmlWrapper(`
-      <div style="padding:24px 24px 16px;">
-        <h1 style="margin:0 0 6px;font-size:20px;font-weight:700;color:#18181b;">Revised Estimate Ready</h1>
-        <p style="margin:0;color:#71717a;font-size:14px;line-height:1.5;">
-          Hi ${ctx.customerName}, we&apos;ve updated your estimate based on your feedback.
-        </p>
-      </div>
-      ${vehicleBlock(ctx)}
-      ${itemsBlock(ctx)}
-      ${pricingBlock(ctx)}
-      <div style="padding:20px 24px 24px;background:#f9f9fb;border-top:1px solid #e4e4e7;text-align:center;">
-        <a href="${
-        ctx.reviewUrl ?? ctx.portalUrl
-      }" style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:13px 36px;border-radius:8px;">Review Revised Estimate</a>
-      </div>`),
-  },
-
-  scheduled: {
+  // NOT a status: fired via the schedule_ready_notified event when the
+  // slot+mechanic pair first becomes complete on an approved order (there
+  // is no `scheduled` status after the 9→7 collapse). Content unchanged
+  // from the old →scheduled template.
+  schedule_ready: {
     subject: "Your HMLS Service is Scheduled",
     text: (ctx) =>
       `Hi ${ctx.customerName},\n\nYour service appointment is confirmed. View details:\n${ctx.portalUrl}/orders\n\nSee you soon!\n\nThanks,\nHMLS Team`,
@@ -320,6 +298,22 @@ const STATUS_EMAILS: Record<string, EmailTemplate> = {
         <h1 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#18181b;">Service Scheduled</h1>
         <p style="margin:0 0 20px;color:#71717a;font-size:14px;line-height:1.6;">
           Hi ${ctx.customerName}, your appointment is confirmed. View the details in your portal.
+        </p>
+        <a href="${ctx.portalUrl}/orders" style="display:inline-block;background:#18181b;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:13px 36px;border-radius:8px;">View Details</a>
+      </div>`),
+  },
+
+  // NOT a status: reschedule of an already-confirmed booking (time changed).
+  schedule_changed: {
+    subject: "Your HMLS Appointment Time Has Changed",
+    text: (ctx) =>
+      `Hi ${ctx.customerName},\n\nYour service appointment time has been updated. View the new details:\n${ctx.portalUrl}/orders\n\nSee you soon!\n\nThanks,\nHMLS Team`,
+    html: (ctx) =>
+      htmlWrapper(`
+      <div style="padding:32px 24px;text-align:center;">
+        <h1 style="margin:0 0 8px;font-size:20px;font-weight:700;color:#18181b;">Appointment Time Changed</h1>
+        <p style="margin:0 0 20px;color:#71717a;font-size:14px;line-height:1.6;">
+          Hi ${ctx.customerName}, your appointment time has been updated. View the new details in your portal.
         </p>
         <a href="${ctx.portalUrl}/orders" style="display:inline-block;background:#18181b;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:13px 36px;border-radius:8px;">View Details</a>
       </div>`),
@@ -378,7 +372,17 @@ const STATUS_EMAILS: Record<string, EmailTemplate> = {
 
 // --- Admin notification statuses ---
 
-const ADMIN_NOTIFY_STATUSES = new Set(["approved", "declined", "revised"]);
+// `draft` here means the estimated→draft pullback (an already-sent estimate
+// was withdrawn for revision) — the only way `draft` arrives via a status
+// change. New AI drafts are created directly, never through transition(),
+// so they don't trigger this.
+const ADMIN_NOTIFY_STATUSES = new Set(["approved", "declined", "draft"]);
+
+/** Human wording for the admin subject line — the raw status alone is
+ *  cryptic for the pullback case. */
+function adminStatusLabel(newStatus: string): string {
+  return newStatus === "draft" ? "pulled back to draft (revision in progress)" : newStatus;
+}
 
 // --- Email sending via Resend ---
 
@@ -472,6 +476,10 @@ export async function notifyPaymentFailed(opts: {
 
 // --- Main notification function ---
 
+/** Send the customer (and possibly admin) email for an order lifecycle
+ *  moment. `newStatus` is either a canonical order status or one of the
+ *  schedule-event template keys ("schedule_ready" / "schedule_changed") —
+ *  both index into STATUS_EMAILS / ADMIN_NOTIFY_STATUSES the same way. */
 export async function notifyOrderStatusChange(
   orderId: number,
   newStatus: string,
@@ -573,9 +581,10 @@ export async function notifyOrderStatusChange(
     if (ADMIN_NOTIFY_STATUSES.has(newStatus)) {
       const adminEmail = Deno.env.get("ADMIN_NOTIFY_EMAIL");
       if (adminEmail) {
-        const adminSubject = `[HMLS Admin] Order #${order.id} → ${newStatus}`;
+        const label = adminStatusLabel(newStatus);
+        const adminSubject = `[HMLS Admin] Order #${order.id} → ${label}`;
         const adminBody =
-          `Order #${order.id} (${customerName} / ${toEmail}) changed to: ${newStatus}\n\nAdmin portal: ${PORTAL_URL}/admin/orders/${order.id}`;
+          `Order #${order.id} (${customerName} / ${toEmail}) changed to: ${label}\n\nAdmin portal: ${PORTAL_URL}/admin/orders/${order.id}`;
         await sendEmail(adminEmail, adminSubject, adminBody);
       }
     }

@@ -191,7 +191,10 @@ adminMechanics.get("/", async (c) => {
           inArray(schema.orders.providerId, providerIds),
           gte(schema.orders.scheduledAt, now),
           lte(schema.orders.scheduledAt, endOfWeek(now)),
-          sql`${schema.orders.status} IN ('scheduled', 'in_progress')`,
+          // Booked = approved with a slot (scheduledAt bounds above) or
+          // underway. 'scheduled' is a legacy label kept for the 9→7
+          // deploy→remap window; it never matches after the remap.
+          sql`${schema.orders.status} IN ('approved', 'scheduled', 'in_progress')`,
         ),
       )
       .groupBy(schema.orders.providerId),
@@ -206,7 +209,8 @@ adminMechanics.get("/", async (c) => {
           whereShop(schema.orders.shopId, shopId),
           inArray(schema.orders.providerId, providerIds),
           gte(schema.orders.scheduledAt, now),
-          sql`${schema.orders.status} IN ('scheduled', 'in_progress')`,
+          // 'scheduled' = legacy window label (see comment above).
+          sql`${schema.orders.status} IN ('approved', 'scheduled', 'in_progress')`,
         ),
       )
       .groupBy(schema.orders.providerId),

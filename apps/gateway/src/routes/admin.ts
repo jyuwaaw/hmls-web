@@ -73,7 +73,10 @@ admin.get("/dashboard", async (c) => {
         and(
           whereShop(schema.orders.shopId, shopId),
           gte(schema.orders.scheduledAt, now),
-          sql`${schema.orders.status} IN ('scheduled', 'in_progress')`,
+          // Booked = approved with a future slot, or underway. 'scheduled'
+          // is a legacy label kept for the 9→7 deploy→remap window so
+          // pre-remap rows don't vanish; it never matches after the remap.
+          sql`${schema.orders.status} IN ('approved', 'scheduled', 'in_progress')`,
         ),
       )
       .orderBy(schema.orders.scheduledAt)
@@ -105,7 +108,11 @@ admin.get("/dashboard", async (c) => {
   const [pendingReview] = await db
     .select({ count: count() })
     .from(schema.orders)
-    .where(and(whereShop(schema.orders.shopId, shopId), eq(schema.orders.status, "draft")));
+    .where(and(
+      whereShop(schema.orders.shopId, shopId),
+      // 'revised' = legacy window label for draft (revision in progress).
+      sql`${schema.orders.status} IN ('draft', 'revised')`,
+    ));
 
   const [pendingApprovals] = await db
     .select({ count: count() })
@@ -118,6 +125,7 @@ admin.get("/dashboard", async (c) => {
     .where(
       and(
         whereShop(schema.orders.shopId, shopId),
+        // 'scheduled' = legacy window label (see upcoming-orders query above).
         sql`${schema.orders.status} IN ('approved', 'scheduled', 'in_progress')`,
       ),
     );

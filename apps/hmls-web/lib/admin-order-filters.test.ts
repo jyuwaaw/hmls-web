@@ -15,6 +15,12 @@ describe("admin order filter URL helpers", () => {
     expect(parseAdminOrdersFilter("unknown")).toBe("");
   });
 
+  test("retired statuses from old bookmarks fall back to All", () => {
+    // 9→7 collapse: scheduled/revised are no longer filterable states.
+    expect(parseAdminOrdersFilter("scheduled")).toBe("");
+    expect(parseAdminOrdersFilter("revised")).toBe("");
+  });
+
   test("trims search input and treats blank as empty", () => {
     expect(parseAdminOrdersSearch(null)).toBe("");
     expect(parseAdminOrdersSearch("  ")).toBe("");

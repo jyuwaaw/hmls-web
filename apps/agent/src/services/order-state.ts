@@ -38,11 +38,16 @@ import {
   actorString,
   allowedTransitions,
   canActorTransition,
+  canonicalizeStatus,
   EDITABLE_STATUSES,
-  isOrderStatus,
+  evaluateAuthorizationFence,
+  isPaymentMethod,
   isTerminal,
+  type OrderAuthorization,
   type OrderStatus,
   PAYMENT_ALLOWED_STATUSES,
+  PAYMENT_METHODS,
+  type PaymentMethod,
   resolveAuthority,
   type TerminalStatus,
 } from "@hmls/shared/order/status";
@@ -59,8 +64,16 @@ export {
   allowedTransitions,
   availableActions,
   canActorTransition,
+  canonicalizeStatus,
+  hasBeenSentToCustomer,
+  isPaymentMethod,
   isTerminal,
+  type OrderAuthorization,
   type OrderStatus,
+  PAYMENT_METHODS,
+  type PaymentMethod,
+  physicalStatusLabels,
+  requiresCustomerAuthorization,
   type TerminalStatus,
   TRANSITIONS,
 } from "@hmls/shared/order/status";
@@ -88,13 +101,53 @@ export type OrderStateResult<T = OrderRow> =
 // Shared helper
 // ---------------------------------------------------------------------------
 
-/** Fire status-change notification without blocking the caller. Errors are
- *  logged only — notification failures never roll back committed DB writes
- *  or surface as tool errors. */
-function fireNotification(orderId: number, to: OrderStatus): void {
-  notifyOrderStatusChange(orderId, to).catch((err) => {
-    logger.warn("notifyOrderStatusChange failed", { orderId, to, err: String(err) });
+/** Fire a customer/admin email without blocking the caller. `templateKey` is
+ *  either a canonical status or a schedule-event key ("schedule_ready" /
+ *  "schedule_changed") — see notifications.ts. Errors are logged only —
+ *  notification failures never roll back committed DB writes or surface as
+ *  tool errors. */
+function fireNotification(orderId: number, templateKey: string): void {
+  notifyOrderStatusChange(orderId, templateKey).catch((err) => {
+    logger.warn("notifyOrderStatusChange failed", {
+      orderId,
+      templateKey,
+      err: String(err),
+    });
   });
+}
+
+/** Slot + mechanic — the pair that makes an approved order a real booking. */
+function schedulePairComplete(o: {
+  scheduledAt: Date | null;
+  providerId: number | null;
+}): boolean {
+  return o.scheduledAt != null && o.providerId != null;
+}
+
+type DbTx = Parameters<Parameters<(typeof db)["transaction"]>[0]>[0];
+
+/** Claim the once-per-order "appointment confirmed" notification inside `tx`.
+ *  Inserts the schedule_ready_notified marker event; the partial unique index
+ *  (migration 0043) allows at most one per order, and ON CONFLICT DO NOTHING
+ *  makes concurrent pair-completions race-safe (C6). Returns true when this
+ *  call won the insert — the caller sends the email after commit; false means
+ *  someone already notified, skip sending. */
+async function claimScheduleReadyNotification(
+  tx: DbTx,
+  orderId: number,
+  actorStr: string,
+): Promise<boolean> {
+  const inserted = await tx
+    .insert(schema.orderEvents)
+    .values({
+      orderId,
+      eventType: "schedule_ready_notified" as const,
+      actor: actorStr,
+      metadata: {},
+    })
+    .onConflictDoNothing()
+    .returning({ id: schema.orderEvents.id });
+  return inserted.length > 0;
 }
 
 // ---------------------------------------------------------------------------
@@ -104,8 +157,15 @@ function fireNotification(orderId: number, to: OrderStatus): void {
 export interface TransitionOptions {
   reason?: string;
   metadata?: Record<string, unknown>;
-  /** Optimistic guard: require the row to still be in this status when the
-   *  UPDATE fires. Defaults to the status read from the DB. */
+  /** Customer-authorization evidence. Required when the RESOLVED authority is
+   *  shop-side (admin / staff agent) and the transition is fenced (any
+   *  →approved edge, including the draft→approved walk-in shortcut).
+   *  Customer / share-token authorities auto-inject `{ channel: "portal" }`
+   *  — do not pass this for them. */
+  authorization?: OrderAuthorization;
+  /** Optimistic guard: require the row to still be in this CANONICAL status
+   *  when the UPDATE fires. Defaults to the (canonicalized) status read from
+   *  the DB. */
   expectedFrom?: OrderStatus;
   suppressNotification?: boolean;
 }
@@ -116,7 +176,12 @@ export async function transition(
   actor: Actor,
   options: TransitionOptions = {},
 ): Promise<OrderStateResult> {
-  if (!isOrderStatus(to)) {
+  let target: OrderStatus;
+  try {
+    // Alias-tolerant input: legacy 'scheduled'/'revised' targets map to
+    // canonical (deploy-window callers). Unknown strings are rejected.
+    target = canonicalizeStatus(to as string);
+  } catch {
     return { ok: false, error: { code: "invalid_input", message: `Unknown status '${to}'` } };
   }
 
@@ -130,23 +195,59 @@ export async function transition(
     return { ok: false, error: { code: "not_found", orderId } };
   }
 
-  const from = current.status as OrderStatus;
-  const expectedFrom = options.expectedFrom ?? from;
+  // Read-boundary canonicalization: rules run on the CANONICAL status even
+  // when the physical row still carries a legacy label ('scheduled' /
+  // 'revised' during the deploy→remap window). The optimistic-lock UPDATE
+  // below guards on the RAW value — guarding on the canonical value would
+  // never match a legacy row and the lock would conflict forever — and its
+  // SET writes the canonical target, lazily converging the row.
+  const rawStatus = current.status;
+  const from = canonicalizeStatus(rawStatus);
+
+  if (options.expectedFrom && options.expectedFrom !== from) {
+    return {
+      ok: false,
+      error: { code: "conflict", message: "Order status changed concurrently — refresh and retry" },
+    };
+  }
 
   if (isTerminal(from)) {
     return { ok: false, error: { code: "terminal_state", status: from as TerminalStatus } };
   }
-  if (!allowedTransitions(from).includes(to)) {
-    return { ok: false, error: { code: "invalid_transition", from, to } };
+  if (!allowedTransitions(from).includes(target)) {
+    return { ok: false, error: { code: "invalid_transition", from, to: target } };
   }
-  if (!canActorTransition(from, to, actor)) {
+  if (!canActorTransition(from, target, actor)) {
     return {
       ok: false,
       error: {
         code: "forbidden",
-        reason: `${actorString(actor)} cannot transition ${from}->${to}`,
+        reason: `${actorString(actor)} cannot transition ${from}->${target}`,
       },
     };
+  }
+
+  // Start guard (C1): work cannot start without an assigned mechanic — the
+  // explicit inheritance of the old machine's "scheduled implies mechanic"
+  // invariant, enforced for EVERY actor. scheduledAt is deliberately not
+  // required (a mobile mechanic starting an ad-hoc on-site job is legal).
+  if (target === "in_progress" && current.providerId == null) {
+    return {
+      ok: false,
+      error: {
+        code: "invalid_input",
+        message: "Cannot start work: no mechanic assigned. Assign a mechanic first.",
+      },
+    };
+  }
+
+  // Compliance fence: transitions that represent the customer's authorization
+  // to proceed must carry evidence of HOW they authorized. Judged on the
+  // resolved authority, so the staff agent is fenced exactly like the admin;
+  // customer / share-token portal actions auto-inject their own evidence.
+  const fence = evaluateAuthorizationFence(from, target, actor, options.authorization);
+  if (!fence.ok) {
+    return { ok: false, error: { code: "invalid_input", message: fence.message } };
   }
 
   const actorStr = actorString(actor);
@@ -154,10 +255,10 @@ export async function transition(
   const history = Array.isArray(current.statusHistory) ? current.statusHistory : [];
 
   const updateFields: Record<string, unknown> = {
-    status: to,
+    status: target,
     statusHistory: [
       ...history,
-      { status: to, timestamp: now.toISOString(), actor: actorStr },
+      { status: target, timestamp: now.toISOString(), actor: actorStr },
     ],
     updatedAt: now,
   };
@@ -165,7 +266,7 @@ export async function transition(
   // Both cancelled and declined set it so the admin UI has a single field
   // to surface either way. For other transitions the reason is recorded in
   // order_events metadata only.
-  if ((to === "cancelled" || to === "declined") && options.reason) {
+  if ((target === "cancelled" || target === "declined") && options.reason) {
     updateFields.cancellationReason = options.reason;
   }
 
@@ -175,7 +276,8 @@ export async function transition(
     const [row] = await tx
       .update(schema.orders)
       .set(updateFields)
-      .where(and(eq(schema.orders.id, orderId), eq(schema.orders.status, expectedFrom)))
+      // RAW-value guard — see the canonicalization comment above.
+      .where(and(eq(schema.orders.id, orderId), eq(schema.orders.status, rawStatus)))
       .returning();
 
     if (!row) return null;
@@ -184,15 +286,40 @@ export async function transition(
       orderId,
       eventType: "status_change",
       fromStatus: from,
-      toStatus: to,
+      toStatus: target,
       actor: actorStr,
       metadata: {
         ...(options.reason ? { reason: options.reason } : {}),
         ...(options.metadata ?? {}),
+        // Last spread wins — caller metadata cannot forge the evidence key.
+        ...(fence.authorization
+          ? {
+            authorization: {
+              channel: fence.authorization.channel,
+              ...(fence.authorization.note?.trim()
+                ? { note: fence.authorization.note.trim() }
+                : {}),
+              // Bind the evidence to the exact quote version being authorized
+              // — captured from the row, never caller-supplied.
+              revisionNumber: current.revisionNumber ?? 1,
+              subtotalCents: current.subtotalCents ?? 0,
+            },
+          }
+          : {}),
       },
     });
 
-    return row;
+    // Approval landing on an already fully-scheduled order (slot + mechanic
+    // both set): approved IS the booked state, so the customer's
+    // "appointment confirmed" email fires now — deduped by the
+    // schedule_ready marker so completions via attachSchedule /
+    // assignProvider / this path send exactly once per order (C6).
+    let scheduleReadyClaimed = false;
+    if (target === "approved" && schedulePairComplete(row)) {
+      scheduleReadyClaimed = await claimScheduleReadyNotification(tx, orderId, actorStr);
+    }
+
+    return { row, scheduleReadyClaimed };
   });
 
   if (!updated) {
@@ -203,10 +330,19 @@ export async function transition(
   }
 
   if (!options.suppressNotification) {
-    fireNotification(orderId, to);
+    if (updated.scheduleReadyClaimed) {
+      // Approval on an already-scheduled order: the "appointment confirmed"
+      // email fully covers it. Skip the generic "approved — we'll schedule"
+      // template, whose body promises a future confirmation email that would
+      // land in the same batch and contradict this one (walk-in shortcut +
+      // portal approval of a pre-scheduled estimate both hit this path).
+      fireNotification(orderId, "schedule_ready");
+    } else {
+      fireNotification(orderId, target);
+    }
   }
 
-  return { ok: true, value: updated };
+  return { ok: true, value: updated.row };
 }
 
 // ---------------------------------------------------------------------------
@@ -249,11 +385,12 @@ export interface ItemsPatch {
 export interface PatchItemsOptions {
   /** Optimistic concurrency — must match current revisionNumber. */
   expectedVersion?: number;
-  /** When true (default), editing items on an `estimated` order flips it
-   *  back to `revised` and emits a status_change event. Pass false only
-   *  for admin patches that intentionally preserve the 'estimated' state
-   *  (e.g., fixing a typo in adminNotes without alarming the customer). */
-  autoRevertEstimatedToRevised?: boolean;
+  /** When true (default), editing items on an `estimated` order pulls it
+   *  back to `draft` (revision in progress — see hasBeenSentToCustomer)
+   *  and emits a status_change event. Pass false only for admin patches
+   *  that intentionally preserve the 'estimated' state (e.g., fixing a
+   *  typo without alarming the customer). */
+  autoRevertEstimatedToDraft?: boolean;
   /** Audit metadata. */
   metadata?: Record<string, unknown>;
   /** Bypass the items.reduce() subtotal recomputation. Use this when the
@@ -289,7 +426,12 @@ export async function patchItems(
     return { ok: false, error: { code: "not_found", orderId } };
   }
 
-  const from = current.status as OrderStatus;
+  // Canonical for rules, raw for the optimistic-lock WHERE (a physical
+  // legacy 'revised' row is editable as canonical 'draft' during the
+  // deploy→remap window). approved / in_progress stay hard-blocked —
+  // mid-job item additions need the supplemental-authorization flow (PR 7).
+  const rawStatus = current.status;
+  const from = canonicalizeStatus(rawStatus);
   if (!EDITABLE_STATUSES.has(from)) {
     return { ok: false, error: { code: "not_editable", status: from } };
   }
@@ -310,7 +452,7 @@ export async function patchItems(
   const actorStr = actorString(actor);
   const now = new Date();
 
-  const autoRevert = options.autoRevertEstimatedToRevised ?? true;
+  const autoRevert = options.autoRevertEstimatedToDraft ?? true;
   const willRevert = autoRevert && from === "estimated";
 
   const history = Array.isArray(current.statusHistory) ? current.statusHistory : [];
@@ -349,10 +491,10 @@ export async function patchItems(
   if (patch.locationLat !== undefined) updateFields.locationLat = patch.locationLat;
   if (patch.locationLng !== undefined) updateFields.locationLng = patch.locationLng;
   if (willRevert) {
-    updateFields.status = "revised";
+    updateFields.status = "draft";
     updateFields.statusHistory = [
       ...history,
-      { status: "revised", timestamp: now.toISOString(), actor: actorStr },
+      { status: "draft", timestamp: now.toISOString(), actor: actorStr },
     ];
   }
 
@@ -365,8 +507,9 @@ export async function patchItems(
       .update(schema.orders)
       .set(updateFields)
       .where(
+        // RAW status guard — see the canonicalization comment above.
         sql`${schema.orders.id} = ${orderId}
-          AND ${schema.orders.status} = ${from}
+          AND ${schema.orders.status} = ${rawStatus}
           AND COALESCE(${schema.orders.revisionNumber}, 1) = ${currentVersion}`,
       )
       .returning();
@@ -394,7 +537,7 @@ export async function patchItems(
         orderId,
         eventType: "status_change",
         fromStatus: "estimated",
-        toStatus: "revised",
+        toStatus: "draft",
         actor: actorStr,
         metadata: { reason: "items_edited_on_estimated_order" },
       });
@@ -414,7 +557,9 @@ export async function patchItems(
   }
 
   if (willRevert) {
-    fireNotification(orderId, "revised");
+    // Pullback notice: admin-facing only ("estimate pulled back to draft") —
+    // the customer hears nothing until the revised estimate is re-sent.
+    fireNotification(orderId, "draft");
   }
 
   return { ok: true, value: updated };
@@ -438,25 +583,23 @@ export interface SchedulePatch {
 }
 
 const SCHEDULE_WRITE_ACTORS: ReadonlySet<ActorKind> = new Set(["customer", "admin"]);
-// Scheduling can be attached at any pre-terminal status. Only `approved`
-// advances to `scheduled`; the rest are pure field updates (pre-approval
-// slot reservation, reschedule, reassign).
+// Scheduling can be attached at any pre-terminal status (canonical). It is
+// always a pure field update now — approved + scheduledAt + providerId IS
+// the booked state; there is no status to advance to.
 const SCHEDULE_ATTACH_FROM: ReadonlySet<OrderStatus> = new Set([
   "draft",
   "estimated",
-  "revised",
   "approved",
-  "scheduled",
   "in_progress",
 ]);
 
-/** Attach scheduling fields. If the order is `approved`, also advances it
- *  to `scheduled` (single transition, follows the same discipline as
- *  `transition`). For orders in `draft` / `estimated` / `revised`,
- *  scheduling is pre-committed alongside the in-flight estimate — status
- *  is preserved and only a `schedule_attached` event is emitted. For
- *  `scheduled` / `in_progress`, this is a pure field update (reschedule
- *  / reassign location). */
+/** Attach scheduling fields. Status is never changed: for `draft` /
+ *  `estimated` the slot is pre-committed alongside the in-flight estimate;
+ *  for `approved` it completes (or reschedules) the booking; for
+ *  `in_progress` it's a mid-job reschedule. When this write completes the
+ *  slot+mechanic pair on an `approved` order it fires the customer's
+ *  "appointment confirmed" email exactly once per order (schedule_ready
+ *  marker, C6); a later time change sends a "time changed" email instead. */
 export async function attachSchedule(
   orderId: number,
   patch: SchedulePatch,
@@ -480,7 +623,9 @@ export async function attachSchedule(
     return { ok: false, error: { code: "not_found", orderId } };
   }
 
-  const from = current.status as OrderStatus;
+  // Canonical for rules, raw for the status-guarded WHERE (window rows).
+  const rawStatus = current.status;
+  const from = canonicalizeStatus(rawStatus);
   if (!SCHEDULE_ATTACH_FROM.has(from)) {
     return {
       ok: false,
@@ -493,8 +638,8 @@ export async function attachSchedule(
 
   const actorStr = actorString(actor);
   const now = new Date();
-  const willAdvance = from === "approved";
-  const history = Array.isArray(current.statusHistory) ? current.statusHistory : [];
+  const pairWasComplete = schedulePairComplete(current);
+  const timeChanged = current.scheduledAt?.getTime() !== patch.scheduledAt.getTime();
 
   const updateFields: Record<string, unknown> = {
     scheduledAt: patch.scheduledAt,
@@ -517,19 +662,11 @@ export async function attachSchedule(
     customerNotes: patch.customerNotes,
   };
 
-  if (willAdvance) {
-    updateFields.status = "scheduled";
-    updateFields.statusHistory = [
-      ...history,
-      { status: "scheduled", timestamp: now.toISOString(), actor: actorStr },
-    ];
-  }
-
   const updated = await db.transaction(async (tx) => {
     const [row] = await tx
       .update(schema.orders)
       .set(updateFields)
-      .where(and(eq(schema.orders.id, orderId), eq(schema.orders.status, from)))
+      .where(and(eq(schema.orders.id, orderId), eq(schema.orders.status, rawStatus)))
       .returning();
 
     if (!row) return null;
@@ -549,18 +686,14 @@ export async function attachSchedule(
       },
     });
 
-    if (willAdvance) {
-      await tx.insert(schema.orderEvents).values({
-        orderId,
-        eventType: "status_change",
-        fromStatus: "approved",
-        toStatus: "scheduled",
-        actor: actorStr,
-        metadata: { reason: "schedule_attached" },
-      });
+    // Slot+mechanic pair went incomplete → complete on an approved order:
+    // claim the once-per-order confirmation email (C6).
+    let scheduleReadyClaimed = false;
+    if (from === "approved" && !pairWasComplete && schedulePairComplete(row)) {
+      scheduleReadyClaimed = await claimScheduleReadyNotification(tx, orderId, actorStr);
     }
 
-    return row;
+    return { row, scheduleReadyClaimed };
   });
 
   if (!updated) {
@@ -570,11 +703,16 @@ export async function attachSchedule(
     };
   }
 
-  if (willAdvance) {
-    fireNotification(orderId, "scheduled");
+  if (updated.scheduleReadyClaimed) {
+    fireNotification(orderId, "schedule_ready");
+  } else if (
+    from === "approved" && pairWasComplete && schedulePairComplete(updated.row) && timeChanged
+  ) {
+    // Reschedule of a confirmed booking — "time changed" email, no dedup.
+    fireNotification(orderId, "schedule_changed");
   }
 
-  return { ok: true, value: updated };
+  return { ok: true, value: updated.row };
 }
 
 // ---------------------------------------------------------------------------
@@ -673,7 +811,19 @@ export async function assignProvider(
       },
     });
 
-    return row;
+    // This assignment completed the slot+mechanic pair on an approved order
+    // (slot was already set, mechanic was missing): claim the once-per-order
+    // "appointment confirmed" email (C6). Reassignment (pair was already
+    // complete) sends nothing — the customer never sees mechanic identity.
+    let scheduleReadyClaimed = false;
+    if (
+      canonicalizeStatus(order.status) === "approved" &&
+      order.scheduledAt != null && order.providerId == null
+    ) {
+      scheduleReadyClaimed = await claimScheduleReadyNotification(tx, orderId, actorStr);
+    }
+
+    return { row, scheduleReadyClaimed };
   });
 
   if (!updated) {
@@ -683,29 +833,16 @@ export async function assignProvider(
     };
   }
 
-  return { ok: true, value: updated };
+  if (updated.scheduleReadyClaimed) {
+    fireNotification(orderId, "schedule_ready");
+  }
+
+  return { ok: true, value: updated.row };
 }
 
 // ---------------------------------------------------------------------------
 // recordPayment — stamp payment fields (no status change)
 // ---------------------------------------------------------------------------
-
-export const PAYMENT_METHODS = [
-  "cash",
-  "card",
-  "check",
-  "venmo",
-  "zelle",
-  "stripe",
-  "other",
-] as const;
-export type PaymentMethod = typeof PAYMENT_METHODS[number];
-
-const PAYMENT_METHOD_SET: ReadonlySet<string> = new Set(PAYMENT_METHODS);
-
-export function isPaymentMethod(s: string): s is PaymentMethod {
-  return PAYMENT_METHOD_SET.has(s);
-}
 
 export interface PaymentRecord {
   amountCents: number;
@@ -714,7 +851,10 @@ export interface PaymentRecord {
   paidAt?: Date;
 }
 
-const PAYMENT_WRITE_ACTORS: ReadonlySet<ActorKind> = new Set(["admin", "system"]);
+// Mechanic: on-the-spot collection after completing their own job. The
+// gateway route enforces ownership + completed-only; authority kind alone is
+// checked here (same split as transition()).
+const PAYMENT_WRITE_ACTORS: ReadonlySet<ActorKind> = new Set(["admin", "system", "mechanic"]);
 
 export async function recordPayment(
   orderId: number,
@@ -755,8 +895,9 @@ export async function recordPayment(
   }
 
   // Payment on cancelled / declined / draft orders is nonsensical — gate
-  // explicitly so a misrouted webhook can't stamp bad data.
-  const orderStatus = order.status as OrderStatus;
+  // explicitly so a misrouted webhook can't stamp bad data. Canonicalized:
+  // a window-period physical 'scheduled' row is payable as 'approved'.
+  const orderStatus = canonicalizeStatus(order.status);
   if (!PAYMENT_ALLOWED_STATUSES.has(orderStatus)) {
     return {
       ok: false,
@@ -791,6 +932,9 @@ export async function recordPayment(
         amountCents: payment.amountCents,
         method: payment.method,
         reference: payment.reference ?? null,
+        // Audit doesn't lie: a mechanic-collected payment names the collector
+        // instead of being proxied through a system/admin actor.
+        ...(authority.kind === "mechanic" ? { collectedBy: authority.providerId } : {}),
       },
     });
 

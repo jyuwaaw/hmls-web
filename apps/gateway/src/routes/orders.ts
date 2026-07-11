@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import { db, dbAdmin, schema, whereShop } from "@hmls/agent/db";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { type AdminEnv, requireAdmin } from "../middleware/admin.ts";
 import { OWNER_ALL_SHOPS, requireShopContext, type WithShop } from "../middleware/shop-context.ts";
 import { withTenantTx } from "../middleware/with-tenant-tx.ts";
@@ -12,8 +12,8 @@ import {
   addNote,
   attachSchedule,
   logContact,
-  type OrderStatus,
   patchItems,
+  physicalStatusLabels,
   recordPayment,
   transition,
 } from "@hmls/agent/order-state";
@@ -105,7 +105,10 @@ orders.get("/", zValidator("query", listOrdersQuery), async (c) => {
     whereShop(schema.orders.shopId, shopId),
   ];
   if (status) {
-    conditions.push(eq(schema.orders.status, status));
+    // `status` is canonical (zod canonicalizes legacy inputs). Filter on the
+    // physical label set so pre-remap rows (still 'scheduled' / 'revised')
+    // stay visible during the 9→7 deploy→remap window.
+    conditions.push(inArray(schema.orders.status, [...physicalStatusLabels(status)]));
   }
   const searchTerm = search?.trim();
   if (searchTerm) {
@@ -291,9 +294,9 @@ orders.patch("/:id", zValidator("json", updateOrderInput), async (c) => {
   const actor = adminActor(authUser.email);
 
   // Items + notes go through the harness so revisionNumber, events, and
-  // estimated->revised auto-flip stay consistent. `autoRevertEstimatedToRevised`
-  // is true by default so admin editing an already-sent estimate is surfaced
-  // back to the customer as a revision.
+  // the estimated->draft pullback stay consistent. `autoRevertEstimatedToDraft`
+  // is true by default so admin editing an already-sent estimate withdraws it
+  // until re-sent.
   const wantsItemEdit = body.items !== undefined || body.notes !== undefined;
   if (wantsItemEdit) {
     // Need the current items if only notes is being changed — harness expects
@@ -384,9 +387,9 @@ orders.patch("/:id", zValidator("json", updateOrderInput), async (c) => {
 });
 
 // POST /orders/:id/schedule — set / reschedule the appointment time.
-// Routes through `attachSchedule` so the write is audited and the harness
-// auto-advances `approved` orders to `scheduled` (existing semantics).
-// `scheduled` / `in_progress` orders get a pure field update.
+// Routes through `attachSchedule` so the write is audited. Status never
+// changes: approved + slot + mechanic IS the booked state, and the harness
+// fires the customer's confirmation email once the pair completes.
 orders.post("/:id/schedule", zValidator("json", scheduleOrderInput), async (c) => {
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id) || id <= 0) {
@@ -452,7 +455,9 @@ orders.patch("/:id/status", zValidator("json", transitionOrderInput), async (c) 
   }
 
   const body = c.req.valid("json");
-  const newStatus = body.status as OrderStatus;
+  // Already canonical — the zod contract maps legacy 'scheduled'/'revised'
+  // inputs through canonicalizeStatus.
+  const newStatus = body.status;
   const shopId = c.get("shopId");
   const authUser = c.get("authUser");
 
@@ -473,11 +478,15 @@ orders.patch("/:id/status", zValidator("json", transitionOrderInput), async (c) 
 
   const result = await transition(id, newStatus, adminActor(authUser.email), {
     reason: body.cancellationReason,
+    // Customer-authorization evidence — required by the harness fence on
+    // any →approved edge (including the draft→approved walk-in shortcut).
+    authorization: body.authorization,
   });
   return sendOrderStateResult(c, result);
 });
 
-// POST /orders/:id/send — draft/revised -> estimated.
+// POST /orders/:id/send — draft -> estimated (initial send or re-send after
+// a revision pullback).
 orders.post("/:id/send", async (c) => {
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id) || id <= 0) {
@@ -493,9 +502,11 @@ orders.post("/:id/send", async (c) => {
   return sendOrderStateResult(c, result);
 });
 
-// POST /orders/:id/revise — declined -> revised. revisionNumber is NOT
-// bumped here; it is an optimistic-concurrency counter owned by patchItems,
-// not a user-facing revision count.
+// POST /orders/:id/revise — declined -> draft (re-open for revision; `revised`
+// no longer exists — draft is the single shop-side WIP state). Route path kept
+// for URL compat. revisionNumber is NOT bumped here; it is an
+// optimistic-concurrency counter owned by patchItems, not a user-facing
+// revision count.
 orders.post("/:id/revise", async (c) => {
   const id = Number(c.req.param("id"));
   if (!Number.isInteger(id) || id <= 0) {
@@ -506,7 +517,7 @@ orders.post("/:id/revise", async (c) => {
     return c.json<ApiError>({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
   }
   const authUser = c.get("authUser");
-  const result = await transition(id, "revised", adminActor(authUser.email));
+  const result = await transition(id, "draft", adminActor(authUser.email));
   return sendOrderStateResult(c, result);
 });
 

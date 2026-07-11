@@ -1,6 +1,5 @@
 "use client";
 
-import { isOrderStatus } from "@hmls/shared/order/status";
 import { ArrowLeft, MoreHorizontal } from "lucide-react";
 import Link from "next/link";
 import { use, useMemo, useState } from "react";
@@ -28,7 +27,7 @@ import {
   useAdminMechanics,
 } from "@/hooks/useAdminMechanics";
 import { formatCents, formatDateTime } from "@/lib/format";
-import { ORDER_STATUS } from "@/lib/status-display";
+import { statusDisplay } from "@/lib/status-display";
 import { cn } from "@/lib/utils";
 
 function ProfileCard({ id }: { id: number }) {
@@ -103,12 +102,7 @@ function BookingRow({
   b: MechanicOrderRow;
   onReassign: (b: MechanicOrderRow) => void;
 }) {
-  const statusCfg = isOrderStatus(b.status)
-    ? ORDER_STATUS[b.status]
-    : {
-        label: b.status,
-        color: "bg-neutral-100 text-neutral-500",
-      };
+  const statusCfg = statusDisplay(b.status);
   const vehicle = b.vehicleInfo;
   const vehicleStr = vehicle
     ? [vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(" ")

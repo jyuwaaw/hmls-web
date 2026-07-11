@@ -7,7 +7,12 @@ import { DateTime } from "@/components/ui/DateTime";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePortalCustomer, usePortalOrders } from "@/hooks/usePortal";
 import { formatCents } from "@/lib/format";
-import { isTentativeBooking, statusDisplay } from "@/lib/status-display";
+import {
+  canonicalStatus,
+  isBookedOrder,
+  isTentativeBooking,
+  statusDisplay,
+} from "@/lib/status-display";
 
 function SummaryCard({
   label,
@@ -96,9 +101,10 @@ export default function PortalDashboard() {
 
   const pendingAction = orders.filter((o) => o.status === "estimated").length;
 
-  const activeOrders = orders.filter((o) =>
-    ["approved", "scheduled", "in_progress"].includes(o.status),
-  ).length;
+  const activeOrders = orders.filter((o) => {
+    const s = canonicalStatus(o.status);
+    return s === "approved" || s === "in_progress";
+  }).length;
 
   const completed = orders.filter((o) => o.status === "completed").length;
 
@@ -166,6 +172,7 @@ export default function PortalDashboard() {
             {recentOrders.map((order) => {
               const statusConfig = statusDisplay(order.status, "portal", {
                 tentativeBooking: isTentativeBooking(order),
+                scheduledBooking: isBookedOrder(order),
               });
               return (
                 <Link

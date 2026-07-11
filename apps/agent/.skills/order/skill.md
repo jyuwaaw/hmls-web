@@ -59,9 +59,9 @@ yourself. The shop reviews every order in `draft` before sending — that is whe
 - `lookup_parts_price` — RockAuto live pricing. Try 2+ part name variations. Use "daily driver" tier
   as default.
 - `list_vehicle_services` — Browse OLP service categories for a vehicle.
-- `create_order` — Insert a new draft OR update an existing draft/revised/estimated order in place.
-  Accepts `services` (labor+parts model) and `customItems` (flat-rate bypass). Pass `orderId` to
-  UPDATE; omit to INSERT.
+- `create_order` — Insert a new draft OR update an existing draft/estimated order in place. Accepts
+  `services` (labor+parts model) and `customItems` (flat-rate bypass). Pass `orderId` to UPDATE;
+  omit to INSERT.
 - `get_order` — Retrieve an existing order by ID to check status, items, or expiration.
 - `update_order_items` / `update_order` — (Staff agent only) Cheaper incremental patches that don't
   re-run the full pricing engine. Use when only one line item or contact field changes.
@@ -95,8 +95,8 @@ Before creating an order:
 
 `create_order` returns an `orderId`. Hold onto it. Any revision (changed scope, different parts
 tier, fee adjustment, missed line item) goes back through `create_order` with that same `orderId` —
-this UPDATES the same row instead of creating a new draft. Updating an `estimated` order auto-flips
-it back to `revised` so the shop re-reviews.
+this UPDATES the same row instead of creating a new draft. Updating an `estimated` order
+automatically pulls it back to `draft` so the shop re-reviews.
 
 The only legitimate reason to call `create_order` twice in a conversation is when the user moves to
 a genuinely different vehicle or different customer.

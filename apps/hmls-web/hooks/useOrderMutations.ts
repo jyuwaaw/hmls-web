@@ -1,5 +1,6 @@
 import type { ContactMethod } from "@hmls/shared/api/contracts/orders";
 import type { Order, OrderItem } from "@hmls/shared/db/types";
+import type { OrderAuthorization } from "@hmls/shared/order/status";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useApi } from "@/hooks/useApi";
@@ -38,10 +39,13 @@ export function useOrderMutations(
   async function transitionStatus(
     newStatus: string,
     cancellationReason?: string,
+    /** Customer-authorization evidence — required by the API on any
+     *  →approved edge (including the draft→approved walk-in shortcut). */
+    authorization?: OrderAuthorization,
   ): Promise<void> {
     setTransitioning(true);
     try {
-      const body = { status: newStatus, cancellationReason };
+      const body = { status: newStatus, cancellationReason, authorization };
       await api.patch<Order>(adminPaths.orderStatus(id), body);
       revalidate();
     } catch (e) {

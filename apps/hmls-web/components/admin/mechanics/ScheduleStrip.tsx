@@ -3,6 +3,7 @@
 import type { Order } from "@hmls/shared/db/types";
 import { useMemo } from "react";
 import type { ScheduleOverride, WeeklyRow } from "@/hooks/useAdminMechanics";
+import { canonicalStatus } from "@/lib/status-display";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -29,11 +30,11 @@ function minutesToHM(total: number) {
 }
 
 function bookingColor(status: string): string {
-  switch (status) {
-    case "scheduled":
-      return "bg-blue-500";
+  // Only orders with a scheduledAt are plotted, so approved here means the
+  // booking is locked in (the old `scheduled` state — canonicalized away).
+  switch (canonicalStatus(status) ?? status) {
     case "approved":
-      return "bg-amber-500";
+      return "bg-blue-500";
     case "in_progress":
       return "bg-orange-500";
     case "completed":

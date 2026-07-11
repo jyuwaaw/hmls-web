@@ -5,6 +5,7 @@ import { db, dbAdmin, schema, withAdminScope, withTenantScope } from "@hmls/agen
 import { and, eq } from "drizzle-orm";
 import { EstimatePdf } from "@hmls/agent";
 import { transition } from "@hmls/agent/order-state";
+import { canonicalizeStatus, hasBeenSentToCustomer } from "@hmls/shared/order/status";
 import { Errors } from "@hmls/shared/errors";
 import { type AuthEnv, requireAuth } from "../middleware/auth.ts";
 import { sendOrderStateResult } from "../lib/order-state-http.ts";
@@ -14,7 +15,8 @@ import { geocodeAddress } from "@hmls/agent/common/shop-routing";
 const ZIP_ONLY = /^\d{5}(-\d{4})?$/;
 /** An estimate whose stored location is a bare ZIP still needs a street address before approval. */
 function needsAddress(order: { status: string; location: string | null }): boolean {
-  return order.status === "estimated" && !!order.location && ZIP_ONLY.test(order.location.trim());
+  return canonicalizeStatus(order.status) === "estimated" && !!order.location &&
+    ZIP_ONLY.test(order.location.trim());
 }
 
 // After Layer 3 "estimate" is a VIEW on the `orders` table — there is no
@@ -146,6 +148,14 @@ estimates.get("/:id/review", async (c) => {
     return c.json({ error: { code: "NOT_FOUND", message: "Order not found" } }, 404);
   }
 
+  // Canonical status for the public contract (a window-period physical
+  // 'revised' row reads as 'draft'). `revisionInProgress` marks the
+  // pulled-back case: the shop is editing a previously-sent estimate, so the
+  // link holder should see "estimate being revised — you'll get an update"
+  // instead of approve/decline buttons (or an invalid_transition error).
+  const orderStatus = canonicalizeStatus(order.status);
+  const revisionInProgress = orderStatus === "draft" && hasBeenSentToCustomer(order);
+
   return c.json({
     estimate: {
       id,
@@ -160,7 +170,8 @@ estimates.get("/:id/review", async (c) => {
     },
     customerName: order.contactName,
     orderId: order.id,
-    orderStatus: order.status,
+    orderStatus,
+    revisionInProgress,
     needsAddress: needsAddress(order),
   });
 });

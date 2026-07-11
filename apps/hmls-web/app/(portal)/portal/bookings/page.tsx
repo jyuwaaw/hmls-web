@@ -13,7 +13,12 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useApi } from "@/hooks/useApi";
 import { type PortalBookingRow, usePortalBookings } from "@/hooks/usePortal";
 import { portalPaths } from "@/lib/api-paths";
-import { isTentativeBooking, statusDisplay } from "@/lib/status-display";
+import {
+  canonicalStatus,
+  isBookedOrder,
+  isTentativeBooking,
+  statusDisplay,
+} from "@/lib/status-display";
 
 function BookingCard({
   order,
@@ -24,7 +29,8 @@ function BookingCard({
   onCancel: (orderId: number) => void;
   loading: number | null;
 }) {
-  const canCancel = order.status === "scheduled";
+  // Customers may cancel a booked (approved) order before work starts.
+  const canCancel = canonicalStatus(order.status) === "approved";
   const vehicle = order.vehicleInfo;
   const vehicleStr = vehicle
     ? [vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(" ")
@@ -40,6 +46,7 @@ function BookingCard({
             <StatusBadge
               entry={statusDisplay(order.status, "portal", {
                 tentativeBooking: isTentativeBooking(order),
+                scheduledBooking: isBookedOrder(order),
               })}
             />
           </div>

@@ -27,6 +27,41 @@ import {
 } from "@/components/ai-elements/tool";
 import { renderToolCard } from "./tool-cards";
 
+/** Filter to messages worth rendering (non-empty text, reasoning, or tool
+ * parts). Same rule the full-page chats apply inline. */
+export function renderableMessages(msgs: UIMessage[]): UIMessage[] {
+  return msgs.filter((msg) => {
+    if (msg.role !== "user" && msg.role !== "assistant") return false;
+    return msg.parts.some(
+      (p) =>
+        (p.type === "text" && p.text.trim().length > 0) ||
+        p.type === "reasoning" ||
+        isToolOrDynamicToolUIPart(p),
+    );
+  });
+}
+
+/** Map each assistant message id to the text of the first user message that
+ * follows it — drives ask_user_question / SlotPicker `isAnswered` state. */
+export function mapNextUserAnswers(msgs: UIMessage[]): Map<string, string> {
+  const map = new Map<string, string>();
+  let pendingAssistantIds: string[] = [];
+  for (const msg of msgs) {
+    if (msg.role === "assistant") {
+      pendingAssistantIds.push(msg.id);
+    } else if (msg.role === "user") {
+      const text = msg.parts.find(
+        (p): p is { type: "text"; text: string } => p.type === "text",
+      )?.text;
+      if (text) {
+        for (const id of pendingAssistantIds) map.set(id, text);
+      }
+      pendingAssistantIds = [];
+    }
+  }
+  return map;
+}
+
 export interface ChatMessageProps {
   msg: UIMessage;
   /** True iff this is the LAST assistant message and chat is currently

@@ -6,7 +6,7 @@ import {
   type EditableSection,
   STATUS_PROFILES,
 } from "@hmls/shared/order/profiles";
-import { isOrderStatus } from "@hmls/shared/order/status";
+import { canonicalStatus } from "@/lib/status-display";
 import { CustomerSection } from "./sections/CustomerSection";
 import { DiagnosisSection } from "./sections/DiagnosisSection";
 import { ItemsSection } from "./sections/ItemsSection";
@@ -30,9 +30,8 @@ export function OrderSectionsRegion({
   onReassign,
   profilePreferred,
 }: Props) {
-  const profile = isOrderStatus(order.status)
-    ? STATUS_PROFILES[order.status]
-    : null;
+  const status = canonicalStatus(order.status);
+  const profile = status ? STATUS_PROFILES[status] : null;
   const can = (s: EditableSection) =>
     profile?.editableSections.includes(s) ?? false;
   return (

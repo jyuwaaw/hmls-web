@@ -2,7 +2,6 @@
 
 import type { Order } from "@hmls/shared/db/types";
 import { STATUS_PROFILES } from "@hmls/shared/order/profiles";
-import { isOrderStatus } from "@hmls/shared/order/status";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -10,6 +9,7 @@ import {
   leadAction,
   type OrderInvoker,
 } from "@/lib/order-actions";
+import { canonicalStatus } from "@/lib/status-display";
 import { ActionButton } from "./ActionButton";
 import { DialogHost } from "./DialogHost";
 
@@ -26,11 +26,12 @@ export function OrderOpsPanel({
   revalidate,
   suggestedDurationMinutes,
 }: Props) {
-  // Defensive: a row with an off-machine status (legacy data, in-flight
-  // migration) shouldn't crash the page. leadAction handles this too, but
-  // STATUS_PROFILES[order.status] would `undefined.actions` below otherwise.
-  if (!isOrderStatus(order.status)) return null;
-  const profile = STATUS_PROFILES[order.status];
+  // Canonicalize so window-period legacy rows ('scheduled'/'revised') get
+  // their collapsed profile; a row with an unknown status (corrupt data)
+  // shouldn't crash the page, so bail on null.
+  const status = canonicalStatus(order.status);
+  if (!status) return null;
+  const profile = STATUS_PROFILES[status];
 
   const visible = profile.actions
     .map((id) => ACTION_REGISTRY[id])

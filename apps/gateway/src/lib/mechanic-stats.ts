@@ -104,9 +104,12 @@ export function bookedMinutesForWeek(
 
   let minutes = 0;
   for (const b of bookings) {
-    // order_status has no "confirmed" state — real booked/worked time is
-    // scheduled (locked in), in_progress (underway), or completed (done).
+    // Real booked/worked time: approved (rows here always carry a slot —
+    // approved + slot IS the booking after the 9→7 collapse), in_progress
+    // (underway), or completed (done). 'scheduled' is the legacy pre-remap
+    // label for approved-with-slot, kept for the deploy→remap window.
     if (
+      b.status !== "approved" &&
       b.status !== "scheduled" &&
       b.status !== "in_progress" &&
       b.status !== "completed"
@@ -130,11 +133,12 @@ export function computeUtilization(
 
 export function isOnJobNow(bookings: BookingRow[], now: Date): boolean {
   for (const b of bookings) {
-    // ponytail: "on a job right now" == in_progress only. A `scheduled` job
-    // whose window includes `now` but that the mechanic hasn't started yet
-    // is arguably also "on it", but conflating the two would make a
-    // no-show/late-start look like active work — revisit if the UI needs
-    // to distinguish "should be working" from "is working".
+    // ponytail: "on a job right now" == in_progress only. A booked
+    // (approved + slot) job whose window includes `now` but that the
+    // mechanic hasn't started yet is arguably also "on it", but conflating
+    // the two would make a no-show/late-start look like active work —
+    // revisit if the UI needs to distinguish "should be working" from
+    // "is working".
     if (b.status !== "in_progress") continue;
     const end = new Date(b.scheduledAt.getTime() + b.durationMinutes * 60_000);
     if (b.scheduledAt <= now && now < end) return true;

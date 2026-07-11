@@ -87,10 +87,11 @@ Deno.test("availableMinutesForWeek stacks extra-hours overrides on top of weekly
 
 Deno.test("bookedMinutesForWeek sums durations of bookings in the week", () => {
   const bookings = [
+    // Booked = approved + slot (7-state machine).
     {
       scheduledAt: new Date("2026-04-21T14:00:00.000Z"),
       durationMinutes: 60,
-      status: "scheduled",
+      status: "approved",
     },
     {
       scheduledAt: new Date("2026-04-22T09:00:00.000Z"),
@@ -102,11 +103,17 @@ Deno.test("bookedMinutesForWeek sums durations of bookings in the week", () => {
       durationMinutes: 90,
       status: "completed",
     },
+    // Legacy pre-remap label — still counts during the deploy→remap window.
+    {
+      scheduledAt: new Date("2026-04-24T10:00:00.000Z"),
+      durationMinutes: 30,
+      status: "scheduled",
+    },
     // Next week — excluded
     {
       scheduledAt: new Date("2026-04-28T10:00:00.000Z"),
       durationMinutes: 60,
-      status: "scheduled",
+      status: "approved",
     },
     // Declined — excluded
     {
@@ -115,7 +122,7 @@ Deno.test("bookedMinutesForWeek sums durations of bookings in the week", () => {
       status: "declined",
     },
   ];
-  assertEquals(bookedMinutesForWeek(bookings, NOW), 195);
+  assertEquals(bookedMinutesForWeek(bookings, NOW), 225);
 });
 
 Deno.test("computeUtilization returns null when available is 0", () => {
@@ -137,12 +144,12 @@ Deno.test("isOnJobNow returns true when current time is inside an in_progress bo
   assertEquals(isOnJobNow(bookings, NOW), true);
 });
 
-Deno.test("isOnJobNow ignores a scheduled (not-yet-started) booking even if its window covers now", () => {
+Deno.test("isOnJobNow ignores a booked (not-yet-started) job even if its window covers now", () => {
   const bookings = [
     {
       scheduledAt: new Date("2026-04-20T09:30:00.000Z"),
       durationMinutes: 60,
-      status: "scheduled",
+      status: "approved",
     },
   ];
   assertEquals(isOnJobNow(bookings, NOW), false);

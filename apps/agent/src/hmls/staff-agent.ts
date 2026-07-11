@@ -1,10 +1,10 @@
 import { hasToolCall, type ModelMessage, stepCountIs, streamText } from "ai";
 import { createDeepSeek } from "@ai-sdk/deepseek";
 import { getLogger } from "@logtape/logtape";
-import { STAFF_SYSTEM_PROMPT } from "./staff-system-prompt.ts";
+import { buildStaffSystemPrompt } from "./staff-system-prompt.ts";
 import { loadSkillTools } from "../common/tools/load-skill.ts";
 import { schedulingTools } from "./tools/scheduling.ts";
-import { orderOpsTools } from "./tools/order-ops.ts";
+import { orderOpsTools, staffOrderOpsTools } from "./tools/order-ops.ts";
 import { adminOrderTools } from "./tools/admin-order-tools.ts";
 import { convertTools, type LegacyTool } from "../common/convert-tools.ts";
 import { askUserQuestionTools } from "../common/tools/ask-user-question.ts";
@@ -27,10 +27,15 @@ export interface RunStaffAgentOptions {
    *  OWNER_ALL_SHOPS ("__all__") for an owner with no shop filter, which
    *  lets read tools span all shops. */
   shopId?: string;
+  /** Embedded order chat (PR 6): compact summary of the order the chat is
+   *  mounted on. Appended to the system prompt as a CURRENT ORDER CONTEXT
+   *  block. Caller (gateway staff-chat) is responsible for shop-scoping the
+   *  fetch — this is trusted text by the time it lands here. */
+  orderContext?: string;
 }
 
 export function runStaffAgent(options: RunStaffAgentOptions) {
-  const { messages, adminEmail, shopId } = options;
+  const { messages, adminEmail, shopId, orderContext } = options;
   const apiKey = Deno.env.get("DEEPSEEK_API_KEY");
   if (!apiKey) throw new Error("DEEPSEEK_API_KEY is required");
   const modelId = Deno.env.get("HMLS_AGENT_MODEL") || DEFAULT_MODEL;
@@ -38,7 +43,7 @@ export function runStaffAgent(options: RunStaffAgentOptions) {
   // Staff chat is text-only today.
   const deepseek = createDeepSeek({ apiKey });
 
-  const systemPrompt = STAFF_SYSTEM_PROMPT;
+  const systemPrompt = buildStaffSystemPrompt(orderContext);
 
   const allTools: LegacyTool[] = [
     ...askUserQuestionTools,
@@ -49,6 +54,7 @@ export function runStaffAgent(options: RunStaffAgentOptions) {
     ...laborLookupTools,
     ...partsLookupTools,
     ...orderOpsTools,
+    ...staffOrderOpsTools,
     ...adminOrderTools,
   ];
 

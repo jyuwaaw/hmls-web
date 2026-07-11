@@ -14,8 +14,9 @@ import { customerAgentActor, toolResultFromOrderState } from "../../services/ord
 const cancelBookingTool = {
   name: "cancel_booking",
   description:
-    "Customer cancels their scheduled appointment. Only allowed while the order is in 'scheduled' " +
-    "status. Once the shop has started work, cancellations must go through staff.",
+    "Customer cancels their booked appointment. Only allowed before work begins (the order is " +
+    "'approved' with a scheduled time). Once the shop has started work, cancellations must go " +
+    "through staff.",
   schema: z.object({
     orderId: z.string().describe("The order ID to cancel the appointment on"),
     reason: z.string().optional().describe("Optional reason for cancellation"),

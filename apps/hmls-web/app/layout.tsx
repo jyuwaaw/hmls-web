@@ -8,6 +8,7 @@ import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { JsonLd } from "@/components/JsonLd";
 import { PageEnter } from "@/components/PageEnter";
+import { AuthorizeDialog } from "@/components/ui/AuthorizeDialog";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { ReasonDialog } from "@/components/ui/ReasonDialog";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -90,6 +91,7 @@ export default function RootLayout({
               <Toaster richColors position="bottom-right" />
               <ReasonDialog />
               <ConfirmDialog />
+              <AuthorizeDialog />
             </TooltipProvider>
           </AuthProvider>
         </ThemeProvider>

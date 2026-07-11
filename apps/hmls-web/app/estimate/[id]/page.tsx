@@ -29,7 +29,12 @@ interface EstimateReview {
   };
   customerName: string | null;
   orderId: number | null;
+  /** Canonical 7-state status (the API maps legacy labels). */
   orderStatus: string | null;
+  /** True when the shop pulled the estimate back to revise it — the link
+   *  holder should wait for an update, not see approve/decline (or an
+   *  invalid_transition error). */
+  revisionInProgress: boolean;
   needsAddress: boolean;
 }
 
@@ -146,13 +151,18 @@ export default function EstimateReviewPage() {
 
   if (!data) return null;
 
-  const { estimate, customerName, orderStatus, needsAddress } = data;
+  const {
+    estimate,
+    customerName,
+    orderStatus,
+    revisionInProgress,
+    needsAddress,
+  } = data;
   const items = estimate.items as LineItem[];
   const vehicle = estimate.vehicleInfo;
   const expired = new Date(estimate.expiresAt) < new Date();
   const alreadyActed =
-    orderStatus !== null &&
-    !["draft", "estimated", "revised"].includes(orderStatus);
+    orderStatus !== null && !["draft", "estimated"].includes(orderStatus);
 
   if (result) {
     return (
@@ -282,7 +292,14 @@ export default function EstimateReviewPage() {
       </div>
 
       {/* Actions */}
-      {alreadyActed ? (
+      {revisionInProgress ? (
+        <div className="text-center py-4">
+          <p className="text-sm text-text-secondary">
+            This estimate is being revised — we&apos;ll send you an updated
+            version shortly. No action is needed right now.
+          </p>
+        </div>
+      ) : alreadyActed ? (
         <div className="text-center py-4">
           <p className="text-sm text-text-secondary">
             This estimate has already been{" "}

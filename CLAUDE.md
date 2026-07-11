@@ -57,27 +57,39 @@ dormant for shops that want opt-in auto-capture later.
 provider assignment, location, symptoms, photos) lives on the order. Legacy tables (`estimates`,
 `quotes`, `bookings`) are **dropped** (Layer 3 complete).
 
-## Order lifecycle (simplified status machine)
+## Order lifecycle (7-state machine)
 
 ```
-draft → estimated → approved → scheduled → in_progress → completed
-           ↓           ↓                        ↓
-         declined  cancelled                 cancelled
-           ↓
-         revised → estimated
+draft ──► estimated ──► approved ──► in_progress ──► completed
+  │ ╲        │  ▲          │              │
+  │  ╲       │  └─(pullback: shop edits a sent estimate → back to draft)
+  │   ╲      ▼             ▼              ▼
+  │    ╲  declined     cancelled      cancelled
+  │     ╲    │
+  │      ╲   └─► draft (re-revise)
+  │       ╲──► approved  (walk-in shortcut, fenced: customer-authorization
+  ▼                       evidence required)
+cancelled
 ```
 
-- `draft` — AI-generated, awaiting shop review
+- `draft` — shop-side WIP: fresh AI draft awaiting review OR a pulled-back revision. Dual semantics
+  derived via `hasBeenSentToCustomer(order)` (statusHistory contains `estimated`) — never via
+  `revisionNumber`
 - `estimated` — shop sent the estimate to customer
-- `approved` — customer accepted; shop needs to assign mechanic + confirm booking
-- `scheduled` — mechanic assigned + booking confirmed
-- `in_progress` — mechanic working
+- `approved` — customer authorized the work. **Scheduling is a property, not a status**:
+  `scheduled_at` + `provider_id` on an approved order IS the confirmed booking. The customer's
+  confirmation email fires when that pair first completes (`schedule_ready_notified` event, once per
+  order)
+- `in_progress` — mechanic working (start requires `provider_id`; `scheduled_at` optional)
 - `completed` — done (payment tracked via `paid_at` / `payment_method` / `payment_reference`
   columns, not a status)
-- Branches: `declined` (customer declined) / `revised` (shop re-sends) / `cancelled` (terminal)
+- Branches: `declined` (customer declined; → draft to re-revise) / `cancelled` (terminal)
 
-**Removed states** (migrated in `0008_simplify_status_machine.sql`): `preauth → approved`,
-`invoiced → in_progress`, `paid → completed + paid_at`, `archived → completed`, `void → cancelled`.
+**Removed states**: `0008_simplify_status_machine.sql` dropped
+`preauth/invoiced/paid/archived/void`. `0044_collapse_status_remap.sql` remapped
+`scheduled → approved` and `revised → draft` (app-layer collapse — the PG enum keeps legacy labels;
+`canonicalizeStatus()` in `packages/shared/src/order/status.ts` is the ONLY alias-tolerance point
+for pre-remap rows).
 
 ## Architecture
 
@@ -241,6 +253,12 @@ Subsequent revisions in the same chat re-call `create_order` with the captured `
 - `0042` - Preferred contact: `contact_method` enum, `customers.preferred_contact`,
   `orders.contact_preferred`, `customer_contacted` event type, tenant_app column grants (0041
   contract: every new orders/customers column needs its own `GRANT UPDATE (col)`)
+- `0043` - order_events(order_id, created_at) index; `schedule_ready_notified` event type + partial
+  UNIQUE index (once-per-order confirmation-email dedup). Apply before 0044 + before deploying the
+  7-state code
+- `0044` - 9→7 status collapse remap: `scheduled → approved`, `revised → draft`, per-row
+  statusHistory append + `system:migration` order_events. Idempotent (rerun converges window rows).
+  Apply AFTER deploying alias-tolerant code. Rollback recipe in the file header
 
 ## Pre-Push CI
 

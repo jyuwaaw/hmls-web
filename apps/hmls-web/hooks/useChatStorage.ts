@@ -2,6 +2,7 @@
 
 import type { UIMessage } from "ai";
 import { useEffect } from "react";
+import { ORDER_CHAT_STORAGE_PREFIX } from "@/lib/order-chat";
 
 export const DEFAULT_CHAT_STORAGE_KEY = "hmls-chat-history";
 /** Admin/staff chat surface — kept distinct from customer chat so
@@ -60,6 +61,17 @@ export function clearAllChatStorage(): void {
   if (typeof window === "undefined") return;
   for (const key of ALL_CHAT_STORAGE_KEYS) {
     clearStoredChat(key);
+  }
+  // Per-order chat histories use dynamic keys — sweep by prefix.
+  try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key?.startsWith(ORDER_CHAT_STORAGE_PREFIX)) {
+        localStorage.removeItem(key);
+      }
+    }
+  } catch {
+    /* ignore */
   }
 }
 

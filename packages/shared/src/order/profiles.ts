@@ -12,19 +12,22 @@ export type EditableSection =
 
 /** Every action the admin can take on an order. Names match the human-visible
  *  intent ("send_to_customer") rather than the target status, because some
- *  actions don't change status (mark_paid, reassign_mechanic, reschedule). */
+ *  actions don't change status (mark_paid, reassign_mechanic, reschedule).
+ *
+ *  9→7 collapse notes: confirm_booking / confirm_tentative_booking /
+ *  reject_booking are gone — there is no `scheduled` state to confirm into.
+ *  `approve_walk_in` (draft → approved, fenced) replaces the walk-in
+ *  shortcut; booking rejection is just cancel_order. */
 export type ActionId =
-  | "send_to_customer" // draft|revised → estimated
-  | "approve_estimate" // estimated → approved (admin override of customer)
+  | "send_to_customer" // draft → estimated (also re-send after pullback)
+  | "approve_estimate" // estimated → approved (admin override of customer; fenced)
   | "decline_estimate" // estimated → declined (admin override)
-  | "revise_estimate" // declined → revised
-  | "confirm_tentative_booking" // draft → scheduled (chat-flow shortcut)
-  | "confirm_booking" // approved → scheduled
-  | "reject_booking" // approved → cancelled (with reason)
+  | "revise_estimate" // declined → draft
+  | "approve_walk_in" // draft → approved (walk-in shortcut; fenced)
   | "reassign_mechanic" // dialog → PATCH /orders/:id/schedule
   | "reschedule" // dialog → PATCH /orders/:id/schedule
   | "set_time" // dialog → PATCH /orders/:id/schedule (when scheduledAt is null)
-  | "start_job" // scheduled → in_progress
+  | "start_job" // approved → in_progress (requires providerId)
   | "complete_job" // in_progress → completed
   | "cancel_order" // any non-terminal → cancelled
   | "mark_paid"; // non-transition; POST /orders/:id/payment
@@ -43,8 +46,9 @@ export const STATUS_PROFILES: Readonly<Record<OrderStatus, StatusProfile>> = {
     status: "draft",
     actions: [
       "send_to_customer",
-      "confirm_tentative_booking",
+      "approve_walk_in",
       "reassign_mechanic",
+      "set_time",
       "reschedule",
       "cancel_order",
     ],
@@ -59,30 +63,22 @@ export const STATUS_PROFILES: Readonly<Record<OrderStatus, StatusProfile>> = {
   },
   declined: {
     status: "declined",
-    actions: ["revise_estimate"],
+    actions: ["revise_estimate", "cancel_order"],
     primary: "revise_estimate",
     editableSections: [],
   },
-  revised: {
-    status: "revised",
-    actions: ["send_to_customer", "cancel_order"],
-    primary: "send_to_customer",
-    editableSections: ["items", "customer"],
-  },
+  // Approved absorbs the old `scheduled` state: scheduling is columns
+  // (scheduledAt + providerId), the UI derives a "pending schedule" /
+  // "scheduled" badge from them, and start_job is gated on providerId.
   approved: {
     status: "approved",
     actions: [
+      "start_job",
       "set_time",
+      "reschedule",
       "reassign_mechanic",
-      "confirm_booking",
-      "reject_booking",
+      "cancel_order",
     ],
-    primary: "confirm_booking",
-    editableSections: ["schedule"],
-  },
-  scheduled: {
-    status: "scheduled",
-    actions: ["start_job", "reschedule", "reassign_mechanic", "cancel_order"],
     primary: "start_job",
     editableSections: ["schedule"],
   },

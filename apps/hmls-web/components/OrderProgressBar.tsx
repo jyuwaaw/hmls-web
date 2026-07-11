@@ -1,6 +1,5 @@
 import {
   getOrderStepState,
-  isOrderStatus,
   ORDER_BRANCH_STATUSES,
   ORDER_MAIN_STEPS,
   ORDER_TERMINAL_STATUSES,
@@ -10,6 +9,7 @@ import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import {
+  canonicalStatus,
   ORDER_STEP_LABELS_ADMIN,
   ORDER_STEP_LABELS_PORTAL,
   statusDisplay,
@@ -43,7 +43,6 @@ const ADMIN_STYLES: VariantStyles = {
   messageText: "text-muted-foreground",
   branchMessages: {
     declined: "Customer declined — revise or cancel",
-    revised: "Revised estimate ready to re-send",
     cancelled: "Order was cancelled",
   },
   tentativeMessage: "Customer accepted in chat — awaiting your confirmation",
@@ -70,7 +69,6 @@ const PORTAL_STYLES: VariantStyles = {
   messageText: "text-text-secondary",
   branchMessages: {
     declined: "Estimate declined — we may send a revised version soon",
-    revised: "Updated estimate ready for your review",
     cancelled: "Order was cancelled",
   },
   tentativeMessage:
@@ -100,13 +98,15 @@ export function OrderProgressBar({
   tentativeBooking?: boolean;
 }) {
   const styles = STYLES[variant];
-  const knownStatus = isOrderStatus(status) ? status : ("draft" as const);
+  // Canonicalize so window-period legacy rows ('scheduled' → approved,
+  // 'revised' → draft) land on the right step; unknown junk shows as draft.
+  const knownStatus = canonicalStatus(status) ?? ("draft" as const);
   const isTerminal = ORDER_TERMINAL_STATUSES.has(knownStatus);
   const isBranch = ORDER_BRANCH_STATUSES.has(knownStatus);
   const showTentative = tentativeBooking && knownStatus === "draft";
   const message = showTentative
     ? styles.tentativeMessage
-    : styles.branchMessages[status];
+    : styles.branchMessages[knownStatus];
 
   return (
     <div className="space-y-3">

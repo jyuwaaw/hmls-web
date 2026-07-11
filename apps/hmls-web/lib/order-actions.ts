@@ -3,12 +3,13 @@ import type { ActionId } from "@hmls/shared/order/profiles";
 import { STATUS_PROFILES } from "@hmls/shared/order/profiles";
 import {
   completionMissingDiagnosis,
-  isOrderStatus,
+  type OrderAuthorization,
   type OrderStatus,
 } from "@hmls/shared/order/status";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useOrderMutations } from "@/hooks/useOrderMutations";
+import { canonicalStatus } from "@/lib/status-display";
 
 export type ActionVariant = "primary" | "secondary" | "danger";
 
@@ -16,7 +17,11 @@ export type DialogId = "reassign" | "set_time" | "mark_paid";
 
 export type ActionContext = {
   order: Order;
-  transitionStatus(next: OrderStatus, reason?: string): Promise<void>;
+  transitionStatus(
+    next: OrderStatus,
+    reason?: string,
+    authorization?: OrderAuthorization,
+  ): Promise<void>;
   setSchedule(
     scheduledAt: string,
     durationMinutes: number,
@@ -34,6 +39,12 @@ export type ActionContext = {
     title: string;
     description?: string;
   }): Promise<string | null>;
+  /** Collect customer-authorization evidence (channel + optional note) for
+   *  fenced transitions. Resolves `null` when the admin cancels. */
+  askAuthorization(opts: {
+    title: string;
+    description?: string;
+  }): Promise<OrderAuthorization | null>;
   mutate(): Promise<void> | void;
 };
 
@@ -43,6 +54,9 @@ export type ActionDescriptor = {
   variant(order: Order): ActionVariant;
   visible(order: Order): boolean;
   enabled(order: Order): boolean;
+  /** Why the button is disabled right now (shown as a tooltip). Only
+   *  consulted when `enabled(order)` is false. */
+  disabledHint?(order: Order): string | undefined;
   invoke(ctx: ActionContext): Promise<void>;
 };
 
@@ -52,12 +66,16 @@ export const ACTION_REGISTRY: Readonly<Record<ActionId, ActionDescriptor>> = {
     label: () => "Send to customer",
     variant: () => "primary",
     // Hides only when the draft has both a slot AND a mechanic — that's when
-    // confirm_tentative_booking takes over the banner. Narrower than the
-    // page's `isTentativeBooking` (status+scheduledAt only); the extra
-    // providerId check avoids letting "Approve & confirm" win when the draft
-    // would still fail the server's draft→scheduled gate.
+    // approve_walk_in takes over the banner. Narrower than the page's
+    // `isTentativeBooking` (status+scheduledAt only); the extra providerId
+    // check avoids letting "Approve & confirm" win when the booking package
+    // is still incomplete.
     visible: (o) =>
-      !(o.scheduledAt != null && o.providerId != null && o.status === "draft"),
+      !(
+        o.scheduledAt != null &&
+        o.providerId != null &&
+        canonicalStatus(o.status) === "draft"
+      ),
     enabled: () => true,
     invoke: (ctx) => ctx.transitionStatus("estimated"),
   },
@@ -67,7 +85,17 @@ export const ACTION_REGISTRY: Readonly<Record<ActionId, ActionDescriptor>> = {
     variant: () => "secondary",
     visible: () => true,
     enabled: () => true,
-    invoke: (ctx) => ctx.transitionStatus("approved"),
+    // Fenced transition (→approved): the server rejects it without
+    // customer-authorization evidence, so collect it up front.
+    invoke: async (ctx) => {
+      const auth = await ctx.askAuthorization({
+        title: "Approve estimate",
+        description:
+          "How did the customer authorize this work? Recorded in the audit log.",
+      });
+      if (auth === null) return;
+      await ctx.transitionStatus("approved", undefined, auth);
+    },
   },
   decline_estimate: {
     id: "decline_estimate",
@@ -90,37 +118,28 @@ export const ACTION_REGISTRY: Readonly<Record<ActionId, ActionDescriptor>> = {
     variant: () => "primary",
     visible: () => true,
     enabled: () => true,
-    invoke: (ctx) => ctx.transitionStatus("revised"),
+    // declined → draft: draft is the single shop-side WIP state now
+    // (`revised` was collapsed away in the 9→7 migration).
+    invoke: (ctx) => ctx.transitionStatus("draft"),
   },
-  confirm_tentative_booking: {
-    id: "confirm_tentative_booking",
+  approve_walk_in: {
+    id: "approve_walk_in",
     label: () => "Approve & confirm",
     variant: () => "primary",
     visible: (o) => o.scheduledAt != null && o.providerId != null,
     enabled: () => true,
-    invoke: (ctx) => ctx.transitionStatus("scheduled"),
-  },
-  confirm_booking: {
-    id: "confirm_booking",
-    label: () => "Confirm booking",
-    variant: () => "primary",
-    visible: (o) => o.scheduledAt != null && o.providerId != null,
-    enabled: () => true,
-    invoke: (ctx) => ctx.transitionStatus("scheduled"),
-  },
-  reject_booking: {
-    id: "reject_booking",
-    label: () => "Reject booking",
-    variant: () => "danger",
-    visible: () => true,
-    enabled: () => true,
+    // Fenced transition (draft→approved walk-in shortcut): same evidence
+    // requirement as approve_estimate. With slot + mechanic already on the
+    // order, approved IS the confirmed booking — the backend emails the
+    // customer, no separate confirm step exists.
     invoke: async (ctx) => {
-      const r = await ctx.askReason({
-        title: "Reject booking",
-        description: "Optional reason for the customer.",
+      const auth = await ctx.askAuthorization({
+        title: "Approve & confirm booking",
+        description:
+          "How did the customer authorize this work? Recorded in the audit log.",
       });
-      if (r === null) return;
-      await ctx.transitionStatus("cancelled", r || undefined);
+      if (auth === null) return;
+      await ctx.transitionStatus("approved", undefined, auth);
     },
   },
   reassign_mechanic: {
@@ -135,11 +154,15 @@ export const ACTION_REGISTRY: Readonly<Record<ActionId, ActionDescriptor>> = {
       return Promise.resolve();
     },
   },
+  // reschedule = the order already has a time; set_time = it doesn't. Splitting
+  // on scheduledAt keeps exactly one of them visible per order — before, both
+  // rendered "Set appointment time" and opened the same dialog on an unscheduled
+  // approved order (two identical buttons).
   reschedule: {
     id: "reschedule",
-    label: (o) => (o.scheduledAt ? "Reschedule" : "Set appointment time"),
+    label: () => "Reschedule",
     variant: () => "secondary",
-    visible: () => true,
+    visible: (o) => o.scheduledAt != null,
     enabled: () => true,
     invoke: (ctx) => {
       ctx.openDialog("set_time");
@@ -162,7 +185,11 @@ export const ACTION_REGISTRY: Readonly<Record<ActionId, ActionDescriptor>> = {
     label: () => "Start",
     variant: () => "primary",
     visible: () => true,
-    enabled: () => true,
+    // approved → in_progress requires an assigned mechanic (the backend
+    // guards too — starting work must record who is doing it).
+    enabled: (o) => o.providerId != null,
+    disabledHint: (o) =>
+      o.providerId == null ? "Assign a mechanic before starting" : undefined,
     invoke: (ctx) => ctx.transitionStatus("in_progress"),
   },
   complete_job: {
@@ -193,7 +220,8 @@ export const ACTION_REGISTRY: Readonly<Record<ActionId, ActionDescriptor>> = {
   cancel_order: {
     id: "cancel_order",
     label: () => "Cancel",
-    variant: (o) => (o.status === "draft" ? "secondary" : "danger"),
+    variant: (o) =>
+      canonicalStatus(o.status) === "draft" ? "secondary" : "danger",
     visible: () => true,
     enabled: () => true,
     invoke: async (ctx) => {
@@ -219,8 +247,11 @@ export const ACTION_REGISTRY: Readonly<Record<ActionId, ActionDescriptor>> = {
 };
 
 export function leadAction(order: Order): ActionDescriptor | undefined {
-  if (!isOrderStatus(order.status)) return undefined;
-  const profile = STATUS_PROFILES[order.status];
+  // Canonicalize so window-period physical rows (legacy 'scheduled' /
+  // 'revised' labels) still resolve to a profile; unknown junk gets none.
+  const status = canonicalStatus(order.status);
+  if (!status) return undefined;
+  const profile = STATUS_PROFILES[status];
   if (profile.primary) {
     const named = ACTION_REGISTRY[profile.primary];
     if (named?.visible(order)) return named;
@@ -244,6 +275,11 @@ export type ReasonAsker = (opts: {
   title: string;
   description?: string;
 }) => Promise<string | null>;
+
+export type AuthorizationAsker = (opts: {
+  title: string;
+  description?: string;
+}) => Promise<OrderAuthorization | null>;
 
 export type OrderInvoker = {
   invoke(action: ActionDescriptor): Promise<void>;
@@ -276,6 +312,7 @@ export function useActionInvoker(
   orderId: number | string,
   revalidate: () => void,
   askReason: ReasonAsker,
+  askAuthorization: AuthorizationAsker,
 ): OrderInvoker {
   const m = useOrderMutations(orderId, revalidate);
   const [dialog, setDialog] = useState<DialogId | null>(null);
@@ -293,6 +330,7 @@ export function useActionInvoker(
       saveConfirmedDiagnosis: m.saveConfirmedDiagnosis,
       openDialog: setDialog,
       askReason,
+      askAuthorization,
       mutate: revalidate,
     };
     try {

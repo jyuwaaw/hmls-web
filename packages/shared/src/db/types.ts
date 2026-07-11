@@ -57,6 +57,11 @@ export type Shop = Wire<ShopRow>;
 export type OrderEvent = Wire<OrderEventRow>;
 export type PricingConfig = Wire<PricingConfigRow>;
 
+// Customer-facing event shape — the portal endpoint strips `metadata` and
+// `actor` (see filterCustomerVisibleEvents in schema.ts).
+export type CustomerOrderEventRow = Omit<OrderEventRow, "metadata" | "actor">;
+export type CustomerOrderEvent = Wire<CustomerOrderEventRow>;
+
 // Re-export jsonb element shapes from schema (declared there so Drizzle's
 // $type<...>() can reference them). One canonical definition for both
 // the gateway/agent and the web.

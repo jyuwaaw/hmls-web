@@ -7,11 +7,13 @@ import { useMemo } from "react";
 import { OrderProgressBar } from "@/components/OrderProgressBar";
 import { ActivityTimeline } from "@/components/order/ActivityTimeline";
 import { DraftBanner } from "@/components/order/DraftBanner";
+import { OrderChatPanel } from "@/components/order/OrderChatPanel";
 import { OrderDetailsCard } from "@/components/order/OrderDetailsCard";
 import { OrderDocumentCard } from "@/components/order/OrderDocumentCard";
 import { OrderOpsPanel } from "@/components/order/OrderOpsPanel";
 import { OrderSectionsRegion } from "@/components/order/OrderSectionsRegion";
 import { TechPrepCard } from "@/components/order/TechPrepCard";
+import { askAuthorization } from "@/components/ui/AuthorizeDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,7 +28,12 @@ import {
   parseAdminOrdersSearch,
 } from "@/lib/admin-order-filters";
 import { useActionInvoker } from "@/lib/order-actions";
-import { isTentativeBooking, statusDisplay } from "@/lib/status-display";
+import {
+  canonicalStatus,
+  isTentativeBooking,
+  orderSubBadge,
+  statusDisplay,
+} from "@/lib/status-display";
 import { cn } from "@/lib/utils";
 
 /* ── Status Badge (using shadcn Badge) ─────────────────────────────── */
@@ -90,6 +97,7 @@ export default function OrderDetailPage() {
     orderId,
     mutate,
     askReason,
+    askAuthorization,
   );
 
   if (isLoading) {
@@ -138,6 +146,9 @@ export default function OrderDetailPage() {
   const adminStatus = statusDisplay(order.status, "admin", {
     tentativeBooking: tentative,
   });
+  // Derived dual-semantics badge: draft → Pending review / Revising · rev N,
+  // approved → Pending schedule / Scheduled.
+  const subBadge = orderSubBadge(order);
 
   const bookingProviderName =
     order.providerId != null
@@ -168,10 +179,14 @@ export default function OrderDetailPage() {
             Order #{order.id}
           </h1>
           <OrderStatusBadge entry={adminStatus} />
-          {order.revisionNumber > 1 && (
-            <Badge variant="secondary" className="text-[10px]">
-              v{order.revisionNumber}
-            </Badge>
+          {subBadge ? (
+            <OrderStatusBadge entry={subBadge} />
+          ) : (
+            order.revisionNumber > 1 && (
+              <Badge variant="secondary" className="text-[10px]">
+                v{order.revisionNumber}
+              </Badge>
+            )
           )}
         </div>
         <span className="text-xs text-muted-foreground">
@@ -179,7 +194,7 @@ export default function OrderDetailPage() {
         </span>
       </div>
 
-      {order.status === "draft" && (
+      {canonicalStatus(order.status) === "draft" && (
         <DraftBanner order={order} invoker={invoker} />
       )}
 
@@ -212,6 +227,10 @@ export default function OrderDetailPage() {
           />
 
           <TechPrepCard order={order} />
+
+          {/* Embedded staff chat scoped to this order (PR 6). Agent tool
+              mutations revalidate the page via SWR mutate. */}
+          <OrderChatPanel orderId={order.id} revalidate={mutate} />
 
           {order.cancellationReason && (
             <Card className="gap-0 py-0 border-destructive/50">

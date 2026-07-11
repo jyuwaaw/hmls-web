@@ -5,10 +5,10 @@
 // "upsert with full pricing engine" tool covers both customer- and staff-side
 // flows.
 //
-// Idempotency: pass `orderId` to update an existing draft/revised/estimated
-// order in place (re-runs the full pricing engine). Without `orderId`, inserts
-// a new draft. Updating an `estimated` order auto-flips it back to `revised`,
-// matching the existing modify_order_items semantics.
+// Idempotency: pass `orderId` to update an existing draft/estimated order in
+// place (re-runs the full pricing engine). Without `orderId`, inserts a new
+// draft. Updating an `estimated` order pulls it back to `draft` (revision in
+// progress), matching the modify_order_items semantics.
 
 import { z } from "zod";
 import { and, eq, ilike, ne } from "drizzle-orm";
@@ -347,18 +347,17 @@ async function priceServices(input: PriceServicesInput): Promise<{
 }
 
 // ---------------------------------------------------------------------------
-// create_order — INSERT new draft, or UPDATE existing draft/revised/estimated
+// create_order — INSERT new draft, or UPDATE existing draft/estimated
 // ---------------------------------------------------------------------------
 
 export const createOrderTool = {
   name: "create_order",
-  description:
-    "Create a new draft order, OR update an existing draft/revised/estimated order in place. " +
+  description: "Create a new draft order, OR update an existing draft/estimated order in place. " +
     "This is the only tool for full-pricing-engine writes — it auto-applies disposal/hazmat/" +
     "battery/travel/time surcharges and discounts.\n\n" +
     "USAGE: omit `orderId` to create a new draft. Pass `orderId` to revise an order you already " +
     "created in this conversation — the row is updated in place (NOT duplicated). Updating an " +
-    "'estimated' order automatically flips it back to 'revised' so the shop re-reviews.\n\n" +
+    "'estimated' order automatically pulls it back to 'draft' so the shop re-reviews.\n\n" +
     "DO NOT call this tool again with the same vehicle in the same conversation without passing " +
     "the orderId from your previous call. For incremental tweaks (add one item, fix the customer's " +
     "phone), prefer `update_order_items` / `update_order` — they're cheaper and don't re-run the " +
@@ -369,7 +368,7 @@ export const createOrderTool = {
       .int()
       .optional()
       .describe(
-        "Order ID to UPDATE in place (must be in draft/revised/estimated). Omit to INSERT new draft.",
+        "Order ID to UPDATE in place (must be in draft/estimated). Omit to INSERT new draft.",
       ),
     customerId: z
       .number()
@@ -574,7 +573,11 @@ export const createOrderTool = {
       // throw against the RLS WITH CHECK if the guest's routed shop differs
       // from the GUC-scoped shop).
       const [existingOrder] = await db
-        .select({ shopId: schema.orders.shopId, customerId: schema.orders.customerId })
+        .select({
+          shopId: schema.orders.shopId,
+          customerId: schema.orders.customerId,
+          status: schema.orders.status,
+        })
         .from(schema.orders)
         .where(eq(schema.orders.id, params.orderId))
         .limit(1);
@@ -671,8 +674,8 @@ export const createOrderTool = {
         })),
         subtotal: subtotal / 100,
         priceRange: `$${(rangeLow / 100).toFixed(2)} - $${(rangeHigh / 100).toFixed(2)}`,
-        note: row.status === "revised"
-          ? "Order was already sent to customer — flipped back to 'revised'. Shop must re-send."
+        note: existingOrder?.status === "estimated" && row.status === "draft"
+          ? "Order was already sent to customer — pulled back to 'draft'. Shop must re-send."
           : "Order updated in place.",
       }));
     }

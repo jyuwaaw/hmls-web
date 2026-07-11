@@ -253,17 +253,46 @@ averages, ChatGPT can't either. fixo can.
 **Depends on / blocked by:** Speed Wedge 30-day plan completing first. Pick up only if Speed Wedge
 kill criteria fire, OR if Speed Wedge succeeds but you want a second wedge to compound retention.
 
+## Notification outbox + retry (from /plan-eng-review Codex outside voice, 2026-07-11)
+
+**What:** All customer/admin emails today are fire-and-forget after the DB transaction commits — no
+retry, no outbox, no send-idempotency key. On Deno Deploy a serverless instance can be terminated
+after the response is returned, silently dropping the email forever.
+
+**Why:** Pre-existing architecture debt, but the order-lifecycle-collapse design (2026-07-10 design
+doc) promotes the "schedule ready" email to a business-critical notification (it replaces the manual
+confirm-booking click), so the blast radius of a dropped email grows: order confirmed but customer
+never told.
+
+**Pros:** Deterministic delivery for lifecycle-critical emails; retry on transient SMTP/provider
+failures; audit trail of send attempts.
+
+**Cons:** Needs an `notification_outbox` table + a worker/cron to drain it — its own PR (~2 days
+CC), plus dedup interplay with the `schedule_ready_notified` event marker shipped in PR 2.
+
+**Context:** Codex finding #5 during eng review of the state-machine collapse. Current send path:
+`fireNotification` post-commit in `apps/agent/src/services/order-state.ts` (~line 205) and
+`apps/agent/src/lib/notifications.ts`. PR 2 of the collapse ships a same-transaction
+`schedule_ready_notified` event + partial unique index for dedup — the outbox would reuse that
+marker as the enqueue record (state: pending → sent/failed) rather than adding a second mechanism.
+
+**Depends on / blocked by:** Order-lifecycle-collapse PR 2 (the event marker lands there).
+**Trigger:** first observed lost lifecycle email, or first external SaaS shop onboarded.
+
 ## Preferred-contact follow-ups (from /qa on spinsirr/customer-contact-preference-9f6871, 2026-07-09)
 
 - [x] **Cap `logContactInput.note` length** — `.max(500)` added in
       `packages/shared/src/api/contracts/orders.ts` + test. Fixed by /ship pre-landing review on
       this branch, 2026-07-10.
-- [ ] **Portal leaks `note_added` internal notes** — pre-existing (NOT introduced by this branch):
+- [x] **Portal leaks `note_added` internal notes** — pre-existing (NOT introduced by this branch):
       `GET /me/orders/:id` in `apps/gateway/src/routes/portal.ts` returns `note_added` events whose
       metadata carries internal staff notes. `customer_contacted` is now filtered (ISSUE-004 fix); 3
       review specialists converged on inverting to an allowlist (`CUSTOMER_VISIBLE_EVENT_TYPES` next
       to the enum in `packages/shared/src/db/schema.ts`) so future internal event types are
-      private-by-default. Do that as part of this fix. Severity: medium.
+      private-by-default. Do that as part of this fix. Severity: medium. **Fixed in the compliance
+      fence PR (2026-07-11): allowlist + `filterCustomerVisibleEvents` (strips metadata/actor) in
+      `packages/shared/src/db/schema.ts`, wired into the portal route; tests in
+      `apps/gateway/src/routes/portal_test.ts`.**
 - [ ] **Index `order_events(order_id, created_at)`** — FK columns aren't auto-indexed; the event
       feed (admin + portal) filters/orders by these and `customer_contacted` grows the table faster.
       Add in a follow-up migration; optionally LIMIT the event fetch. Severity: low (dogfood scale

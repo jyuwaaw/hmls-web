@@ -1,16 +1,28 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import {
+  askPayment,
+  CollectPaymentDialog,
+} from "@/components/mechanic/CollectPaymentDialog";
 import {
   PREFERRED_ICON,
   PREFERRED_LABEL,
 } from "@/components/order/sections/CustomerSection";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { askReason } from "@/components/ui/ReasonDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type MechanicOrder, useMechanicOrders } from "@/hooks/useMechanic";
 import { formatDate, formatTime } from "@/lib/format";
-import { statusDisplay } from "@/lib/status-display";
+import {
+  invokeMechanicJobAction,
+  type MechanicJobAction,
+  mechanicJobAction,
+} from "@/lib/mechanic-job-actions";
+import { canonicalStatus, statusDisplay } from "@/lib/status-display";
 import { cn } from "@/lib/utils";
 
 function vehicleLabel(o: MechanicOrder) {
@@ -55,13 +67,23 @@ function durationLabel(minutes: number | null): string {
   return `${m}m`;
 }
 
-function OrderCard({ order }: { order: MechanicOrder }) {
+function OrderCard({
+  order,
+  onAction,
+}: {
+  order: MechanicOrder;
+  onAction: (order: MechanicOrder, action: MechanicJobAction) => Promise<void>;
+}) {
   const vehicle = vehicleLabel(order);
   const time = order.scheduledAt
     ? formatTime(order.scheduledAt)
     : durationLabel(order.durationMinutes);
   const statusConfig = statusDisplay(order.status);
   const firstItem = order.items?.[0]?.name ?? "Service";
+  const action = mechanicJobAction(order.status);
+  // In-flight guard: double-click fires one request; the backend state guard
+  // rejects any duplicate that slips through anyway.
+  const [busy, setBusy] = useState(false);
 
   return (
     <Card className="py-0">
@@ -120,6 +142,26 @@ function OrderCard({ order }: { order: MechanicOrder }) {
             </p>
           )}
         </div>
+
+        {action && (
+          <div className="shrink-0 flex sm:self-center">
+            <Button
+              size="lg"
+              className="w-full sm:w-auto"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                try {
+                  await onAction(order, action);
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              {busy ? action.busyLabel : action.label}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -132,14 +174,47 @@ export default function MechanicOrdersPage() {
     return d.toISOString();
   }, []);
 
-  const { orders, isLoading } = useMechanicOrders(fromDate);
+  const { orders, isLoading, mutate, transitionOrder, recordPayment } =
+    useMechanicOrders(fromDate);
 
-  // Include `approved` so an order assigned-but-not-yet-confirmed by the
-  // shop still surfaces here. The mechanic needs to know it's coming even
-  // before the admin clicks "Confirm booking".
-  const upcoming = orders.filter((o) =>
-    ["approved", "scheduled", "in_progress"].includes(o.status),
-  );
+  async function handleAction(order: MechanicOrder, action: MechanicJobAction) {
+    try {
+      await invokeMechanicJobAction(
+        action,
+        order,
+        (to, confirmedDiagnosis) =>
+          transitionOrder(order.id, to, confirmedDiagnosis),
+        askReason,
+        // Skippable on-the-spot payment after Complete. A failed payment
+        // write re-opens the dialog (retry) and never rolls back the
+        // completion — admin mark-paid is the fallback.
+        {
+          ask: ({ error }) =>
+            askPayment({
+              defaultAmountCents: order.subtotalCents ?? 0,
+              error,
+            }),
+          record: async (payment) => {
+            await recordPayment(order.id, payment);
+            toast.success("Payment recorded");
+          },
+        },
+      );
+    } catch (e) {
+      // Conflict (double-click / concurrent admin action) or network error:
+      // surface non-fatally and refetch so the card reflects reality.
+      toast.error(e instanceof Error ? e.message : "Failed to update job");
+      await mutate();
+    }
+  }
+
+  // approved + a slot = the confirmed booking (day groups below); approved
+  // without a slot lands in "Pending schedule". canonicalStatus keeps
+  // window-period legacy 'scheduled' rows visible.
+  const upcoming = orders.filter((o) => {
+    const s = canonicalStatus(o.status);
+    return s === "approved" || s === "in_progress";
+  });
   const { pending, byDay } = partitionBySchedule(upcoming);
   const sortedDays = [...byDay.keys()].sort(
     (a, b) => new Date(a).getTime() - new Date(b).getTime(),
@@ -160,6 +235,7 @@ export default function MechanicOrdersPage() {
 
   return (
     <div className="space-y-10">
+      <CollectPaymentDialog />
       <h1 className="text-2xl font-display font-bold text-foreground">
         My Jobs
       </h1>
@@ -179,7 +255,7 @@ export default function MechanicOrdersPage() {
                 </h3>
                 <div className="space-y-2">
                   {pending.map((o) => (
-                    <OrderCard key={o.id} order={o} />
+                    <OrderCard key={o.id} order={o} onAction={handleAction} />
                   ))}
                 </div>
               </div>
@@ -191,7 +267,7 @@ export default function MechanicOrdersPage() {
                 </h3>
                 <div className="space-y-2">
                   {byDay.get(day)?.map((o) => (
-                    <OrderCard key={o.id} order={o} />
+                    <OrderCard key={o.id} order={o} onAction={handleAction} />
                   ))}
                 </div>
               </div>

@@ -35,6 +35,13 @@ interface UseAgentChatOptions {
   /** localStorage key for chat history. Use distinct keys per chat surface
    * (e.g. customer vs. staff) so conversations don't cross-contaminate. */
   storageKey?: string;
+  /** Extra fields merged into EVERY send request body (top level, alongside
+   * `messages`). The embedded order chat uses this to carry `orderId`. */
+  body?: Record<string, unknown>;
+  /** Called after each assistant response finishes streaming. The embedded
+   * order chat uses this to revalidate the order data the agent may have
+   * mutated via tools. */
+  onFinish?: () => void;
 }
 
 /** Auto-send when the last assistant message completed a tool call, EXCEPT
@@ -64,6 +71,8 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
     accessToken,
     endpoint = CHAT_ENDPOINT,
     storageKey = DEFAULT_CHAT_STORAGE_KEY,
+    body,
+    onFinish,
   } = options;
 
   const [initialMessages] = useState(() => loadStoredChatMessages(storageKey));
@@ -79,6 +88,13 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
       ? { Authorization: `Bearer ${accessToken}` }
       : {};
   }, [accessToken]);
+
+  // Same ref pattern for the extra body and onFinish — callers can pass
+  // inline objects/closures without recreating the transport or the chat.
+  const bodyRef = useRef(body);
+  bodyRef.current = body;
+  const onFinishRef = useRef(onFinish);
+  onFinishRef.current = onFinish;
 
   // Recreate the transport when the endpoint changes; a single hook
   // instance might be repointed at a different surface (customer ↔ staff)
@@ -99,6 +115,7 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
           if (shopId) h["X-Shop-Id"] = shopId;
           return h;
         },
+        body: () => bodyRef.current ?? {},
       }),
     [endpoint],
   );
@@ -116,6 +133,7 @@ export function useAgentChat(options: UseAgentChatOptions = {}) {
     sendAutomaticallyWhen: sendAutomaticallyWhenNotAskUser,
     onFinish: () => {
       focusInput();
+      onFinishRef.current?.();
     },
     onError: (err) => {
       console.error("[agent] Chat error:", err);

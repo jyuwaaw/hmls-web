@@ -295,7 +295,57 @@ export const orderEventTypeEnum = pgEnum("order_event_type", [
   // Manual outreach log — admin recorded contacting the customer
   // (metadata: { method: "text"|"call"|"email", note? }).
   "customer_contacted",
+  // Once-per-order marker that the customer's "appointment confirmed" email
+  // fired when the slot+mechanic pair first became complete on an approved
+  // order. Deduped by the partial unique index (migration 0043); writers
+  // insert with ON CONFLICT DO NOTHING and skip sending when they lose.
+  "schedule_ready_notified",
 ]);
+
+export type OrderEventType = (typeof orderEventTypeEnum.enumValues)[number];
+
+/** Order-event types a customer may see in their portal timeline. This is an
+ *  ALLOWLIST — new event types are private-by-default until added here.
+ *  note_added / customer_contacted / contact_edited carry internal staff
+ *  context and must never reach the portal. */
+export const CUSTOMER_VISIBLE_EVENT_TYPES = [
+  "status_change",
+  "items_edited",
+  "schedule_attached",
+  "provider_assigned",
+  "payment_recorded",
+] as const satisfies readonly OrderEventType[];
+
+/** Project an event feed down to what a customer may see: allowlisted types
+ *  only, with `metadata` (authorization evidence, staff notes) and `actor`
+ *  (staff emails) stripped. */
+export function filterCustomerVisibleEvents<
+  T extends { eventType: string; metadata?: unknown; actor?: unknown },
+>(events: readonly T[]): Omit<T, "metadata" | "actor">[] {
+  return events
+    .filter((e) => (CUSTOMER_VISIBLE_EVENT_TYPES as readonly string[]).includes(e.eventType))
+    .map((e) => {
+      const { metadata: _metadata, actor: _actor, ...safe } = e;
+      return safe;
+    });
+}
+
+/** Order columns that hold internal staff context and must never reach a
+ *  customer surface. adminNotes = private shop commentary (routing warnings,
+ *  geocode failures, staff reminders); fixoPredictionId = internal brain
+ *  linkage. Same private-by-default intent as CUSTOMER_VISIBLE_EVENT_TYPES,
+ *  but for the order row itself. */
+export const INTERNAL_ORDER_FIELDS = ["adminNotes", "fixoPredictionId"] as const;
+
+/** Strip internal-only columns from an order row before returning it to a
+ *  customer. Denylist (not allowlist) so portal features keep working when
+ *  new customer-safe columns are added — only known-internal fields drop. */
+export function toCustomerOrder<T extends Record<string, unknown>>(
+  order: T,
+): Omit<T, (typeof INTERNAL_ORDER_FIELDS)[number]> {
+  const { adminNotes: _adminNotes, fixoPredictionId: _fixoPredictionId, ...safe } = order;
+  return safe as Omit<T, (typeof INTERNAL_ORDER_FIELDS)[number]>;
+}
 
 export const orderEvents = pgTable("order_events", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -307,7 +357,20 @@ export const orderEvents = pgTable("order_events", {
   metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow()
     .notNull(),
-});
+}, (table) => ({
+  // Event-feed reads are always "this order's events, newest first".
+  orderCreatedIdx: index("order_events_order_id_created_at_idx").on(
+    table.orderId,
+    table.createdAt,
+  ),
+  // At most one schedule_ready_notified marker per order (C6 dedup). Prod
+  // creates this in migration 0044 (a transaction after 0043 adds the enum
+  // value, so the enum-literal predicate below is usable), applied before the
+  // code that inserts these markers goes live.
+  scheduleReadyOnceIdx: uniqueIndex("order_events_schedule_ready_once_idx")
+    .on(table.orderId)
+    .where(sql`event_type = 'schedule_ready_notified'`),
+}));
 
 // --- OLP (Open Labor Project) reference data ---
 

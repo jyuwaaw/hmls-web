@@ -187,7 +187,7 @@ export default function AdminDashboard() {
               Upcoming Bookings
             </h2>
             <Link
-              href="/admin/orders?status=scheduled"
+              href="/admin/orders?status=approved"
               className="text-xs text-primary hover:text-primary/80 font-medium"
             >
               View all

@@ -80,6 +80,53 @@ describe("eventDescription — customer_contacted", () => {
   });
 });
 
+describe("eventDescription — status_change history rendering", () => {
+  it("renders canonical statuses with their display labels", () => {
+    expect(
+      eventDescription(
+        event({
+          eventType: "status_change",
+          fromStatus: "draft",
+          toStatus: "estimated",
+        }),
+      ),
+    ).toBe("Status changed from Draft → Estimated");
+  });
+
+  it("renders retired legacy statuses with their historical labels (history is immutable)", () => {
+    expect(
+      eventDescription(
+        event({
+          eventType: "status_change",
+          fromStatus: "approved",
+          toStatus: "scheduled",
+        }),
+      ),
+    ).toBe("Status changed from Approved → Scheduled");
+    expect(
+      eventDescription(
+        event({
+          eventType: "status_change",
+          fromStatus: "declined",
+          toStatus: "revised",
+        }),
+      ),
+    ).toBe("Status changed from Declined → Revised");
+  });
+
+  it("falls back to the raw label for unknown statuses instead of crashing", () => {
+    expect(
+      eventDescription(
+        event({
+          eventType: "status_change",
+          fromStatus: "mystery",
+          toStatus: "draft",
+        }),
+      ),
+    ).toBe("Status changed from mystery → Draft");
+  });
+});
+
 describe("eventDescription — existing branches (regression pins)", () => {
   it("note_added shows the note", () => {
     expect(

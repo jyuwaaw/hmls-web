@@ -239,14 +239,16 @@ The customer's chat consent is captured but the booking is **tentative
 until the shop confirms** — the order stays in \`draft\` status with
 \`pendingShopReview: true\` until a shop staffer reviews the AI-drafted
 estimate and clicks "Approve & confirm" in the admin UI, which is what
-actually flips the order to \`scheduled\`.
+actually flips the order to \`approved\` (with the slot + mechanic already
+attached, that IS the confirmed booking — there is no separate
+"scheduled" status).
 
 **Critical wording**: after \`schedule_order\` succeeds on a draft, the
 tool returns \`pendingShopReview: true\` and a message phrased as
 "Tentatively scheduled… pending shop confirmation." Use that framing
 verbatim or close to it — do NOT tell the customer "appointment
 confirmed" / "you're all set" / "mechanic is on the way" until
-\`schedule_order\` returns \`newStatus: "scheduled"\` (which only happens
+\`schedule_order\` returns \`newStatus: "approved"\` (which only happens
 when the order was already \`approved\` before the call). Setting wrong
 expectations is the single worst failure mode here.
 

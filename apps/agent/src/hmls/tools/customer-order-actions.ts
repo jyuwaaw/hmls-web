@@ -24,7 +24,7 @@ import { shopHourlyRate } from "../skills/estimate/pricing.ts";
 const cancelOrderTool = {
   name: "cancel_order",
   description: "Customer cancels an order. Allowed while the order is in 'draft', 'estimated' or " +
-    "'scheduled' status (before any work begins). In-progress work must be handled by the shop.",
+    "'approved' status (before any work begins). In-progress work must be handled by the shop.",
   schema: z.object({
     orderId: z.string().describe("The order ID to cancel"),
     reason: z.string().optional().describe("Optional reason for cancellation"),
@@ -66,16 +66,15 @@ const cancelOrderTool = {
 
 const modifyOrderItemsTool = {
   name: "modify_order_items",
-  description:
-    "Customer adds or removes service request items on a draft, revised, or estimated order. " +
+  description: "Customer adds or removes service request items on a draft or estimated order. " +
     "Added items are priced automatically from the OLP labor database at the shop's standard " +
     "rate ($140/hr) and roll into the subtotal. If the vehicle or service isn't in OLP, the " +
     "item is added at $0 and the shop prices it during review. " +
     "IMPORTANT: if the order is in 'estimated' status (shop already sent the customer a quote), " +
-    "modifying items flips the order back to 'revised' so the shop must re-review and re-send " +
+    "modifying items pulls the order back to 'draft' so the shop must re-review and re-send " +
     "the estimate. Before calling this tool on an estimated order, tell the customer: " +
     "'Changing this estimate will send it back to the shop for a new price — you'll get an updated quote.' " +
-    "Only works when the order is in 'draft', 'revised', or 'estimated' status.",
+    "Only works when the order is in 'draft' or 'estimated' status.",
   schema: z.object({
     orderId: z.string().describe("The order ID to modify"),
     addItems: z
@@ -192,7 +191,8 @@ const modifyOrderItemsTool = {
     }
 
     // Harness handles subtotal recompute, revisionNumber bump, events, and
-    // the estimated -> revised flip.
+    // the estimated -> draft pullback.
+    const wasEstimated = order.status === "estimated";
     const result = await patchItems(id, { items }, actor, {
       metadata: {
         added: params.addItems?.map((i) => i.name) ?? [],
@@ -208,7 +208,7 @@ const modifyOrderItemsTool = {
           ? `Added ${params.addItems.length} service(s) (priced automatically where possible). `
           : "") +
         (params.removeItemIds?.length ? `Removed ${params.removeItemIds.length} item(s). ` : "") +
-        (row.status === "revised"
+        (wasEstimated && row.status === "draft"
           ? "Since you changed an estimate the shop already sent, the shop will re-review and send an updated estimate."
           : ""),
     }));

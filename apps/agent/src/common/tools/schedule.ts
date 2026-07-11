@@ -8,9 +8,10 @@
 //   - staff agent:    no ownership constraint; may override the duration
 //     (e.g. add buffer for a difficult job) via the optional override.
 //
-// Routes through the order-state harness (`attachSchedule`), so an
-// `approved` order auto-advances to `scheduled` and a `scheduled` /
-// `in_progress` order is updated in place.
+// Routes through the order-state harness (`attachSchedule`). Scheduling is
+// a property, not a status: approved + scheduledAt + providerId IS the
+// booked state, and the harness fires the customer's confirmation email
+// once that pair completes on an approved order.
 
 import { z } from "zod";
 import { eq } from "drizzle-orm";
@@ -19,7 +20,7 @@ import { type AccessCtx, canWrite, orderAccessible } from "../../db/tenant.ts";
 import { toolResult } from "@hmls/shared/tool-result";
 import type { OrderItem } from "@hmls/shared/db/schema";
 import { autoAssignProvider } from "../../services/auto-assign.ts";
-import { attachSchedule } from "../../services/order-state.ts";
+import { attachSchedule, canonicalizeStatus } from "../../services/order-state.ts";
 import {
   customerAgentActor,
   staffAgentActor,
@@ -52,10 +53,11 @@ function deriveDurationMinutes(
 const scheduleOrderTool = {
   name: "schedule_order",
   description: "Pick an appointment time on an existing order. Use after `get_availability` " +
-    "returns slots and the customer has chosen one. Works on `approved` orders " +
-    "(advances them to `scheduled`) and on already-`scheduled` / `in_progress` " +
-    "orders (pure reschedule). Duration is fixed by the order's labor items — " +
-    "customers cannot override it. The shop assigns the mechanic separately.",
+    "returns slots and the customer has chosen one. Works on `draft`/`estimated` orders " +
+    "(tentative slot, pending shop review) and on `approved`/`in_progress` orders " +
+    "(sets or reschedules the confirmed booking — status never changes). Duration is " +
+    "fixed by the order's labor items — customers cannot override it. The shop assigns " +
+    "the mechanic separately.",
   schema: z.object({
     orderId: z.string().describe("The order ID to schedule"),
     scheduledAt: z
@@ -157,15 +159,16 @@ const scheduleOrderTool = {
       hour12: true,
     });
 
-    // Wording follows the order's actual lifecycle status. `scheduled` and
-    // `in_progress` are both locked: scheduled means the shop confirmed
-    // the appointment, in_progress means the mechanic is already on the
-    // job and this call is a pure reschedule (per attachSchedule's
-    // SCHEDULE_ATTACH_FROM allowlist). Drafts/estimated/revised orders
-    // are tentative — the shop still needs to review and confirm before
-    // it is a real booking, so the tool MUST NOT claim "confirmed" then.
-    const finalStatus = result.value.status;
-    const isLocked = finalStatus === "scheduled" ||
+    // Wording follows the order's actual lifecycle status. `approved` and
+    // `in_progress` are locked: approved means the customer authorized the
+    // work (approved + slot IS the booking), in_progress means the mechanic
+    // is already on the job and this call is a pure reschedule (per
+    // attachSchedule's SCHEDULE_ATTACH_FROM allowlist). Draft/estimated
+    // orders are tentative — the shop still needs to review and confirm
+    // before it is a real booking, so the tool MUST NOT claim "confirmed"
+    // then. Legacy label tolerated via canonicalization (window rows).
+    const finalStatus = canonicalizeStatus(result.value.status);
+    const isLocked = finalStatus === "approved" ||
       finalStatus === "in_progress";
     const message = isLocked
       ? (dispatched.providerId

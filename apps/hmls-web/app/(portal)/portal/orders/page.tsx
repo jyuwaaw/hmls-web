@@ -13,7 +13,13 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useApi } from "@/hooks/useApi";
 import { type PortalOrder, usePortalOrders } from "@/hooks/usePortal";
 import { portalPaths } from "@/lib/api-paths";
-import { isTentativeBooking, statusDisplay } from "@/lib/status-display";
+import {
+  canonicalStatus,
+  historicalStatusLabel,
+  isBookedOrder,
+  isTentativeBooking,
+  statusDisplay,
+} from "@/lib/status-display";
 
 function OrderCard({
   order,
@@ -24,10 +30,11 @@ function OrderCard({
   onAction: (orderId: number, action: "approve" | "decline") => void;
   loading: number | null;
 }) {
-  const canApproveDecline = order.status === "estimated";
+  const canApproveDecline = canonicalStatus(order.status) === "estimated";
   const tentative = isTentativeBooking(order);
   const badgeEntry = statusDisplay(order.status, "portal", {
     tentativeBooking: tentative,
+    scheduledBooking: isBookedOrder(order),
   });
 
   return (
@@ -74,7 +81,9 @@ function OrderCard({
                 className="flex items-center gap-2 text-xs text-text-secondary"
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-text-secondary shrink-0" />
-                <span>{statusDisplay(entry.status, "portal").label}</span>
+                {/* History is immutable — legacy entries keep their
+                    historical label (Scheduled / Updated Estimate). */}
+                <span>{historicalStatusLabel(entry.status, "portal")}</span>
                 <span className="text-text-secondary/60">
                   {new Date(entry.timestamp).toLocaleDateString("en-US", {
                     month: "short",

@@ -1,9 +1,13 @@
 import { z } from "zod";
-import { and, desc, eq, ilike, or } from "drizzle-orm";
+import { and, desc, eq, ilike, inArray, or } from "drizzle-orm";
 import { db, schema, scoped, whereShop } from "../../db/client.ts";
 import { type AccessCtx, canWrite, orderAccessible } from "../../db/tenant.ts";
 import type { OrderItem } from "@hmls/shared/db/schema";
-import { EDITABLE_STATUSES, isOrderStatus } from "@hmls/shared/order/status";
+import {
+  canonicalizeStatus,
+  EDITABLE_STATUSES,
+  physicalStatusLabels,
+} from "@hmls/shared/order/status";
 import { toolResult } from "@hmls/shared/tool-result";
 import type { LaborTimeResult, OlpVehicle } from "./olp-client.ts";
 import type { ToolContext } from "../../common/convert-tools.ts";
@@ -53,18 +57,23 @@ const listOrdersTool = {
       .$dynamic();
 
     if (params.status) {
-      // Narrow the agent-supplied string against the canonical enum before
-      // querying so we never attempt `WHERE status = 'banana'`.
-      if (!isOrderStatus(params.status)) {
+      // Canonicalize the agent-supplied string (legacy 'scheduled'/'revised'
+      // map to approved/draft) and reject anything unknown so we never
+      // attempt `WHERE status = 'banana'`. Filter on the physical label set
+      // so pre-remap window rows stay visible.
+      let canonical;
+      try {
+        canonical = canonicalizeStatus(params.status);
+      } catch {
         return toolResult({
           success: false,
           error: `Invalid status filter: ${params.status}. Valid values: draft, estimated, ` +
-            `revised, approved, declined, scheduled, in_progress, completed, cancelled.`,
+            `approved, declined, in_progress, completed, cancelled.`,
         });
       }
       // Combine shop scope with status filter.
       const shopFilter = shopId ? whereShop(schema.orders.shopId, shopId) : undefined;
-      const statusFilter = eq(schema.orders.status, params.status);
+      const statusFilter = inArray(schema.orders.status, [...physicalStatusLabels(canonical)]);
       query = query.where(and(shopFilter, statusFilter));
     } else if (shopId) {
       query = query.where(whereShop(schema.orders.shopId, shopId));
@@ -187,8 +196,9 @@ export function mergeItemUpdate(existing: OrderItem, upd: ItemUpdate): OrderItem
 
 const updateOrderItemsTool = {
   name: "update_order_items",
-  description: "Update line items on a draft, revised, or estimated order using PATCH semantics. " +
-    "Only works on orders in 'draft', 'revised', or 'estimated' status. " +
+  description: "Update line items on a draft or estimated order using PATCH semantics. " +
+    "Only works on orders in 'draft' or 'estimated' status (editing an estimated order pulls " +
+    "it back to 'draft' for re-review). " +
     "Operations: add new items, update existing by itemId, or remove by itemId. " +
     "Get each item's itemId from get_order (item.id). " +
     "Use idempotencyKey to prevent duplicate operations on retry. " +
@@ -329,11 +339,11 @@ const updateOrderItemsTool = {
       .where(eq(schema.orders.id, id))
       .limit(1);
     if (!order) return toolResult({ success: false, error: `Order #${id} not found` });
-    if (!isOrderStatus(order.status) || !EDITABLE_STATUSES.has(order.status)) {
+    if (!EDITABLE_STATUSES.has(canonicalizeStatus(order.status))) {
       return toolResult({
         success: false,
         error:
-          `Cannot edit order #${id} in '${order.status}' status. Editable statuses: draft, revised, estimated`,
+          `Cannot edit order #${id} in '${order.status}' status. Editable statuses: draft, estimated`,
       });
     }
 
