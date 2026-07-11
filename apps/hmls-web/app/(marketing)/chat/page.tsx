@@ -1,8 +1,8 @@
 "use client";
 
 import { isToolOrDynamicToolUIPart } from "ai";
-import { motion, useReducedMotion } from "framer-motion";
 import { Wrench } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   type FormEvent,

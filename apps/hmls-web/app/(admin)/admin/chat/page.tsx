@@ -1,8 +1,8 @@
 "use client";
 
 import { isToolOrDynamicToolUIPart } from "ai";
-import { motion, useReducedMotion } from "framer-motion";
 import { Wrench } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import {
