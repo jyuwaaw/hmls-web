@@ -9,6 +9,7 @@
     "./order-intake": "./src/services/order-intake.ts",
     "./auto-assign": "./src/services/auto-assign.ts",
     "./fixo-brain": "./src/fixo/fixo-brain.ts",
+    "./part-number-research": "./src/hmls/part-number-research.ts",
     "./common/shop-routing": "./src/common/shop-routing.ts"
   },
   "imports": {

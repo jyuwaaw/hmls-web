@@ -15,9 +15,9 @@ results persist only in the current browser and never access or mutate the HMLS 
 1. Define API-only `OnlinePartReference`, grounding metadata, evidence-block, and two-pass runner
    types without importing database `PartReference`.
 2. Add a pure converter from Gemini grounding supports/chunks to numbered HTTPS evidence blocks.
-3. Replace candidate URLs with evidence IDs in the extraction schema.
-4. Add deterministic validation that the cited evidence exists and contains the candidate part
-   number, then de-duplicate and cap at three references per service/engine.
+3. Remove candidate-created URLs and citations from the extraction schema.
+4. Add deterministic validation that locates the candidate part number in a non-marketplace evidence
+   block, then de-duplicate and cap at three references per service/engine.
 5. Add tests for malformed metadata, unsafe URLs, nonexistent evidence IDs, unsupported part-number
    claims, duplicate engine blocks, and the three-item cap.
 
@@ -66,7 +66,8 @@ results persist only in the current browser and never access or mutate the HMLS 
 2. Build a deterministic fingerprint from vehicle identity and eligible service IDs/names.
 3. Validate cached display records, including source/type fields and HTTPS URLs.
 4. Ignore malformed, stale, or unsupported cache data without throwing.
-5. Test round trips, fingerprint invalidation, malformed JSON, unsafe links, and unavailable storage.
+5. Test round trips, fingerprint invalidation, malformed JSON, unsafe links, and unavailable
+   storage.
 
 ## Task 5: Wire the Tech prep cards to the stateless lookup
 
@@ -80,7 +81,8 @@ results persist only in the current browser and never access or mutate the HMLS 
 2. Load matching cached records after mount and show grouped engine cards with OEM/aftermarket
    labels and grounded source links.
 3. Send only vehicle and eligible service data to the stateless endpoint.
-4. On success, update component state and cache; on failure/no-results, retain the prior valid state.
+4. On success, update component state and cache; on failure/no-results, retain the prior valid
+   state.
 5. Preserve the lookup/refresh/loading button states and VIN/engine verification warning.
 6. Extend pure grouping and cache-integration tests.
 

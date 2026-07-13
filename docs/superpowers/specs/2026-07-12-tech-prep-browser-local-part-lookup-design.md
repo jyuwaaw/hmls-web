@@ -64,9 +64,9 @@ prompt asks for all applicable engine variants and up to three well-supported OE
 aftermarket part numbers per variant.
 
 Capture the answer text, URL sources, usage, and Google grounding metadata. Convert
-`groundingSupports` and their referenced `groundingChunks` into numbered evidence blocks. Each
-block includes the supported text segment and only the HTTPS source URLs attached to that segment.
-Google grounding redirect URLs are acceptable; they open the supporting catalog or product page.
+`groundingSupports` and their referenced `groundingChunks` into numbered evidence blocks. Each block
+includes the supported text segment and only the HTTPS source URLs attached to that segment. Google
+grounding redirect URLs are acceptable; they open the supporting catalog or product page.
 
 If Gemini returns no usable evidence blocks, the lookup returns `no_results` and performs no second
 call.
@@ -82,18 +82,19 @@ limited to the vehicle/services, first-pass answer, and numbered evidence blocks
 - part number;
 - OEM or aftermarket type;
 - short fitment note; and
-- evidence block ID.
+- no source URL or database field.
 
 The deterministic normalizer accepts a candidate only when:
 
 1. its service ID came from the request;
-2. its evidence block exists;
-3. its part number appears in the cited supported text;
-4. the evidence block contains an HTTPS source; and
-5. it is not a duplicate or beyond the three-per-engine cap.
+2. its part number appears literally in a grounded evidence block;
+3. that evidence block contains a non-marketplace HTTPS source; and
+4. it is not a duplicate or beyond the three-per-engine cap.
 
-The displayed link and title come from the accepted evidence block, never from an extractor-created
-URL. This prevents the second call from inventing a source.
+The server finds the evidence block by normalized part-number matching instead of trusting the
+extractor to choose a citation. The displayed link and title come from that accepted evidence block,
+never from an extractor-created URL. This prevents the second call from inventing or misbinding a
+source.
 
 ## Browser-local persistence
 
@@ -126,16 +127,17 @@ The UI continues to warn staff to verify fitment by VIN and engine before purcha
 
 ## Token use
 
-The live Camry grounded-text diagnostic used 866 tokens. The extraction pass adds a smaller second
-call, so the expected total is approximately 1,200–1,800 tokens per button click. Loading or
-refreshing a page consumes no model tokens because it reads browser-local data.
+The first live Camry grounded-text diagnostic used 866 tokens. The complete evidence-rich two-pass
+lookup used 2,568 tokens, so the expected range is approximately 1,800–3,000 tokens per button
+click. Loading or refreshing a page consumes no model tokens because it reads browser-local data.
 
 ## Testing and acceptance
 
 Automated tests cover:
 
 - grounding-support to evidence-block conversion;
-- rejection of candidates without evidence, HTTPS URLs, or a part-number match in supported text;
+- rejection of candidates without non-marketplace HTTPS evidence or a literal part-number match in
+  supported text;
 - de-duplication and the three-per-engine cap;
 - stateless endpoint authentication and request validation;
 - proof that the lookup route has no HMLS database dependency;

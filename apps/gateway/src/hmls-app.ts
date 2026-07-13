@@ -9,6 +9,7 @@ import { admin } from "./routes/admin.ts";
 import { adminMechanics } from "./routes/admin-mechanics.ts";
 import { mechanic } from "./routes/mechanic.ts";
 import { orders, ordersPdf } from "./routes/orders.ts";
+import { partReferenceLookup } from "./routes/order-part-reference-lookup.ts";
 import { chat } from "./routes/chat.ts";
 import { staffChat } from "./routes/staff-chat.ts";
 import { createWebhookRoute } from "./routes/webhook.ts";
@@ -23,6 +24,7 @@ const logger = getLogger(["hmls", "gateway", "app"]);
 
 const adminApp = new Hono()
   .route("/", admin)
+  .route("/part-references", partReferenceLookup)
   .route("/orders", orders)
   .route("/mechanics", adminMechanics);
 

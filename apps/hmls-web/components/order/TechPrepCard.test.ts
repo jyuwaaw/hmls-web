@@ -1,6 +1,11 @@
 import { describe, expect, it } from "bun:test";
 import type { OrderItem, PartReference } from "@hmls/shared/db/schema";
-import { collectReferenceParts } from "./TechPrepCard";
+import type { OnlinePartReference } from "@/lib/part-reference-cache";
+import {
+  collectOnlineReferenceParts,
+  collectReferenceParts,
+  groupOnlineReferenceParts,
+} from "./TechPrepCard";
 
 function item(referenceParts?: PartReference[]): OrderItem {
   return {
@@ -78,5 +83,42 @@ describe("collectReferenceParts", () => {
         item([duplicate, { ...duplicate, brand: "ngk" }, malformed]),
       ]),
     ).toHaveLength(1);
+  });
+});
+
+describe("groupOnlineReferenceParts", () => {
+  it("attaches service names, de-duplicates, and groups variants independently", () => {
+    const online = (
+      brand: string,
+      partNumber: string,
+      engineVariant: string,
+    ): OnlinePartReference => ({
+      partName: "Spark Plug Replacement",
+      brand,
+      partNumber,
+      source: "google_search",
+      engineVariant,
+      partType: "aftermarket",
+      fitmentNote: `${engineVariant} fitment`,
+      sourceTitle: "Parts Catalog",
+      sourceUrl: `https://parts.example/${partNumber}`,
+      searchedAt: "2026-07-13T00:00:00.000Z",
+    });
+    const ngk = online("NGK", "6619", "1.6L I4");
+    const references = collectOnlineReferenceParts([item()], {
+      "service-1": [ngk, ngk, online("Denso", "4711", "1.8L I4")],
+      unknown: [online("Ignored", "0000", "1.0L")],
+    });
+
+    expect(references).toHaveLength(2);
+    expect(
+      groupOnlineReferenceParts(references).map((group) => ({
+        engineVariant: group.engineVariant,
+        partNumbers: group.references.map((reference) => reference.partNumber),
+      })),
+    ).toEqual([
+      { engineVariant: "1.6L I4", partNumbers: ["6619"] },
+      { engineVariant: "1.8L I4", partNumbers: ["4711"] },
+    ]);
   });
 });
