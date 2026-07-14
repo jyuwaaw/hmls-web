@@ -25,6 +25,7 @@ export const partLookupInputSchema = z.object({
       name: z.string().trim().min(1).max(200),
     }).strict(),
   ).min(1).max(20),
+  postalCode: z.string().regex(/^\d{5}$/).optional(),
 }).strict();
 
 function cooldownKey(userId: string, input: PartResearchInput): string {
@@ -88,11 +89,21 @@ export function createPartReferenceLookup(
         (sum, references) => sum + references.length,
         0,
       );
+      const retailerEntries = Object.values(result.retailerEntriesByItemId).flat();
+      const retailerOfferCount = retailerEntries.filter((entry) => entry.kind === "offer").length;
+      const retailerFallbackCount = retailerEntries.length - retailerOfferCount;
       return c.json({
         referencesByItemId: result.referencesByItemId,
+        retailerEntriesByItemId: result.retailerEntriesByItemId,
         lookup: {
-          status: referenceCount > 0 ? "found" as const : "no_results" as const,
+          status: referenceCount > 0
+            ? "found" as const
+            : retailerEntries.length > 0
+            ? "fallback_only" as const
+            : "no_results" as const,
           referenceCount,
+          retailerOfferCount,
+          retailerFallbackCount,
           emptyGroups: result.emptyGroups,
           evidenceCount: result.evidenceCount,
           sourceCount: result.sourceCount,

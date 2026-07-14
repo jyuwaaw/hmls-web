@@ -7,6 +7,7 @@ import {
   ExternalLink,
   LoaderCircle,
   Search,
+  ShoppingBag,
   Wrench,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -17,12 +18,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useApi } from "@/hooks/useApi";
 import { adminPaths } from "@/lib/api-paths";
 import {
+  extractPostalCode,
   type OnlinePartReference,
   type OnlinePartReferencesByItemId,
+  type PartLookupCacheData,
   partReferenceCacheKey,
   partReferenceFingerprint,
+  type RetailerEntriesByItemId,
+  type RetailerEntry,
   readPartReferenceCache,
-  validateOnlinePartReferences,
+  validatePartLookupData,
   writePartReferenceCache,
 } from "@/lib/part-reference-cache";
 import { cn } from "@/lib/utils";
@@ -38,18 +43,27 @@ export type DisplayOnlinePartReference = OnlinePartReference & {
   serviceName: string;
 };
 
+export type DisplayRetailerEntry = RetailerEntry & {
+  serviceId: string;
+  serviceName: string;
+};
+
 export type OnlineReferenceGroup = {
   serviceId: string;
   serviceName: string;
   engineVariant: string;
   references: DisplayOnlinePartReference[];
+  retailerEntries: DisplayRetailerEntry[];
 };
 
 type PartLookupResponse = {
   referencesByItemId: unknown;
+  retailerEntriesByItemId: unknown;
   lookup: {
-    status: "found" | "no_results";
+    status: "found" | "fallback_only" | "no_results";
     referenceCount: number;
+    retailerOfferCount: number;
+    retailerFallbackCount: number;
     emptyGroups: { itemId: string; engineVariant: string }[];
     sourceCount: number;
   };
@@ -124,8 +138,33 @@ export function collectOnlineReferenceParts(
   return collected;
 }
 
+export function collectRetailerEntries(
+  items: readonly OrderItem[],
+  entriesByItemId: RetailerEntriesByItemId,
+): DisplayRetailerEntry[] {
+  const services = new Map(items.map((item) => [item.id, item.name]));
+  const collected: DisplayRetailerEntry[] = [];
+  const seen = new Set<string>();
+  for (const [serviceId, entries] of Object.entries(entriesByItemId)) {
+    const serviceName = services.get(serviceId);
+    if (!serviceName) continue;
+    for (const entry of entries) {
+      const identity =
+        entry.kind === "offer"
+          ? `${entry.retailer}\u0000${entry.partNumber.toLowerCase()}`
+          : `${entry.retailer}\u0000search`;
+      const key = `${serviceId}\u0000${entry.engineVariant.toLowerCase()}\u0000${identity}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      collected.push({ ...entry, serviceId, serviceName });
+    }
+  }
+  return collected;
+}
+
 export function groupOnlineReferenceParts(
   references: readonly DisplayOnlinePartReference[],
+  retailerEntries: readonly DisplayRetailerEntry[] = [],
 ): OnlineReferenceGroup[] {
   const groups = new Map<string, OnlineReferenceGroup>();
   for (const reference of references) {
@@ -142,10 +181,35 @@ export function groupOnlineReferenceParts(
         serviceName: reference.serviceName,
         engineVariant,
         references: [reference],
+        retailerEntries: [],
+      });
+    }
+  }
+  for (const entry of retailerEntries) {
+    const engineVariant = entry.engineVariant.trim() || "Engine not verified";
+    const key = `${entry.serviceId}\u0000${engineVariant.toLowerCase()}`;
+    const group = groups.get(key);
+    if (group) {
+      group.retailerEntries.push(entry);
+    } else {
+      groups.set(key, {
+        serviceId: entry.serviceId,
+        serviceName: entry.serviceName,
+        engineVariant,
+        references: [],
+        retailerEntries: [entry],
       });
     }
   }
   return [...groups.values()];
+}
+
+function formatPrice(priceCents: number | null): string {
+  if (priceCents === null) return "Price unavailable";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+  }).format(priceCents / 100);
 }
 
 /**
@@ -157,8 +221,10 @@ export function groupOnlineReferenceParts(
 export function TechPrepCard({ order }: { order: Order }) {
   const api = useApi();
   const [lookingUp, setLookingUp] = useState(false);
-  const [onlineReferencesByItemId, setOnlineReferencesByItemId] =
-    useState<OnlinePartReferencesByItemId>({});
+  const [onlineResult, setOnlineResult] = useState<PartLookupCacheData>({
+    referencesByItemId: {},
+    retailerEntriesByItemId: {},
+  });
   const items = order.items ?? [];
   const jobs = items
     .map((it) =>
@@ -182,24 +248,42 @@ export function TechPrepCard({ order }: { order: Order }) {
       vehicle.model &&
       eligibleServices.length > 0,
   );
-  const fingerprint = partReferenceFingerprint(vehicle, eligibleServices);
+  const postalCode = extractPostalCode(order.location);
+  const fingerprint = partReferenceFingerprint(
+    vehicle,
+    eligibleServices,
+    postalCode,
+  );
   const cacheKey = partReferenceCacheKey(order.shopId, order.id);
 
   useEffect(() => {
     if (!canLookup) {
-      setOnlineReferencesByItemId({});
+      setOnlineResult({
+        referencesByItemId: {},
+        retailerEntriesByItemId: {},
+      });
       return;
     }
-    setOnlineReferencesByItemId(
-      readPartReferenceCache(window.localStorage, cacheKey, fingerprint) ?? {},
+    setOnlineResult(
+      readPartReferenceCache(window.localStorage, cacheKey, fingerprint) ?? {
+        referencesByItemId: {},
+        retailerEntriesByItemId: {},
+      },
     );
   }, [cacheKey, canLookup, fingerprint]);
 
   const onlineReferences = collectOnlineReferenceParts(
     items,
-    onlineReferencesByItemId,
+    onlineResult.referencesByItemId,
   );
-  const onlineGroups = groupOnlineReferenceParts(onlineReferences);
+  const retailerEntries = collectRetailerEntries(
+    items,
+    onlineResult.retailerEntriesByItemId,
+  );
+  const onlineGroups = groupOnlineReferenceParts(
+    onlineReferences,
+    retailerEntries,
+  );
 
   if (jobs.length === 0 && catalogReferences.length === 0) return null;
 
@@ -227,15 +311,22 @@ export function TechPrepCard({ order }: { order: Order }) {
     try {
       const result = await api.post<PartLookupResponse>(
         adminPaths.partReferenceLookup(),
-        { vehicle, services: eligibleServices },
+        {
+          vehicle,
+          services: eligibleServices,
+          ...(postalCode ? { postalCode } : {}),
+        },
       );
       if (result.lookup.status === "no_results") {
         toast.info("No sourced part-number matches were found");
         return;
       }
-      const validated = validateOnlinePartReferences(result.referencesByItemId);
+      const validated = validatePartLookupData(
+        result.referencesByItemId,
+        result.retailerEntriesByItemId,
+      );
       if (!validated) throw new Error("Part lookup returned malformed results");
-      setOnlineReferencesByItemId(validated);
+      setOnlineResult(validated);
       writePartReferenceCache(
         window.localStorage,
         cacheKey,
@@ -246,10 +337,18 @@ export function TechPrepCard({ order }: { order: Order }) {
         result.lookup.emptyGroups.length > 0
           ? " Some engine variants had no verified match."
           : "";
+      const retailerSummary =
+        result.lookup.retailerOfferCount > 0
+          ? ` ${result.lookup.retailerOfferCount} verified retailer offer${
+              result.lookup.retailerOfferCount === 1 ? "" : "s"
+            } found.`
+          : " Store search links are ready.";
       toast.success(
-        `Found ${result.lookup.referenceCount} reference part number${
-          result.lookup.referenceCount === 1 ? "" : "s"
-        }.${suffix}`,
+        result.lookup.status === "fallback_only"
+          ? `Store search links are ready.${suffix}`
+          : `Found ${result.lookup.referenceCount} reference part number${
+              result.lookup.referenceCount === 1 ? "" : "s"
+            }.${retailerSummary}${suffix}`,
       );
     } catch (error) {
       toast.error(
@@ -414,6 +513,75 @@ export function TechPrepCard({ order }: { order: Order }) {
                           )}
                         </div>
                       ))}
+                      {group.retailerEntries.length > 0 && (
+                        <div
+                          className={cn(
+                            "space-y-2 pt-2",
+                            group.references.length > 0 &&
+                              "border-t border-border",
+                          )}
+                        >
+                          <p className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                            <ShoppingBag className="h-3 w-3" /> Where to buy
+                          </p>
+                          {group.retailerEntries.map((entry) =>
+                            entry.kind === "offer" ? (
+                              <div
+                                key={`${entry.retailer}-${entry.partNumber}-${entry.sourceUrl}`}
+                                className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-4"
+                              >
+                                <div className="min-w-0">
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    <span className="text-[11px] text-foreground">
+                                      {entry.retailerLabel}
+                                    </span>
+                                    <Badge
+                                      variant="outline"
+                                      className="text-[9px]"
+                                    >
+                                      {formatPrice(entry.priceCents)}
+                                    </Badge>
+                                    {entry.rating !== null && (
+                                      <span className="text-[9px] text-muted-foreground">
+                                        ★ {entry.rating.toFixed(1)}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="mt-0.5 text-[10px] text-foreground">
+                                    {entry.productTitle}
+                                  </p>
+                                  <p className="font-mono text-[9px] text-muted-foreground">
+                                    {entry.brand} {entry.partNumber}
+                                  </p>
+                                  <p className="text-[9px] text-muted-foreground">
+                                    {entry.fitmentNote}
+                                  </p>
+                                </div>
+                                <a
+                                  href={entry.sourceUrl}
+                                  target="_blank"
+                                  rel="noreferrer noopener"
+                                  className="inline-flex shrink-0 items-center gap-1 text-[10px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                                >
+                                  View product
+                                  <ExternalLink className="h-2.5 w-2.5" />
+                                </a>
+                              </div>
+                            ) : (
+                              <a
+                                key={`${entry.retailer}-search-${entry.sourceUrl}`}
+                                href={entry.sourceUrl}
+                                target="_blank"
+                                rel="noreferrer noopener"
+                                className="inline-flex items-center gap-1 text-[10px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                              >
+                                {entry.searchTitle}
+                                <ExternalLink className="h-2.5 w-2.5" />
+                              </a>
+                            ),
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -463,7 +631,9 @@ export function TechPrepCard({ order }: { order: Order }) {
 
         <p className="text-[10px] text-muted-foreground">
           ★ specialty tool · internal only · AI-estimated, verify on site
-          {(catalogReferences.length > 0 || onlineReferences.length > 0) &&
+          {(catalogReferences.length > 0 ||
+            onlineReferences.length > 0 ||
+            retailerEntries.length > 0) &&
             " · verify part fitment by VIN/engine before purchase"}
         </p>
       </CardContent>

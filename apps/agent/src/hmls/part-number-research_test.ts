@@ -2,16 +2,19 @@ import { assert, assertEquals, assertStringIncludes } from "@std/assert";
 import {
   buildEvidenceBlocks,
   buildExtractionPrompt,
+  buildFallbackRetailerEntries,
   buildSearchQuery,
   normalizePartResearch,
   type PartResearchInput,
   researchPartNumbers,
+  retailerFromUrl,
   runTavilySearch,
 } from "./part-number-research.ts";
 
 const input: PartResearchInput = {
   vehicle: { year: "2018", make: "Toyota", model: "Camry" },
   services: [{ itemId: "belt", name: "Serpentine Belt Replacement" }],
+  postalCode: "95113",
 };
 
 const searchResponse = {
@@ -56,6 +59,8 @@ Deno.test("search and extraction prompts contain bounded repair data only", () =
   assertStringIncludes(search, "2018 Toyota Camry");
   assertStringIncludes(search, "[belt] Serpentine Belt Replacement");
   assertStringIncludes(search, "[brakes] Front Brake Pads");
+  assertStringIncludes(search, "AutoZone");
+  assertStringIncludes(search, "ZIP 95113");
   assert(!search.includes("customer"));
   const extraction = buildExtractionPrompt(input, [{
     id: "E1",
@@ -74,12 +79,14 @@ Deno.test("buildEvidenceBlocks maps relevant Tavily results to bounded HTTPS evi
       text: "Toyota Parts\n2.5L OEM belt 90916-A2027",
       sourceTitle: "Toyota Parts",
       sourceUrl: "https://parts.example/oem",
+      score: 0.92,
     },
     {
       id: "E2",
       text: "Gates Catalog\n2.5L aftermarket Gates K060615",
       sourceTitle: "Gates Catalog",
       sourceUrl: "https://parts.example/gates",
+      score: 0.81,
     },
   ]);
   assertEquals(buildEvidenceBlocks(undefined), []);
@@ -93,7 +100,7 @@ Deno.test("buildEvidenceBlocks maps relevant Tavily results to bounded HTTPS evi
       score: 0.9,
     }],
   });
-  assertEquals(bounded[0].text.length, 4_000);
+  assertEquals(bounded[0].text.length, 2_500);
 });
 
 Deno.test("normalizePartResearch requires cited evidence containing the part number", () => {
@@ -105,6 +112,7 @@ Deno.test("normalizePartResearch requires cited evidence containing the part num
         itemId: "belt",
         engineVariants: [{
           engineVariant: "2.5L I4",
+          retailerOffers: [],
           candidates: [
             {
               partType: "oem",
@@ -157,8 +165,16 @@ Deno.test("normalizePartResearch de-duplicates and caps repeated engine blocks a
       services: [{
         itemId: "belt",
         engineVariants: [
-          { engineVariant: "2.5L I4", candidates: [candidate(1), candidate(1)] },
-          { engineVariant: "2.5L I4", candidates: [candidate(2), candidate(3), candidate(4)] },
+          {
+            engineVariant: "2.5L I4",
+            candidates: [candidate(1), candidate(1)],
+            retailerOffers: [],
+          },
+          {
+            engineVariant: "2.5L I4",
+            candidates: [candidate(2), candidate(3), candidate(4)],
+            retailerOffers: [],
+          },
         ],
       }],
     },
@@ -178,6 +194,7 @@ Deno.test("normalizePartResearch rejects marketplace-only evidence", () => {
       itemId: "belt",
       engineVariants: [{
         engineVariant: "2.5L I4",
+        retailerOffers: [],
         candidates: [{
           partType: "aftermarket",
           brand: "Unknown",
@@ -196,7 +213,127 @@ Deno.test("normalizePartResearch rejects marketplace-only evidence", () => {
   assertEquals(result.referencesByItemId, {});
 });
 
-Deno.test("researchPartNumbers skips extraction without grounding evidence", async () => {
+Deno.test("retailer domains reject lookalikes and fallback links stay allowlisted", () => {
+  assertEquals(retailerFromUrl("https://www.autozone.com/p/belt"), "autozone");
+  assertEquals(retailerFromUrl("https://shop.oreillyauto.com/p/belt"), "oreilly");
+  assertEquals(retailerFromUrl("https://autozone.com.evil.example/p/belt"), null);
+  const fallbacks = buildFallbackRetailerEntries(input).belt;
+  assertEquals(fallbacks.length, 5);
+  assertEquals(fallbacks.map((entry) => entry.retailer), [
+    "autozone",
+    "oreilly",
+    "napa",
+    "walmart",
+    "amazon",
+  ]);
+  assert(
+    fallbacks.every((entry) => entry.kind === "search" && entry.sourceUrl.startsWith("https://")),
+  );
+});
+
+Deno.test("normalizePartResearch grounds prices, filters Amazon ratings, and ranks local first", () => {
+  const evidence = buildEvidenceBlocks({
+    results: [
+      {
+        title: "Toyota Parts",
+        url: "https://parts.example/oem",
+        content: "2018 Toyota Camry 2.5L belt 90916-A2027",
+        raw_content: null,
+        score: 0.95,
+      },
+      {
+        title: "AutoZone Gates Belt",
+        url: "https://www.autozone.com/belts/gates-k060615",
+        content: "Gates K060615 fits 2018 Toyota Camry. Price $24.99",
+        raw_content: null,
+        score: 0.9,
+      },
+      {
+        title: "Amazon Belt",
+        url: "https://www.amazon.com/example/dp/AMZ615",
+        content: "AMZ615 fits 2018 Toyota Camry. $19.99. 4.4 out of 5 stars",
+        raw_content: null,
+        score: 0.88,
+      },
+      {
+        title: "Amazon Low Rated Belt",
+        url: "https://www.amazon.com/example/dp/LOW615",
+        content: "LOW615 fits 2018 Toyota Camry. $9.99. 3.9 out of 5 stars",
+        raw_content: null,
+        score: 0.87,
+      },
+    ],
+  });
+  const result = normalizePartResearch(
+    input,
+    {
+      services: [{
+        itemId: "belt",
+        engineVariants: [{
+          engineVariant: "2.5L I4",
+          candidates: [{
+            partType: "oem",
+            brand: "Toyota",
+            partNumber: "90916-A2027",
+            fitmentNote: "2018 Camry 2.5L",
+          }],
+          retailerOffers: [
+            {
+              productTitle: "Gates Serpentine Belt",
+              brand: "Gates",
+              partNumber: "K060615",
+              fitmentNote: "2018 Camry fitment",
+              priceCents: 2499,
+              rating: null,
+            },
+            {
+              productTitle: "Amazon Serpentine Belt",
+              brand: "Generic",
+              partNumber: "AMZ615",
+              fitmentNote: "2018 Camry fitment",
+              priceCents: 1999,
+              rating: 4.4,
+            },
+            {
+              productTitle: "Low Rated Belt",
+              brand: "Generic",
+              partNumber: "LOW615",
+              fitmentNote: "2018 Camry fitment",
+              priceCents: 999,
+              rating: 3.9,
+            },
+          ],
+        }],
+      }],
+    },
+    evidence,
+    "2026-07-13T00:00:00.000Z",
+  );
+
+  const entries = result.retailerEntriesByItemId.belt;
+  assertEquals(entries.length, 5);
+  assertEquals(entries[0].kind, "offer");
+  assertEquals(entries[0].retailer, "autozone");
+  assertEquals(entries[0].kind === "offer" ? entries[0].priceCents : null, 2499);
+  assertEquals(entries[1].kind, "offer");
+  assertEquals(entries[1].retailer, "amazon");
+  assertEquals(entries.filter((entry) => entry.kind === "offer").length, 2);
+});
+
+Deno.test("buildEvidenceBlocks enforces the total evidence budget", () => {
+  const evidence = buildEvidenceBlocks({
+    results: Array.from({ length: 20 }, (_, index) => ({
+      title: `Catalog ${index}`,
+      url: `https://parts${index}.example/belt`,
+      content: `BELT-${index}`,
+      raw_content: "x".repeat(5_000),
+      score: 0.99 - index / 100,
+    })),
+  });
+  assert(evidence.reduce((sum, block) => sum + block.text.length, 0) <= 40_000);
+});
+
+Deno.test("researchPartNumbers skips extraction and returns retailer fallbacks without evidence", async () => {
   let extracted = false;
   const result = await researchPartNumbers(input, {
     search: () =>
@@ -212,6 +349,8 @@ Deno.test("researchPartNumbers skips extraction without grounding evidence", asy
   });
   assertEquals(extracted, false);
   assertEquals(result.referencesByItemId, {});
+  assertEquals(result.retailerEntriesByItemId.belt.length, 5);
+  assert(result.retailerEntriesByItemId.belt.every((entry) => entry.kind === "search"));
   assertEquals(result.evidenceCount, 0);
 });
 
@@ -236,6 +375,7 @@ Deno.test("researchPartNumbers runs both passes and combines usage", async () =>
             itemId: "belt",
             engineVariants: [{
               engineVariant: "2.5L I4",
+              retailerOffers: [],
               candidates: [{
                 partType: "oem",
                 brand: "Toyota",
@@ -271,7 +411,7 @@ Deno.test("runTavilySearch sends one bounded Basic Search request", async () => 
       assert(init?.signal instanceof AbortSignal);
       const body = JSON.parse(String(init?.body));
       assertEquals(body.search_depth, "basic");
-      assertEquals(body.max_results, 10);
+      assertEquals(body.max_results, 20);
       assertEquals(body.include_answer, false);
       assertEquals(body.include_raw_content, "text");
       assertEquals(body.include_usage, true);

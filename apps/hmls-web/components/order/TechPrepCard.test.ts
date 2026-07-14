@@ -1,9 +1,13 @@
 import { describe, expect, it } from "bun:test";
 import type { OrderItem, PartReference } from "@hmls/shared/db/schema";
-import type { OnlinePartReference } from "@/lib/part-reference-cache";
+import type {
+  OnlinePartReference,
+  RetailerEntry,
+} from "@/lib/part-reference-cache";
 import {
   collectOnlineReferenceParts,
   collectReferenceParts,
+  collectRetailerEntries,
   groupOnlineReferenceParts,
 } from "./TechPrepCard";
 
@@ -119,6 +123,49 @@ describe("groupOnlineReferenceParts", () => {
     ).toEqual([
       { engineVariant: "1.6L I4", partNumbers: ["6619"] },
       { engineVariant: "1.8L I4", partNumbers: ["4711"] },
+    ]);
+  });
+
+  it("groups verified offers and fallback searches with their engine variant", () => {
+    const entries: RetailerEntry[] = [
+      {
+        kind: "offer",
+        retailer: "autozone",
+        retailerLabel: "AutoZone",
+        partName: "Spark Plug Replacement",
+        engineVariant: "1.6L I4",
+        productTitle: "NGK Plug",
+        brand: "NGK",
+        partNumber: "6619",
+        fitmentNote: "1.6L fitment",
+        priceCents: 899,
+        rating: null,
+        sourceTitle: "AutoZone",
+        sourceUrl: "https://www.autozone.com/p/6619",
+        searchedAt: "2026-07-13T00:00:00.000Z",
+      },
+      {
+        kind: "search",
+        retailer: "amazon",
+        retailerLabel: "Amazon",
+        partName: "Spark Plug Replacement",
+        engineVariant: "Engine not verified",
+        searchTitle: "Search Amazon",
+        sourceUrl: "https://www.amazon.com/s?k=NGK+6619",
+      },
+    ];
+    const collected = collectRetailerEntries([item()], {
+      "service-1": entries,
+    });
+    const groups = groupOnlineReferenceParts([], collected);
+    expect(
+      groups.map((group) => ({
+        engineVariant: group.engineVariant,
+        kinds: group.retailerEntries.map((entry) => entry.kind),
+      })),
+    ).toEqual([
+      { engineVariant: "1.6L I4", kinds: ["offer"] },
+      { engineVariant: "Engine not verified", kinds: ["search"] },
     ]);
   });
 });

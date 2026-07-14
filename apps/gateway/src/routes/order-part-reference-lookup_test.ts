@@ -9,6 +9,7 @@ import {
 const validInput = {
   vehicle: { year: "2018", make: "Toyota", model: "Camry" },
   services: [{ itemId: "belt", name: "Serpentine Belt Replacement" }],
+  postalCode: "95113",
 };
 
 Deno.test("part lookup: rejects a missing Authorization header", async () => {
@@ -22,6 +23,8 @@ Deno.test("partLookupInputSchema rejects order and customer data", () => {
   assert(!partLookupInputSchema.safeParse({ ...validInput, orderId: 554 }).success);
   assert(!partLookupInputSchema.safeParse({ ...validInput, customerName: "Private" }).success);
   assert(!partLookupInputSchema.safeParse({ ...validInput, services: [] }).success);
+  assert(!partLookupInputSchema.safeParse({ ...validInput, postalCode: "95113-1234" }).success);
+  assert(!partLookupInputSchema.safeParse({ ...validInput, streetAddress: "123 Main St" }).success);
 });
 
 Deno.test("part lookup: returns stateless research results", async () => {
@@ -45,6 +48,17 @@ Deno.test("part lookup: returns stateless research results", async () => {
             searchedAt: "2026-07-13T00:00:00.000Z",
           }],
         },
+        retailerEntriesByItemId: {
+          belt: [{
+            kind: "search",
+            retailer: "autozone",
+            retailerLabel: "AutoZone",
+            partName: "Serpentine Belt Replacement",
+            engineVariant: "2.5L I4",
+            searchTitle: "Search AutoZone",
+            sourceUrl: "https://www.autozone.com/searchresult?searchText=90916-A2027",
+          }],
+        },
         emptyGroups: [],
         evidenceCount: 1,
         sourceCount: 1,
@@ -59,6 +73,42 @@ Deno.test("part lookup: returns stateless research results", async () => {
     const body = await response.json();
     assertEquals(body.lookup.status, "found");
     assertEquals(body.referencesByItemId.belt[0].partNumber, "90916-A2027");
+    assertEquals(body.lookup.retailerFallbackCount, 1);
+  } finally {
+    Deno.env.delete("SKIP_AUTH");
+  }
+});
+
+Deno.test("part lookup: returns fallback-only status when direct evidence is sparse", async () => {
+  resetPartLookupCooldownForTests();
+  Deno.env.set("SKIP_AUTH", "true");
+  try {
+    const router = createPartReferenceLookup(() =>
+      Promise.resolve({
+        referencesByItemId: {},
+        retailerEntriesByItemId: {
+          belt: [{
+            kind: "search",
+            retailer: "amazon",
+            retailerLabel: "Amazon",
+            partName: "Serpentine Belt Replacement",
+            engineVariant: "Engine not verified",
+            searchTitle: "Search Amazon",
+            sourceUrl: "https://www.amazon.com/s?k=2018%20Toyota%20Camry%20belt",
+          }],
+        },
+        emptyGroups: [],
+        evidenceCount: 0,
+        sourceCount: 0,
+      })
+    );
+    const response = await router.request("/lookup", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(validInput),
+    });
+    assertEquals(response.status, 200);
+    assertEquals((await response.json()).lookup.status, "fallback_only");
   } finally {
     Deno.env.delete("SKIP_AUTH");
   }
